@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @JsonInclude(Include.NON_NULL)
-
+// universal response to wrap various specific responses with error message & timestamps
 public class ResponseSingleItem {
     private String error;
     private long timestamp;
