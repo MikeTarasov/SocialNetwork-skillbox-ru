@@ -35,13 +35,9 @@ public class Person {
 
     private String about;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
-    @JoinColumn(name = "city_id")
-    private City city;
+    private String city;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.DETACH, CascadeType.REFRESH})
-    @JoinColumn(name = "country_id")
-    private Country country;
+    private String country;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "messages_permission", columnDefinition = "ENUM('ALL','FRIENDS') NOT NULL DEFAULT 'ALL'")
@@ -152,19 +148,19 @@ public class Person {
         this.about = about;
     }
 
-    public City getCity() {
+    public String getCity() {
         return city;
     }
 
-    public void setCity(City city) {
+    public void setCity(String city) {
         this.city = city;
     }
 
-    public Country getCountry() {
+    public String getCountry() {
         return country;
     }
 
-    public void setCountry(Country country) {
+    public void setCountry(String country) {
         this.country = country;
     }
 
