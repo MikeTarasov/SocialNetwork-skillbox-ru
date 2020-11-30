@@ -19,4 +19,5 @@ public class ResponsePost {
   private boolean isBlocked;
   private int likes;
   private List<ResponseComment> comments;
+  private String type;
 }
