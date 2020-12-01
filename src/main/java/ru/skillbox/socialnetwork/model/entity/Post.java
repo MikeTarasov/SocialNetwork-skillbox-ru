@@ -1,11 +1,14 @@
 package ru.skillbox.socialnetwork.model.entity;
 
+import lombok.Data;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Data
 @Entity
-@Table(name = "posts")
+@Table(name = "post")
 public class Post {
 
     @Id
@@ -13,22 +16,25 @@ public class Post {
     @Column(name = "id", nullable = false, unique = true)
     private Long id;
 
+    @Column(name = "time_post", columnDefinition = "TIMESTAMP")
     private LocalDateTime time;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
             CascadeType.DETACH, CascadeType.REFRESH})
     @JoinColumn(name = "person_id")
-    private Person author;
+    private int author_id;
 
+    @Column(columnDefinition = "VARCHAR(255)")
     private String title;
 
-    @Column(name = "post_text")
+    @Column(name = "post_text", columnDefinition = "VARCHAR(2048)")
     private String postText;
 
     @Column(name = "is_blocked")
-    private boolean isBlocked;
+    private int isBlocked;
 
-    private int likes;
+    @Column(name = "is_deleted")
+    private int isDeleted;
 
     @OneToMany(mappedBy = "post", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
             CascadeType.DETACH, CascadeType.REFRESH})
@@ -44,62 +50,5 @@ public class Post {
     public void setComments(List<Comment> comments) {
         this.comments = comments;
     }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getTime() {
-        return time;
-    }
-
-    public void setTime(LocalDateTime time) {
-        this.time = time;
-    }
-
-    public Person getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(Person author) {
-        this.author = author;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getPostText() {
-        return postText;
-    }
-
-    public void setPostText(String postText) {
-        this.postText = postText;
-    }
-
-    public boolean isBlocked() {
-        return isBlocked;
-    }
-
-    public void setBlocked(boolean blocked) {
-        isBlocked = blocked;
-    }
-
-    public int getLikes() {
-        return likes;
-    }
-
-    public void setLikes(int likes) {
-        this.likes = likes;
-    }
-
 
 }

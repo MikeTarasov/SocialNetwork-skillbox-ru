@@ -1,10 +1,13 @@
 package ru.skillbox.socialnetwork.model.entity;
 
+import lombok.Data;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+@Data
 @Entity
-@Table(name = "comments")
+@Table(name = "post_comment")
 public class Comment {
 
     @Id
@@ -12,22 +15,26 @@ public class Comment {
     @Column(name = "id", nullable = false, unique = true)
     private long id;
 
+    @Column(name = "time_comment", columnDefinition = "TIMESTAMP")
+    private LocalDateTime time;
+
+    @Column(name = "post_id")
+    private int postId;
+
     @Column(name = "parent_id")
     private long parentId;
 
-    @Column(name = "comment_text")
+    @Column(name = "author_id")
+    private int authorId;
+
+    @Column(name = "comment_text", columnDefinition = "VARCHAR(255)")
     private String commentText;
 
-    @Column(name = "post_id")
-    private long postId;
-
-    private LocalDateTime time;
-
-    @Column(name = "author_id")
-    private long authorId;
-
     @Column(name = "is_blocked")
-    private boolean isBlocked;
+    private int isBlocked;
+
+    @Column(name = "is_deleted")
+    private int isDeleted;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
             CascadeType.DETACH, CascadeType.REFRESH})
@@ -58,59 +65,4 @@ public class Comment {
         this.post = post;
     }
 
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public long getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(long parentId) {
-        this.parentId = parentId;
-    }
-
-    public String getCommentText() {
-        return commentText;
-    }
-
-    public void setCommentText(String commentText) {
-        this.commentText = commentText;
-    }
-
-    public long getPostId() {
-        return postId;
-    }
-
-    public void setPostId(long postId) {
-        this.postId = postId;
-    }
-
-    public LocalDateTime getTime() {
-        return time;
-    }
-
-    public void setTime(LocalDateTime time) {
-        this.time = time;
-    }
-
-    public long getAuthorId() {
-        return authorId;
-    }
-
-    public void setAuthorId(long authorId) {
-        this.authorId = authorId;
-    }
-
-    public boolean isBlocked() {
-        return isBlocked;
-    }
-
-    public void setBlocked(boolean blocked) {
-        isBlocked = blocked;
-    }
 }
