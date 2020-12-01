@@ -8,7 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import ru.skillbox.socialnetwork.model.Person;
 
-public class PersonDetails implements UserDetails {
+class PersonDetails implements UserDetails {
 
   private String username;
   private String password;

@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.GenericFilterBean;
 
 @Component
-public class AuthorizationFilter extends GenericFilterBean {
+class AuthorizationFilter extends GenericFilterBean {
 
   @Value("${jwt.token.header}")
   private String jwtHeader;

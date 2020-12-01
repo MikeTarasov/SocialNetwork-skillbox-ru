@@ -8,7 +8,7 @@ import ru.skillbox.socialnetwork.model.Person;
 import ru.skillbox.socialnetwork.model.PersonRepository;
 
 @Service
-public class PersonDetailsService implements UserDetailsService {
+class PersonDetailsService implements UserDetailsService {
 
   private final PersonRepository personRepository;
 

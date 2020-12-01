@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class JwtTokenProvider {
+class JwtTokenProvider {
 
   private final int MILIS_IN_SEC = 1000;
   private final int SEC_IN_MIN = 60;
