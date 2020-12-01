@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import ru.skillbox.socialnetwork.model.Person;
+import ru.skillbox.socialnetwork.model.entity.Person;
 
 @Service
 public class EmailSenderService {
