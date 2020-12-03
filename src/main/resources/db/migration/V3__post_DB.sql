@@ -1,11 +1,11 @@
 create table post(
     id BIGSERIAL PRIMARY KEY,
-    time_post timestamp,
+    time timestamp,
     author_id integer REFERENCES person (id),
     title varchar(255),
     post_text varchar(2048),
-    is_blocked integer,
-    is_deleted integer);
+    is_blocked smallint,
+    is_deleted smallint);
 
 create table post_like(
     id BIGSERIAL PRIMARY KEY,

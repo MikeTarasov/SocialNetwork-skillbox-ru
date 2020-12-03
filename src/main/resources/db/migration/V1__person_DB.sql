@@ -1,5 +1,5 @@
 create table person (
-    id BIGSERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     first_name varchar(255),
     last_name varchar(255),
     reg_date timestamp,
@@ -15,12 +15,12 @@ create table person (
     is_approved integer,
     message_permission varchar(255),
     last_online_time timestamp,
-    is_blocked integer,
-    is_online integer,
-    is_delete integer);
+    is_blocked smallint,
+    is_online smallint,
+    is_delete smallint);
 
 create table friendship (
-    id BIGSERIAL PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     src_person_id integer,
     dst_person_id integer,
     code varchar(255));
