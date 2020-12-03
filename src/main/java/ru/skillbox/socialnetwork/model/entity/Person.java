@@ -17,7 +17,7 @@ public class Person {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private Integer id;
 
   @Column(name = "first_name", nullable = false, length = 100)
   private String firstName;
@@ -66,12 +66,12 @@ public class Person {
   private LocalDateTime lastOnlineTime;
 
   @Column(name = "is_online")
-  private int isOnline;
+  private byte isOnline;
 
   @Column(name = "is_blocked")
-  private int isBlocked;
+  private byte isBlocked;
 
   @Column(name = "is_delete")
-  private int isDelete;
+  private byte isDelete;
 
 }

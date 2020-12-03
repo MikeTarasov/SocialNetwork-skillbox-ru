@@ -9,7 +9,7 @@ create table notification(
     type_id integer REFERENCES notification_type (id),
     sent_time timestamp,
     person_id integer REFERENCES person (id),
-    entity_id integer,
+    entity_id bigint,
     contact varchar(255),
     is_read smallint);
 

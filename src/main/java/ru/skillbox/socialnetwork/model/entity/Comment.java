@@ -15,26 +15,20 @@ public class Comment {
     @Column(name = "id", nullable = false, unique = true)
     private long id;
 
-    @Column(name = "time_comment", columnDefinition = "TIMESTAMP")
+    @Column(name = "time", columnDefinition = "TIMESTAMP")
     private LocalDateTime time;
-
-    @Column(name = "post_id")
-    private int postId;
 
     @Column(name = "parent_id")
     private long parentId;
-
-    @Column(name = "author_id")
-    private int authorId;
 
     @Column(name = "comment_text", columnDefinition = "VARCHAR(255)")
     private String commentText;
 
     @Column(name = "is_blocked")
-    private int isBlocked;
+    private byte isBlocked;
 
     @Column(name = "is_deleted")
-    private int isDeleted;
+    private byte isDeleted;
 
     @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
             CascadeType.DETACH, CascadeType.REFRESH})
@@ -47,22 +41,6 @@ public class Comment {
     private Post post;
 
     public Comment() {
-    }
-
-    public Person getPerson() {
-        return person;
-    }
-
-    public void setPerson(Person person) {
-        this.person = person;
-    }
-
-    public Post getPost() {
-        return post;
-    }
-
-    public void setPost(Post post) {
-        this.post = post;
     }
 
 }
