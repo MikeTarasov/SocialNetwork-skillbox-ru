@@ -5,7 +5,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import ru.skillbox.socialnetwork.model.entity.Person;
-import ru.skillbox.socialnetwork.model.repositiry.PersonRepository;
+import ru.skillbox.socialnetwork.repository.PersonRepository;
 
 @Service
 class PersonDetailsService implements UserDetailsService {
