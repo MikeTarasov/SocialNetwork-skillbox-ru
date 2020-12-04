@@ -15,7 +15,7 @@ public class AccountService {
         this.personRepository = personRepository;
     }
 
-    Person getCurrentUser() {
+public Person getCurrentUser() {
         return null;
     }
 }
