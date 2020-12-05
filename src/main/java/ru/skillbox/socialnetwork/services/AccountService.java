@@ -2,6 +2,7 @@ package ru.skillbox.socialnetwork.services;
 
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -19,10 +20,13 @@ public class AccountService {
   }
 
   public Person getCurrentUser() {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-    String email = SecurityContextHolder
-        .getContext()
-        .getAuthentication().getName();
+    if (auth == null) {
+      throw new SecurityException("Session is not authorized");
+    }
+
+    String email = auth.getName();
 
     Optional<Person> per = personRepository.findByEmail(email);
 
