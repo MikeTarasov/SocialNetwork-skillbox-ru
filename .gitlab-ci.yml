@@ -1,0 +1,13 @@
+image: java:latest
+
+stages:
+    - build
+
+
+build:
+    stage: build
+    script: C:/Program Files/Java/Java/javapro9/javapro9/src/main/java/ru/skillbox/socialnetwork SocialNetworkApplication.java
+    artifacts:
+        paths:
+            - SocialNetworkApplication.*
+
