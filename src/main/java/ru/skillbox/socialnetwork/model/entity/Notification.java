@@ -26,7 +26,7 @@ public class Notification {
 //    private Person person;
 
     @Column(name = "entity_id", nullable = false)
-    private Integer entityId;
+    private Long entityId;
 
     @Column(name = "contact", nullable = false, columnDefinition = "varchar(255)")
     private String contact;

@@ -1,15 +1,15 @@
 create table post_comment(
     id BIGSERIAL PRIMARY KEY,
-    time_comment timestamp,
-    post_id integer REFERENCES post (id),
-    parent_id integer,
+    time timestamp,
+    post_id bigint REFERENCES post (id),
+    parent_id bigint,
     author_id integer REFERENCES person (id),
     comment_text varchar(255),
-    is_blocked integer,
-    is_deleted integer);
+    is_blocked smallint,
+    is_deleted smallint);
 
 create table comment_like(
     id BIGSERIAL PRIMARY KEY,
     time_like timestamp,
     person_id integer REFERENCES person (id),
-    comment_id integer REFERENCES post_comment (id));
+    comment_id bigint REFERENCES post_comment (id));

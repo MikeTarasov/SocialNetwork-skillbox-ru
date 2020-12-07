@@ -1,4 +1,4 @@
-package ru.skillbox.socialnetwork.model.repositiry;
+package ru.skillbox.socialnetwork.repository;
 
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
