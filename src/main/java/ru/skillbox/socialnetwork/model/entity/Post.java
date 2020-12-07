@@ -19,10 +19,10 @@ public class Post {
     @Column(name = "time_post", columnDefinition = "TIMESTAMP")
     private LocalDateTime time;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.DETACH, CascadeType.REFRESH})
-    @JoinColumn(name = "person_id")
-    private int author_id;
+//    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
+//            CascadeType.DETACH, CascadeType.REFRESH})
+//    @JoinColumn(name = "person_id")
+//    private int author_id;
 
     @Column(columnDefinition = "VARCHAR(255)")
     private String title;
@@ -36,19 +36,19 @@ public class Post {
     @Column(name = "is_deleted")
     private int isDeleted;
 
-    @OneToMany(mappedBy = "post", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.DETACH, CascadeType.REFRESH})
-    private List<Comment> comments;
+//    @OneToMany(mappedBy = "post", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
+//            CascadeType.DETACH, CascadeType.REFRESH})
+//    private List<Comment> comments;
 
     public Post() {
     }
 
-    public List<Comment> getComments() {
-        return comments;
-    }
-
-    public void setComments(List<Comment> comments) {
-        this.comments = comments;
-    }
+//    public List<Comment> getComments() {
+//        return comments;
+//    }
+//
+//    public void setComments(List<Comment> comments) {
+//        this.comments = comments;
+//    }
 
 }

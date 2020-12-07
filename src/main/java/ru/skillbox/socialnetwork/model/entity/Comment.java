@@ -36,33 +36,33 @@ public class Comment {
     @Column(name = "is_deleted")
     private int isDeleted;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.DETACH, CascadeType.REFRESH})
-    @JoinColumn(name = "author_id")
-    private Person person;
+//    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
+//            CascadeType.DETACH, CascadeType.REFRESH})
+//    @JoinColumn(name = "author_id")
+//    private Person person;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.DETACH, CascadeType.REFRESH})
-    @JoinColumn(name = "post_id")
-    private Post post;
+//    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
+//            CascadeType.DETACH, CascadeType.REFRESH})
+//    @JoinColumn(name = "post_id")
+//    private Post post;
 
     public Comment() {
     }
+//
+//    public Person getPerson() {
+//        return person;
+//    }
 
-    public Person getPerson() {
-        return person;
-    }
+//    public void setPerson(Person person) {
+//        this.person = person;
+//    }
 
-    public void setPerson(Person person) {
-        this.person = person;
-    }
-
-    public Post getPost() {
-        return post;
-    }
-
-    public void setPost(Post post) {
-        this.post = post;
-    }
+//    public Post getPost() {
+//        return post;
+//    }
+//
+//    public void setPost(Post post) {
+//        this.post = post;
+//    }
 
 }

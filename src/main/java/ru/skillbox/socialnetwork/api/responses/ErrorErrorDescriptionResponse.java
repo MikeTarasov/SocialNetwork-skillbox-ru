@@ -1,14 +1,12 @@
 package ru.skillbox.socialnetwork.api.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-<<<<<<< HEAD:src/main/java/ru/skillbox/socialnetwork/api/responses/ResponseError.java
-import lombok.Data;
-import org.springframework.http.ResponseEntity;
-=======
->>>>>>> 06bbedb6cde8f2005973460fa8d99277c7d9701e:src/main/java/ru/skillbox/socialnetwork/api/responses/ErrorErrorDescriptionResponse.java
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import ru.skillbox.socialnetwork.model.enums.ErrorDescriptions;
 
-
+@AllArgsConstructor
+@NoArgsConstructor
 public class ErrorErrorDescriptionResponse {
 
   private String error;
@@ -20,7 +18,7 @@ public class ErrorErrorDescriptionResponse {
     errorDescription = errorDescriptions.getDescription();
   }
 
-  public ResponseError(String error){
+  public ErrorErrorDescriptionResponse(String error) {
     this.error = error;
   }
 }
