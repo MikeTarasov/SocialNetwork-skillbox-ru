@@ -1,6 +1,7 @@
 package ru.skillbox.socialnetwork.security;
 
 
+import java.util.Optional;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -19,10 +20,11 @@ class PersonDetailsService implements UserDetailsService {
   @Override
   public PersonDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-    Person per = personRepository.findByEmail(email);
-    if (per == null) {
+    Optional<Person> per = personRepository.findByEmail(email);
+
+    if (per.isEmpty()) {
       throw new UsernameNotFoundException(" - User with : " + email + " not found");
     }
-    return PersonDetails.fromUser(per);
+    return PersonDetails.fromUser(per.get());
   }
 }
