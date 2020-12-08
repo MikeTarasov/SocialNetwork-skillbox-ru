@@ -21,9 +21,9 @@ public class Notification {
     @Column(name = "sent_time", nullable = false, columnDefinition = "timestamp")
     private LocalDateTime time;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "person_id")
-    private Person person;
+//    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+//    @JoinColumn(name = "person_id")
+//    private Person person;
 
     @Column(name = "entity_id", nullable = false)
     private Long entityId;
