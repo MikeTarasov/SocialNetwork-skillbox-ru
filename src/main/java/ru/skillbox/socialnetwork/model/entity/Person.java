@@ -59,7 +59,7 @@ public class Person {
   @Column(name = "is_approved")
   private int isApproved;
 
-  @Column(name = "message_permission")
+  @Column(name = "messages_permission")
   private String messagePermission;
 
   @Column(name = "last_online_time", columnDefinition = "TIMESTAMP")
@@ -71,7 +71,7 @@ public class Person {
   @Column(name = "is_blocked")
   private byte isBlocked;
 
-  @Column(name = "is_delete")
-  private byte isDelete;
+  @Column(name = "is_deleted")
+  private byte isDeleted;
 
 }

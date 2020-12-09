@@ -4,9 +4,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(Include.NON_NULL)
@@ -25,8 +28,8 @@ public class PersonEntityResponse {
   private String phone;
   private String photo;
   private String about;
-  private IdTitleResponse city;
-  private IdTitleResponse country;
+  private String city;
+  private String country;
   @JsonProperty("messages_permission")
   private String messagesPermission;
   @JsonProperty("last_online_time")
@@ -40,7 +43,7 @@ public class PersonEntityResponse {
   public PersonEntityResponse(int id, String firstName, String lastName, long regDate,
       long birthDate,
       String email, String phone, String photo, String about,
-      IdTitleResponse city, IdTitleResponse country, String messagesPermission,
+                              String city, String country, String messagesPermission,
       long lastOnlineTime, boolean isBlocked) {
     this.id = id;
     this.firstName = firstName;

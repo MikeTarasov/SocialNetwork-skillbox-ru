@@ -1,6 +1,8 @@
 package ru.skillbox.socialnetwork.controllers;
 
 import java.util.ArrayList;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,14 +20,18 @@ import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDa
 import ru.skillbox.socialnetwork.api.responses.MessageResponse;
 import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
 import ru.skillbox.socialnetwork.api.responses.PostEntityResponse;
+import ru.skillbox.socialnetwork.services.ProfileService;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/v1/users")
 public class ProfileController {
 
-    //service
+    private final ProfileService profileService;
 
-    //constructor ProfileController(Service service)
+    @Autowired
+    public ProfileController(ProfileService profileService) {
+        this.profileService = profileService;
+    }
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser() {
@@ -49,9 +55,9 @@ public class ProfileController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable("id") int id) {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeDataResponse("", 123, new PersonEntityResponse()));
+    public ResponseEntity<ErrorTimeDataResponse> getUserById(@PathVariable("id") int id) {
+        ErrorTimeDataResponse response = profileService.getUser(id);
+        return ResponseEntity.ok(response);
     }
 
 
