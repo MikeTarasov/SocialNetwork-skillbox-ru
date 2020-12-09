@@ -6,7 +6,7 @@ stages:
 
 build:
     stage: build
-    script: C:/Program Files/Java/Java/javapro9/javapro9/src/main/java/ru/skillbox/socialnetwork SocialNetworkApplication.java
+    script: src/main/java/ru/skillbox/socialnetwork SocialNetworkApplication.java
     artifacts:
         paths:
             - SocialNetworkApplication.*
