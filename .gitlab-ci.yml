@@ -1,13 +1,21 @@
-image: java:latest
+image: maven:latest
 
 stages:
     - build
+    - test
 
 
-build:
-    stage: build
-    script: src/main/java/ru/skillbox/socialnetwork SocialNetworkApplication.java
-    artifacts:
+    variabels:
+        MAVEN_CLI_OPTS: "-s .m2/settings.xml --batch-mode"
+        MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+    cache:
         paths:
-            - SocialNetworkApplication.*
-
+        - .m2/repository/ - target/
+    build:
+        stage:
+            build script:
+                - mvn $MAVEN_CLI_OPTS compile
+    test:
+        stage:
+            test script:
+                - mvn $MAVEN_CLI_OPTS test`
