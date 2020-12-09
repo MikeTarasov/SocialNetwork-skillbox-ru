@@ -10,17 +10,31 @@ import org.springframework.web.bind.annotation.PostMapping;
 import java.util.List;
 public class FriendController {
 
-    @GetMapping("/friends/")
+    @GetMapping("/friends/request")
+    public List request(){
+
+    }
+
+    @GetMapping("/friends/recommendations")
+    public List recommendations(){
+
+    }
+    @GetMapping("/is/friends")
+    public boolean isExist(){
+
+    }
+
+    @GetMapping("/friends")
     public List list(){
 
     }
 
-    @PostMapping("/friends/")
+    @PostMapping("/friends")
     public long add(){
 
     }
 
-    @DeleteMapping("/friends/")
+    @DeleteMapping("/friends")
     public long delete(){
 
     }
