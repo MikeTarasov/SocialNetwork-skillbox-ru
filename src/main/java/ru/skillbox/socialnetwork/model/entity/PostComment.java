@@ -1,14 +1,18 @@
 package ru.skillbox.socialnetwork.model.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "post_comment")
-public class Comment {
+public class PostComment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,22 +29,16 @@ public class Comment {
     private String commentText;
 
     @Column(name = "is_blocked")
-    private byte isBlocked;
+    private int isBlocked;
 
     @Column(name = "is_deleted")
-    private byte isDeleted;
+    private int isDeleted;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.DETACH, CascadeType.REFRESH})
-    @JoinColumn(name = "author_id")
-    private Person person;
+//    @ManyToOne(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "author_id")
+//    private Person person;
 
-    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.DETACH, CascadeType.REFRESH})
-    @JoinColumn(name = "post_id")
-    private Post post;
-
-    public Comment() {
-    }
-
+//    @ManyToOne(cascade = CascadeType.ALL)
+//    @JoinColumn(name = "post_id")
+//    private Post post;
 }

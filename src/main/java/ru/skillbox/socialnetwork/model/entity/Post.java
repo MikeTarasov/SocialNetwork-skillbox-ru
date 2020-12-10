@@ -1,12 +1,16 @@
 package ru.skillbox.socialnetwork.model.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "post")
 public class Post {
@@ -14,7 +18,7 @@ public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false, unique = true)
-    private Long id;
+    private long id;
 
     @Column(name = "time", columnDefinition = "TIMESTAMP")
     private LocalDateTime time;
@@ -31,24 +35,14 @@ public class Post {
     private String postText;
 
     @Column(name = "is_blocked")
-    private byte isBlocked;
+    private int isBlocked;
 
     @Column(name = "is_deleted")
-    private byte isDeleted;
+    private int isDeleted;
+
 
 //    @OneToMany(mappedBy = "post", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
 //            CascadeType.DETACH, CascadeType.REFRESH})
 //    private List<Comment> comments;
-
-    public Post() {
-    }
-
-//    public List<Comment> getComments() {
-//        return comments;
-//    }
-//
-//    public void setComments(List<Comment> comments) {
-//        this.comments = comments;
-//    }
 
 }

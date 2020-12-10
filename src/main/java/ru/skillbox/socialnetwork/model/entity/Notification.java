@@ -21,9 +21,9 @@ public class Notification {
     @Column(name = "sent_time", nullable = false, columnDefinition = "timestamp")
     private LocalDateTime time;
 
-//    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-//    @JoinColumn(name = "person_id")
-//    private Person person;
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "person_id")
+    private Person person;
 
     @Column(name = "entity_id", nullable = false)
     private Long entityId;
@@ -31,7 +31,6 @@ public class Notification {
     @Column(name = "contact", nullable = false, columnDefinition = "varchar(255)")
     private String contact;
 
-    @Column(name = "is_read", nullable = false)
-    private byte isRead;
-
+    @Column(name = "is_readed", nullable = false)
+    private byte isReaded;
 }

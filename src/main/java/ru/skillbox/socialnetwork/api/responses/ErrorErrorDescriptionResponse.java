@@ -18,7 +18,8 @@ public class ErrorErrorDescriptionResponse {
     errorDescription = errorDescriptions.getDescription();
   }
 
-  public ErrorErrorDescriptionResponse(String error) {
-    this.error = error;
+  public ErrorErrorDescriptionResponse(String errorDescription) {
+    error = "invalid_request";
+    this.errorDescription = errorDescription;
   }
 }

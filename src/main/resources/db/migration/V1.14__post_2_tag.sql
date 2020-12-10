@@ -1,4 +1,6 @@
-create table post2tag(
-    id serial NOT NULL PRIMARY KEY,
-    post_id int4 NOT NULL REFERENCES post (id),
-    tag_id int4 NOT NULL REFERENCES tag (id));
+create table post2tag
+(
+    id      bigserial NOT NULL PRIMARY KEY,
+    post_id bigint    NOT NULL REFERENCES post (id),
+    tag_id  bigint    NOT NULL REFERENCES tag (id)
+);

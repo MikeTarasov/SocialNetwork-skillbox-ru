@@ -15,4 +15,5 @@ public class EmailPassPassFirstNameLastNameCodeRequest {
   private String firstName;
   private String lastName;
   private String code;
+
 }

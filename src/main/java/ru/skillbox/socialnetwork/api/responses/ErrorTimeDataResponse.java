@@ -11,7 +11,13 @@ import lombok.NoArgsConstructor;
 @JsonInclude(Include.NON_NULL)
 public class ErrorTimeDataResponse {
 
-  private String error;
-  private long timestamp;
-  private Object data;
+    private String error;
+    private long timestamp;
+    private Object data;
+
+    public ErrorTimeDataResponse(String error, Object data) {
+        this.error = error;
+        timestamp = System.currentTimeMillis();
+        this.data = data;
+    }
 }
