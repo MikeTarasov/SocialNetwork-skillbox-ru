@@ -1,77 +1,93 @@
 package ru.skillbox.socialnetwork.model.entity;
 
-import java.time.LocalDateTime;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
+import ru.skillbox.socialnetwork.api.requests.EmailPassPassFirstNameLastNameCodeRequest;
 
-@Entity
+import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
 @Table(name = "person")
 public class Person {
 
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Integer id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private long id;
 
-  @Column(name = "first_name", nullable = false, length = 100)
-  private String firstName;
+    @Column(name = "first_name", nullable = false, length = 100)
+    private String firstName;
 
-  @Column(name = "last_name", nullable = false, length = 100)
-  private String lastName;
+    @Column(name = "last_name", nullable = false, length = 100)
+    private String lastName;
 
-  @CreatedDate
-  @Column(name = "reg_date", nullable = false, columnDefinition = "TIMESTAMP")
-  private LocalDateTime regDate;
+    @CreatedDate
+    @Column(name = "reg_date", columnDefinition = "TIMESTAMP", nullable = false)
+    private LocalDateTime regDate;
 
-  @Column(name = "birth_date", columnDefinition = "TIMESTAMP")
-  private LocalDateTime birthDate;
+    @Column(name = "birth_date", columnDefinition = "TIMESTAMP")
+    private LocalDateTime birthDate;
 
-  @Column(name = "e_mail", nullable = false)
-  private String email;
+    @Column(name = "e_mail", nullable = false)
+    private String email;
 
-  @Column(name = "phone", length = 12)
-  private String phone;
+    @Column(name = "phone", length = 12)
+    private String phone;
 
-  @Column(name = "password")
-  private String password;
+    @Column(name = "password")
+    private String password;
 
-  @Column(name = "photo")
-  private String photo;
+    @Column(name = "photo")
+    private String photo;
 
-  @Column(name = "about")
-  private String about;
+    @Column(name = "about")
+    private String about;
 
-  @Column(name = "city")
-  private String city;
+    @Column(name = "city")
+    private String city;
 
-  @Column(name = "country")
-  private String country;
+    @Column(name = "country")
+    private String country;
 
-  @Column(name = "confirmation_code")
-  private String confirmationCode;
+    @Column(name = "confirmation_code")
+    private String confirmationCode;
 
-  @Column(name = "is_approved")
-  private int isApproved;
+    @Column(name = "is_approved")
+    private int isApproved;
 
-  @Column(name = "message_permission")
-  private String messagePermission;
+    @Column(name = "messages_permission")
+    private String messagePermission;
 
-  @Column(name = "last_online_time", columnDefinition = "TIMESTAMP")
-  private LocalDateTime lastOnlineTime;
+    @Column(name = "last_online_time", columnDefinition = "TIMESTAMP")
+    private LocalDateTime lastOnlineTime;
 
-  @Column(name = "is_online")
-  private byte isOnline;
+    @Column(name = "is_online")
+    private int isOnline;
 
-  @Column(name = "is_blocked")
-  private byte isBlocked;
+    @Column(name = "is_blocked")
+    private int isBlocked;
 
-  @Column(name = "is_delete")
-  private byte isDelete;
+    @Column(name = "is_deleted")
+    private int isDeleted;
 
+//    @OneToMany(mappedBy = "personNS", orphanRemoval = true)
+//    private List<NotificationSettings> notificationSettings;
+//
+//    @OneToMany(mappedBy = "personN", orphanRemoval = true)
+//    private List<Person> notificationPersons;
+
+
+    public Person(EmailPassPassFirstNameLastNameCodeRequest requestBody) {
+        email = requestBody.getEmail();
+        password = requestBody.getPasswd1();
+        firstName = requestBody.getFirstName();
+        lastName = requestBody.getLastName();
+        regDate = LocalDateTime.now();
+    }
 }
