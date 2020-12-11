@@ -6,5 +6,5 @@ import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 @Service
 public interface ProfileService {
 
-    public ErrorTimeDataResponse getUser(int id);
+    public ErrorTimeDataResponse getUser(long id);
 }

@@ -14,7 +14,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(PersonNotFoundException.class)
     protected ResponseEntity<ErrorErrorDescriptionResponse> handlePersonNotFoundException(PersonNotFoundException ex) {
         return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
-                HttpStatus.NOT_FOUND);
+                HttpStatus.OK);
     }
 
 

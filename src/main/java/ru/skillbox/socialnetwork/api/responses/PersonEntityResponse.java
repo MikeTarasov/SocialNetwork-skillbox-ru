@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @JsonInclude(Include.NON_NULL)
 public class PersonEntityResponse {
 
-  private int id;
+  private long id;
   @JsonProperty("first_name")
   private String firstName;
   @JsonProperty("last_name")
@@ -40,7 +40,7 @@ public class PersonEntityResponse {
 
 
   // Friends ->  token = null !!!
-  public PersonEntityResponse(int id, String firstName, String lastName, long regDate,
+  public PersonEntityResponse(long id, String firstName, String lastName, long regDate,
       long birthDate,
       String email, String phone, String photo, String about,
                               String city, String country, String messagesPermission,

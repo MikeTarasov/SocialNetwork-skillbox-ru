@@ -19,7 +19,7 @@ public class NotificationType {
     private long id;
 
     @Column(name = "code", nullable = false)
-    private int code;
+    private long code;
 
     @Column(name = "name", columnDefinition = "varchar(255)")
     private String name;

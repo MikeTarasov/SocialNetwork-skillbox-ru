@@ -14,16 +14,16 @@ import javax.persistence.*;
 public class NotificationSettings {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-//    @ManyToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "notification_type_id")
-//    private NotificationType notificationType;
-//
-//    @ManyToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "person_id")
-//    private Person personNS;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "notification_type_id")
+    private NotificationType notificationType;
 
-    private int enable;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "person_id")
+    private Person person;
+
+    private byte enable;
 }

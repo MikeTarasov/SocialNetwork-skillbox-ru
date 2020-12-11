@@ -25,7 +25,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public ErrorTimeDataResponse getUser(int id) {
+    public ErrorTimeDataResponse getUser(long id) {
         Person person = personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
 
         return new ErrorTimeDataResponse(

@@ -12,10 +12,10 @@ CREATE TABLE person(
                        city       varchar(255)          NULL,
 	country varchar(255) NULL,
 	confirmation_code varchar(255) NULL,
-	is_approved int2 NULL,
+	is_approved int4 NULL,
 	messages_permission varchar(255) NULL,
 	last_online_time timestamp NULL,
-	is_blocked int2 NULL,
-	is_online int2 NULL,
-	is_deleted int2 NULL
+	is_blocked int4 NULL,
+	is_online int4 NULL,
+	is_deleted int4 NULL
 );

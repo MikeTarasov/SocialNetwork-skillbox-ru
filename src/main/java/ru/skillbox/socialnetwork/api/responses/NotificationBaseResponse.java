@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class NotificationBaseResponse {
 
-  private int id;
+  private long id;
   @JsonProperty("type_id")
   private int typeId;
   @JsonProperty("sent_time")
