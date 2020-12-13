@@ -23,10 +23,10 @@ public class Post {
     @Column(name = "time", columnDefinition = "TIMESTAMP")
     private long time;
 
-//    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-//            CascadeType.DETACH, CascadeType.REFRESH})
-//    @JoinColumn(name = "author_id")
-//    private Person author;
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
+            CascadeType.DETACH, CascadeType.REFRESH})
+    @JoinColumn(name = "author_id")
+    private Person author;
 
     @Column(columnDefinition = "VARCHAR(255)")
     private String title;
@@ -45,6 +45,14 @@ public class Post {
 //            CascadeType.DETACH, CascadeType.REFRESH})
 //    private List<Comment> comments;
 
+
+    public Person getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(Person author) {
+        this.author = author;
+    }
 
     public long getId() {
         return id;
