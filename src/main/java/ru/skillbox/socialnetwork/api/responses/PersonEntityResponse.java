@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @JsonInclude(Include.NON_NULL)
 public class PersonEntityResponse {
 
-  private int id;
+  private long id;
   @JsonProperty("first_name")
   private String firstName;
   @JsonProperty("last_name")
@@ -56,5 +56,127 @@ public class PersonEntityResponse {
     this.messagesPermission = messagesPermission;
     this.lastOnlineTime = lastOnlineTime;
     this.isBlocked = isBlocked;
+  }
+
+  public PersonEntityResponse () {}
+
+  public long getId() {
+    return id;
+  }
+
+  public void setId(long id) {
+    this.id = id;
+  }
+
+  public String getFirstName() {
+    return firstName;
+  }
+
+  public void setFirstName(String firstName) {
+    this.firstName = firstName;
+  }
+
+  public String getLastName() {
+    return lastName;
+  }
+
+  public void setLastName(String lastName) {
+    this.lastName = lastName;
+  }
+
+  public long getRegDate() {
+    return regDate;
+  }
+
+  public void setRegDate(long regDate) {
+    this.regDate = regDate;
+  }
+
+  public long getBirthDate() {
+    return birthDate;
+  }
+
+  public void setBirthDate(long birthDate) {
+    this.birthDate = birthDate;
+  }
+
+  public String getEmail() {
+    return email;
+  }
+
+  public void setEmail(String email) {
+    this.email = email;
+  }
+
+  public String getPhone() {
+    return phone;
+  }
+
+  public void setPhone(String phone) {
+    this.phone = phone;
+  }
+
+  public String getPhoto() {
+    return photo;
+  }
+
+  public void setPhoto(String photo) {
+    this.photo = photo;
+  }
+
+  public String getAbout() {
+    return about;
+  }
+
+  public void setAbout(String about) {
+    this.about = about;
+  }
+
+  public IdTitleResponse getCity() {
+    return city;
+  }
+
+  public void setCity(IdTitleResponse city) {
+    this.city = city;
+  }
+
+  public IdTitleResponse getCountry() {
+    return country;
+  }
+
+  public void setCountry(IdTitleResponse country) {
+    this.country = country;
+  }
+
+  public String getMessagesPermission() {
+    return messagesPermission;
+  }
+
+  public void setMessagesPermission(String messagesPermission) {
+    this.messagesPermission = messagesPermission;
+  }
+
+  public long getLastOnlineTime() {
+    return lastOnlineTime;
+  }
+
+  public void setLastOnlineTime(long lastOnlineTime) {
+    this.lastOnlineTime = lastOnlineTime;
+  }
+
+  public boolean isBlocked() {
+    return isBlocked;
+  }
+
+  public void setBlocked(boolean blocked) {
+    isBlocked = blocked;
+  }
+
+  public String getToken() {
+    return token;
+  }
+
+  public void setToken(String token) {
+    this.token = token;
   }
 }

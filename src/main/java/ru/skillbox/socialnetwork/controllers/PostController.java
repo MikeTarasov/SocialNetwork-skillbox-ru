@@ -1,6 +1,8 @@
 package ru.skillbox.socialnetwork.controllers;
 
 import java.util.ArrayList;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,10 +22,18 @@ import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDa
 import ru.skillbox.socialnetwork.api.responses.IdResponse;
 import ru.skillbox.socialnetwork.api.responses.MessageResponse;
 import ru.skillbox.socialnetwork.api.responses.PostEntityResponse;
+import ru.skillbox.socialnetwork.services.PostService;
 
 @RestController
 @RequestMapping("/post")
 public class PostController {
+
+  private final PostService postService;
+
+  @Autowired
+  public PostController(PostService postService) {
+    this.postService = postService;
+  }
 
   @GetMapping("/")
   public ResponseEntity<?> getApiPost(
@@ -32,15 +42,8 @@ public class PostController {
       @Param("date_to") long dateTo,
       @Param("offset") int offset,
       @Param("itemPerPage") int itemPerPage) {
-    return ResponseEntity.status(200)
-        .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
-            "",
-            123456789,
-            125,
-            0,
-            20,
-            new ArrayList<PostEntityResponse>()
-        ));
+
+    return postService.getApiPost(text, dateFrom, dateTo, offset, itemPerPage);
   }
 
 

@@ -20,7 +20,7 @@ public class PostComment {
     private long id;
 
     @Column(name = "time", columnDefinition = "TIMESTAMP")
-    private LocalDateTime time;
+    private long time;
 
     @Column(name = "parent_id")
     private long parentId;
@@ -36,9 +36,66 @@ public class PostComment {
 
 //    @ManyToOne(cascade = CascadeType.ALL)
 //    @JoinColumn(name = "author_id")
-//    private Person person;
+    private long authorId;
 
 //    @ManyToOne(cascade = CascadeType.ALL)
 //    @JoinColumn(name = "post_id")
 //    private Post post;
+
+
+    public long getAuthorId() {
+        return authorId;
+    }
+
+    public void setAuthorId(long authorId) {
+        this.authorId = authorId;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public long getTime() {
+        return time;
+    }
+
+    public void setTime(long time) {
+        this.time = time;
+    }
+
+    public long getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(long parentId) {
+        this.parentId = parentId;
+    }
+
+    public String getCommentText() {
+        return commentText;
+    }
+
+    public void setCommentText(String commentText) {
+        this.commentText = commentText;
+    }
+
+    public int getIsBlocked() {
+        return isBlocked;
+    }
+
+    public void setIsBlocked(int isBlocked) {
+        this.isBlocked = isBlocked;
+    }
+
+    public int getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(int isDeleted) {
+        this.isDeleted = isDeleted;
+    }
 }

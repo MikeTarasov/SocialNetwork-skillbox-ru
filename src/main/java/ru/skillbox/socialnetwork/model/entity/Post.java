@@ -21,7 +21,7 @@ public class Post {
     private long id;
 
     @Column(name = "time", columnDefinition = "TIMESTAMP")
-    private LocalDateTime time;
+    private long time;
 
 //    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
 //            CascadeType.DETACH, CascadeType.REFRESH})
@@ -45,4 +45,52 @@ public class Post {
 //            CascadeType.DETACH, CascadeType.REFRESH})
 //    private List<Comment> comments;
 
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public long getTime() {
+        return time;
+    }
+
+    public void setTime(long time) {
+        this.time = time;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getPostText() {
+        return postText;
+    }
+
+    public void setPostText(String postText) {
+        this.postText = postText;
+    }
+
+    public int getIsBlocked() {
+        return isBlocked;
+    }
+
+    public void setIsBlocked(int isBlocked) {
+        this.isBlocked = isBlocked;
+    }
+
+    public int getIsDeleted() {
+        return isDeleted;
+    }
+
+    public void setIsDeleted(int isDeleted) {
+        this.isDeleted = isDeleted;
+    }
 }

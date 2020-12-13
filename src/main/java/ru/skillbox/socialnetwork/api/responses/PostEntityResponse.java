@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class PostEntityResponse {
 
-  private int id;
+  private long id;
   private long time;
   private PersonEntityResponse author;
   private String title;
@@ -21,4 +21,76 @@ public class PostEntityResponse {
   private int likes;
   private List<CommentEntityResponse> comments;
   private String type; //TODO type = enum[ POSTED, QUEUED ]
+
+  public long getId() {
+    return id;
+  }
+
+  public void setId(long id) {
+    this.id = id;
+  }
+
+  public long getTime() {
+    return time;
+  }
+
+  public void setTime(long time) {
+    this.time = time;
+  }
+
+  public PersonEntityResponse getAuthor() {
+    return author;
+  }
+
+  public void setAuthor(PersonEntityResponse author) {
+    this.author = author;
+  }
+
+  public String getTitle() {
+    return title;
+  }
+
+  public void setTitle(String title) {
+    this.title = title;
+  }
+
+  public String getPostText() {
+    return postText;
+  }
+
+  public void setPostText(String postText) {
+    this.postText = postText;
+  }
+
+  public boolean isBlocked() {
+    return isBlocked;
+  }
+
+  public void setBlocked(boolean blocked) {
+    isBlocked = blocked;
+  }
+
+  public int getLikes() {
+    return likes;
+  }
+
+  public void setLikes(int likes) {
+    this.likes = likes;
+  }
+
+  public List<CommentEntityResponse> getComments() {
+    return comments;
+  }
+
+  public void setComments(List<CommentEntityResponse> comments) {
+    this.comments = comments;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
 }
