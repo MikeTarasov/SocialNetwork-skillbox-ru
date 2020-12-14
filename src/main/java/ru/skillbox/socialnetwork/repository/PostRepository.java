@@ -1,17 +1,16 @@
 package ru.skillbox.socialnetwork.repository;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.skillbox.socialnetwork.model.entity.Post;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface PostRepository extends PagingAndSortingRepository<Post, Long> {
+public interface PostRepository extends JpaRepository<Post, Long> {
 
     @Query(value = "SELECT * FROM post WHERE" +
             "post.post_text ILIKE :text and " +

@@ -4,9 +4,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import ru.skillbox.socialnetwork.api.requests.ParentIdCommentTextRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
-import ru.skillbox.socialnetwork.api.responses.*;
+import ru.skillbox.socialnetwork.api.responses.CommentEntityResponse;
+import ru.skillbox.socialnetwork.api.responses.ErrorErrorDescriptionResponse;
+import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
+import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
+import ru.skillbox.socialnetwork.api.responses.IdTitleResponse;
+import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
+import ru.skillbox.socialnetwork.api.responses.PostEntityResponse;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
@@ -16,7 +23,9 @@ import ru.skillbox.socialnetwork.repository.PostRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+@Service
 public class PostService {
 
     private final PostRepository postRepository;
@@ -31,100 +40,36 @@ public class PostService {
         this.commentRepository = commentRepository;
     }
 
-    private List<CommentEntityResponse> getCommentsByPost (Post post) {
-
-        List<CommentEntityResponse> commentEntityResponseList = new ArrayList<>();
-        List<PostComment> comments = commentRepository.getCommentsByPostId(post.getId());
-
-        for (PostComment comment : comments) {
-            CommentEntityResponse commentEntityResponse = new CommentEntityResponse();
-            commentEntityResponse.setParentId(comment.getParentId());
-            commentEntityResponse.setCommentText(comment.getCommentText());
-            commentEntityResponse.setId(comment.getId());
-            commentEntityResponse.setPostId(post.getId());
-            commentEntityResponse.setTime(comment.getTime());
-            commentEntityResponse.setAuthorId(comment.getAuthorId());
-            commentEntityResponse.setBlocked(comment.getIsBlocked() == 1);
-
-            commentEntityResponseList.add(commentEntityResponse);
-        }
-        return commentEntityResponseList;
-    }
-
-    private PersonEntityResponse getPersonEntityResponseByPost (Post post) {
-        Person author = post.getAuthor();
-        PersonEntityResponse personEntityResponse = new PersonEntityResponse();
-        IdTitleResponse city = new IdTitleResponse();
-        IdTitleResponse country = new IdTitleResponse();
-
-        personEntityResponse.setId(author.getId());
-        personEntityResponse.setFirstName(author.getFirstName());
-        personEntityResponse.setLastName(author.getLastName());
-        personEntityResponse.setRegDate(author.getRegDate());
-        personEntityResponse.setBirthDate(author.getBirthDate());
-        personEntityResponse.setEmail(author.getEmail());
-        personEntityResponse.setPhone(author.getPhone());
-        personEntityResponse.setPhoto(author.getPhoto());
-        personEntityResponse.setAbout(author.getAbout());
-        city.setTitle(author.getCity());
-        country.setTitle(author.getCountry());
-        personEntityResponse.setCity(city);
-        personEntityResponse.setCountry(country);
-        personEntityResponse.setMessagesPermission(author.getMessagePermission());
-        personEntityResponse.setLastOnlineTime(author.getLastOnlineTime());
-        personEntityResponse.setBlocked(author.getIsBlocked() == 1);
-
-        return personEntityResponse;
-    }
-
-    public ResponseEntity<?> getApiPost(
-            String text,
-            long dateFrom,
-            long dateTo,
-            int offset,
-            int itemPerPage) {
+    public ResponseEntity<?> getApiPost(String text, long dateFrom, long dateTo,
+                                        int offset, int itemPerPage) {
 
         Pageable pageable = PageRequest.of(offset, itemPerPage);
         List<Post> posts = postRepository.findPostsByTitleAndPeriod(text, dateFrom, dateTo, pageable);
 
-        //работа с ответом
-        ErrorTimeTotalOffsetPerPageListDataResponse response = new ErrorTimeTotalOffsetPerPageListDataResponse();
-
-        response.setError("");
-        response.setTimestamp(System.currentTimeMillis());
-        response.setTotal(posts.size());
-        response.setOffset(offset);
-        response.setPerPage(itemPerPage);
-
-        List<PostEntityResponse> postEntityResponseList = new ArrayList<>();
-
-        for (Post post : posts) {
-
-            PostEntityResponse postEntityResponse = new PostEntityResponse();
-
-            postEntityResponse.setId(post.getId());
-            postEntityResponse.setTime(post.getTime());
-            postEntityResponse.setAuthor(getPersonEntityResponseByPost(post));
-            postEntityResponse.setTitle(post.getTitle());
-            postEntityResponse.setPostText(post.getPostText());
-            postEntityResponse.setBlocked(post.getIsBlocked() == 1);
-            postEntityResponse.setLikes(postLikeRepository.getAmountOfLikes(post.getId()));
-            postEntityResponse.setComments(getCommentsByPost(post));
-
-            postEntityResponseList.add(postEntityResponse);
-
-        }
-
-        response.setData(postEntityResponseList);
-
         return ResponseEntity.status(200)
-                .body(response);
+                .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
+                        "",
+                        System.currentTimeMillis(),
+                        posts.size(),
+                        offset,
+                        itemPerPage,
+                        getPostEntityResponseListByPosts(posts))
+                );
     }
 
+    public ResponseEntity<?> getApiPostId(long id) {
+        Optional<Post> optionalPost = postRepository.findById(id);
+        if (optionalPost.isEmpty()) {
+            return ResponseEntity.status(200)
+                    .body(new ErrorErrorDescriptionResponse("User not found."));
+        }
 
-    public ResponseEntity<?> getApiPostId(int id) {
         return ResponseEntity.status(200)
-                .body(id);
+                .body(new ErrorTimeDataResponse(
+                        "",
+                        System.currentTimeMillis(),
+                        getPostEntityResponseByPost(optionalPost.get()))
+                );
     }
 
     public ResponseEntity<?> putApiPostId(
@@ -189,4 +134,76 @@ public class PostService {
                 .body(id);
     }
 
+    private List<PostEntityResponse> getPostEntityResponseListByPosts(List<Post> posts) {
+        List<PostEntityResponse> postEntityResponseList = new ArrayList<>();
+
+        for (Post post : posts) {
+
+            postEntityResponseList.add(getPostEntityResponseByPost(post)
+            );
+        }
+        return postEntityResponseList;
+    }
+
+    private PostEntityResponse getPostEntityResponseByPost(Post post) {
+        return new PostEntityResponse(
+                post.getId(),
+                post.getTime(),
+                getPersonEntityResponseByPost(post),
+                post.getTitle(),
+                post.getPostText(),
+                post.getIsBlocked() == 1,
+                postLikeRepository.getAmountOfLikes(post.getId()),
+                getCommentsByPost(post),
+                null);
+    }
+
+    private PersonEntityResponse getPersonEntityResponseByPost(Post post) {
+        Person author = post.getAuthor();
+        return new PersonEntityResponse(
+                author.getId(),
+                author.getFirstName(),
+                author.getLastName(),
+                author.getRegDate(),
+                author.getBirthDate(),
+                author.getEmail(),
+                author.getPhone(),
+                author.getPhoto(),
+                author.getAbout(),
+                getIdTitleResponse(author.getCity()),
+                getIdTitleResponse(author.getCountry()),
+                author.getMessagePermission(),
+                author.getLastOnlineTime(),
+                author.getIsBlocked() == 1
+        );
+    }
+
+    private IdTitleResponse getIdTitleResponse(String title) {
+        IdTitleResponse country = new IdTitleResponse();
+        country.setTitle(title);
+        return country;
+    }
+
+    private List<CommentEntityResponse> getCommentsByPost(Post post) {
+
+        List<CommentEntityResponse> commentEntityResponseList = new ArrayList<>();
+        List<PostComment> comments = commentRepository.getCommentsByPostId(post.getId());
+
+        for (PostComment comment : comments) {
+            commentEntityResponseList.add(getCommentEntityResponseByComment(post, comment));
+        }
+        return commentEntityResponseList;
+    }
+
+    private CommentEntityResponse getCommentEntityResponseByComment(Post post, PostComment comment) {
+        return new CommentEntityResponse(
+                comment.getId(),
+                comment.getParentId(),
+                post.getId(),
+                comment.getTime(),
+                comment.getAuthorId(),
+                comment.getCommentText(),
+                comment.getIsBlocked() == 1
+        );
+    }
 }

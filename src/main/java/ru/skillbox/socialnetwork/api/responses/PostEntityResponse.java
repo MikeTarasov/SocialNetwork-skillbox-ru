@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import ru.skillbox.socialnetwork.model.entity.Person;
 
 
 @AllArgsConstructor

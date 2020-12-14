@@ -37,7 +37,7 @@ public class PersonEntityResponse {
 
 
   // Friends ->  token = null !!!
-  public PersonEntityResponse(int id, String firstName, String lastName, long regDate,
+  public PersonEntityResponse(long id, String firstName, String lastName, long regDate,
       long birthDate,
       String email, String phone, String photo, String about,
       IdTitleResponse city, IdTitleResponse country, String messagesPermission,
