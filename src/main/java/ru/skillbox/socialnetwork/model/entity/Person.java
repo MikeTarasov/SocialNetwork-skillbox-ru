@@ -82,13 +82,12 @@ public class Person {
 //    @OneToMany(mappedBy = "personN", orphanRemoval = true)
 //    private List<Person> notificationPersons;
 
-
     public Person(EmailPassPassFirstNameLastNameCodeRequest requestBody) {
         email = requestBody.getEmail();
         password = requestBody.getPasswd1();
         firstName = requestBody.getFirstName();
         lastName = requestBody.getLastName();
-        regDate = LocalDateTime.now();
+        regDate = System.currentTimeMillis();
     }
 
     public long getId() {

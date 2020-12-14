@@ -13,6 +13,7 @@ import ru.skillbox.socialnetwork.api.responses.CommentEntityResponse;
 import ru.skillbox.socialnetwork.api.responses.ErrorErrorDescriptionResponse;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
+import ru.skillbox.socialnetwork.api.responses.IdResponse;
 import ru.skillbox.socialnetwork.api.responses.IdTitleResponse;
 import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
 import ru.skillbox.socialnetwork.api.responses.PostEntityResponse;
@@ -28,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class PostService {
 
     private final PostRepository postRepository;
@@ -44,9 +46,31 @@ public class PostService {
 
     public ResponseEntity<?> getApiPost(String text, long dateFrom, long dateTo,
                                         int offset, int itemPerPage) {
+        StringBuilder errors = new StringBuilder();
+
+        if (dateFrom > dateTo) {
+            errors.append("'dateFrom' should be less or equal to 'dateTo'. ");
+        }
+        if (dateFrom > System.currentTimeMillis()) {
+            errors.append("'dateFrom' should be less than current time. ");
+        }
+        if (dateFrom > dateTo) {
+            errors.append("'dateFrom' should be less than or equal to 'dateTo'. ");
+        }
+        if (offset <= 0) {
+            errors.append("'offset' should be greater than 0. ");
+        }
+        if (itemPerPage <= 0) {
+            errors.append("'itemPerPage' should be more than 0. ");
+        }
+        if (!errors.toString().equals("")) {
+            return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
+        }
 
         Pageable pageable = PageRequest.of(offset, itemPerPage);
-        List<Post> posts = postRepository.findPostsByTitleAndPeriod(text, dateFrom, dateTo, pageable);
+        List<Post> posts = postRepository
+                .findByPostTextLikeAndTimeAfterAndTimeBeforeOrderByIdDesc(text, dateFrom,
+                        Math.min(dateTo, System.currentTimeMillis()), pageable);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
@@ -60,47 +84,59 @@ public class PostService {
     }
 
     public ResponseEntity<?> getApiPostId(long id) {
-        Optional<Post> optionalPost = postRepository.findById(id);
+        //запрос возвращает пост, если время публикации поста уже наступило
+        Optional<Post> optionalPost = postRepository.findByIdAndAndTimeIsBefore(id, System.currentTimeMillis());
         if (optionalPost.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ErrorErrorDescriptionResponse("User not found."));
+                    .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ErrorTimeDataResponse(
-                        "",
-                        System.currentTimeMillis(),
-                        getPostEntityResponseByPost(optionalPost.get()))
-                );
+                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
+                        getPostEntityResponseByPost(optionalPost.get())));
     }
 
-    @Transactional
-    public ResponseEntity<?> putApiPostId(long id, long publishDate, TitlePostTextRequest requestBody) {
+    public ResponseEntity<?> putApiPostId(long id, Optional<Long> publishDate, TitlePostTextRequest requestBody) {
         Optional<Post> optionalPost = postRepository.findById(id);
         if (optionalPost.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ErrorErrorDescriptionResponse("User not found."));
+                    .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
         Post post = optionalPost.get();
         post.setTitle(requestBody.getTitle());
         post.setPostText(requestBody.getPostText());
+        post.setTime(Math.max(publishDate.get(), System.currentTimeMillis()));
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse(
                         "",
                         System.currentTimeMillis(),
-                        getPostEntityResponseByPost(postRepository.saveAndFlush(post)))
-                );
-
+                        getPostEntityResponseByPost(postRepository.saveAndFlush(post))));
     }
 
     public ResponseEntity<?> deleteApiPostId(long id) {
+        Optional<Post> optionalPost = postRepository.findById(id);
+        if (optionalPost.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
+        }
+        Post post = optionalPost.get();
+        post.setIsDeleted(true);
+        postRepository.saveAndFlush(post);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(id);
+                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(), new IdResponse(id)));
     }
 
     public ResponseEntity<?> putApiPostIdRecover(long id) {
+        Optional<Post> optionalPost = postRepository.findById(id);
+        if (optionalPost.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
+        }
+        Post post = optionalPost.get();
+        post.setIsDeleted(false);
+        postRepository.saveAndFlush(post);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(id);
+                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(), new IdResponse(id)));
     }
 
     public ResponseEntity<?> getApiPostIdComments(long id, int offset, int itemPerPage) {
@@ -155,10 +191,10 @@ public class PostService {
                 getPersonEntityResponseByPost(post),
                 post.getTitle(),
                 post.getPostText(),
-                post.getIsBlocked() == 1,
+                post.getIsBlocked(),
                 postLikeRepository.getAmountOfLikes(post.getId()),
-                getCommentsByPost(post),
-                null);
+                getCommentsByPost(post)
+        );
     }
 
     private PersonEntityResponse getPersonEntityResponseByPost(Post post) {
@@ -182,9 +218,8 @@ public class PostService {
     }
 
     private IdTitleResponse getIdTitleResponse(String title) {
-        IdTitleResponse country = new IdTitleResponse();
-        country.setTitle(title);
-        return country;
+        IdTitleResponse idTitleResponse = new IdTitleResponse(title);
+        return idTitleResponse;
     }
 
     private List<CommentEntityResponse> getCommentsByPost(Post post) {

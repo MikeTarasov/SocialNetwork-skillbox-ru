@@ -8,20 +8,16 @@ import org.springframework.stereotype.Repository;
 import ru.skillbox.socialnetwork.model.entity.Post;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-    @Query(value = "SELECT * FROM post WHERE" +
-            "post.post_text ILIKE :text and " +
-            "post.time between :date_from ::timestamp and :date_to ::timestamp " +
-            "order by post.id desc", nativeQuery = true)
-    List<Post> findPostsByTitleAndPeriod (
-            @Param("text") String text,
-            @Param("date_from") long timeFrom,
-            @Param("date_to") long timeTo,
-            Pageable pageable
-            );
+    List<Post> findByPostTextLikeAndTimeAfterAndTimeBeforeOrderByIdDesc(String text, long timeFrom,
+                                                                 long timeTo, Pageable pageable);
+
+
+    Optional<Post> findByIdAndAndTimeIsBefore(long id, long timeTo);
 
     @Query(value = "SELECT post.author_id FROM post WHERE post.id = :post_id", nativeQuery = true)
     long getAuthorId(@Param("post_id") long postId);

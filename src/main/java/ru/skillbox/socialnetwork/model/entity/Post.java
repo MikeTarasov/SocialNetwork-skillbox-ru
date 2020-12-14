@@ -8,7 +8,6 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
@@ -86,19 +85,19 @@ public class Post {
         this.postText = postText;
     }
 
-    public int getIsBlocked() {
-        return isBlocked;
+    public boolean getIsBlocked() {
+        return isBlocked == 1;
     }
 
-    public void setIsBlocked(int isBlocked) {
-        this.isBlocked = isBlocked;
+    public void setIsBlocked(boolean isBlocked) {
+        this.isBlocked = isBlocked ? 1 : 0;
     }
 
-    public int getIsDeleted() {
-        return isDeleted;
+    public boolean getIsDeleted() {
+        return isDeleted == 1;
     }
 
-    public void setIsDeleted(int isDeleted) {
-        this.isDeleted = isDeleted;
+    public void setIsDeleted(boolean isDeleted) {
+        this.isDeleted = isDeleted ? 1 : 0;
     }
 }
