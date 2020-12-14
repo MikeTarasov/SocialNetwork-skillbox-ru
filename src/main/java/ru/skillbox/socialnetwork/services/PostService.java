@@ -3,8 +3,10 @@ package ru.skillbox.socialnetwork.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.skillbox.socialnetwork.api.requests.ParentIdCommentTextRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
 import ru.skillbox.socialnetwork.api.responses.CommentEntityResponse;
@@ -46,7 +48,7 @@ public class PostService {
         Pageable pageable = PageRequest.of(offset, itemPerPage);
         List<Post> posts = postRepository.findPostsByTitleAndPeriod(text, dateFrom, dateTo, pageable);
 
-        return ResponseEntity.status(200)
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
                         "",
                         System.currentTimeMillis(),
@@ -60,11 +62,11 @@ public class PostService {
     public ResponseEntity<?> getApiPostId(long id) {
         Optional<Post> optionalPost = postRepository.findById(id);
         if (optionalPost.isEmpty()) {
-            return ResponseEntity.status(200)
+            return ResponseEntity.status(HttpStatus.OK)
                     .body(new ErrorErrorDescriptionResponse("User not found."));
         }
 
-        return ResponseEntity.status(200)
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse(
                         "",
                         System.currentTimeMillis(),
@@ -72,75 +74,76 @@ public class PostService {
                 );
     }
 
-    public ResponseEntity<?> putApiPostId(
-            int id,
-            long publishDate,
-            TitlePostTextRequest requestBody) {
-        return ResponseEntity.status(200)
+    @Transactional
+    public ResponseEntity<?> putApiPostId(long id, long publishDate, TitlePostTextRequest requestBody) {
+        Optional<Post> optionalPost = postRepository.findById(id);
+        if (optionalPost.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ErrorErrorDescriptionResponse("User not found."));
+        }
+        Post post = optionalPost.get();
+        post.setTitle(requestBody.getTitle());
+        post.setPostText(requestBody.getPostText());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ErrorTimeDataResponse(
+                        "",
+                        System.currentTimeMillis(),
+                        getPostEntityResponseByPost(postRepository.saveAndFlush(post)))
+                );
+
+    }
+
+    public ResponseEntity<?> deleteApiPostId(long id) {
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(id);
     }
 
-    public ResponseEntity<?> deleteApiPostId(int id) {
-        return ResponseEntity.status(200)
+    public ResponseEntity<?> putApiPostIdRecover(long id) {
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(id);
     }
 
-    public ResponseEntity<?> putApiPostIdRecover(int id) {
-        return ResponseEntity.status(200)
+    public ResponseEntity<?> getApiPostIdComments(long id, int offset, int itemPerPage) {
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(id);
     }
 
-    public ResponseEntity<?> getApiPostIdComments(int id,
-                                                  int offset, int itemPerPage) {
-        return ResponseEntity.status(200)
+    public ResponseEntity<?> postApiPostIdComments(long id, ParentIdCommentTextRequest requestBody) {
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(id);
     }
 
-    public ResponseEntity<?> postApiPostIdComments(int id,
-                                                   ParentIdCommentTextRequest requestBody) {
-        return ResponseEntity.status(200)
-                .body(id);
-    }
-
-    public ResponseEntity<?> putApiPostIdCommentsCommentId(
-            int id,
-            int commentId,
-            ParentIdCommentTextRequest requestBody) {
-        return ResponseEntity.status(200)
+    public ResponseEntity<?> putApiPostIdCommentsCommentId(long id, int commentId,
+                                                           ParentIdCommentTextRequest requestBody) {
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(id);
     }
 
 
-    public ResponseEntity<?> deleteApiPostIdCommentsCommentId(int id,
-                                                              int commentId) {
-        return ResponseEntity.status(200)
+    public ResponseEntity<?> deleteApiPostIdCommentsCommentId(long id, int commentId) {
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(id);
     }
 
-    public ResponseEntity<?> putApiPostIdCommentsCommentId(int id,
-                                                           int commentId) {
-        return ResponseEntity.status(200)
+    public ResponseEntity<?> putApiPostIdCommentsCommentId(long id, int commentId) {
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(id);
     }
 
-    public ResponseEntity<?> postApiPostIdReport(int id) {
-        return ResponseEntity.status(200)
+    public ResponseEntity<?> postApiPostIdReport(long id) {
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(id);
     }
 
-    public ResponseEntity<?> postApiPostIdCommentsCommentIdReport(int id,
-                                                                  int commentId) {
-        return ResponseEntity.status(200)
+    public ResponseEntity<?> postApiPostIdCommentsCommentIdReport(long id, int commentId) {
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(id);
     }
 
     private List<PostEntityResponse> getPostEntityResponseListByPosts(List<Post> posts) {
         List<PostEntityResponse> postEntityResponseList = new ArrayList<>();
-
         for (Post post : posts) {
-
-            postEntityResponseList.add(getPostEntityResponseByPost(post)
-            );
+            postEntityResponseList.add(getPostEntityResponseByPost(post));
         }
         return postEntityResponseList;
     }
@@ -188,7 +191,6 @@ public class PostService {
 
         List<CommentEntityResponse> commentEntityResponseList = new ArrayList<>();
         List<PostComment> comments = commentRepository.getCommentsByPostId(post.getId());
-
         for (PostComment comment : comments) {
             commentEntityResponseList.add(getCommentEntityResponseByComment(post, comment));
         }
