@@ -1,7 +1,5 @@
 package ru.skillbox.socialnetwork.controllers;
 
-import java.util.ArrayList;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
@@ -15,13 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.skillbox.socialnetwork.api.requests.ParentIdCommentTextRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
-import ru.skillbox.socialnetwork.api.responses.CommentEntityResponse;
-import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
-import ru.skillbox.socialnetwork.api.responses.ErrorTimeListDataResponse;
-import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
-import ru.skillbox.socialnetwork.api.responses.IdResponse;
-import ru.skillbox.socialnetwork.api.responses.MessageResponse;
-import ru.skillbox.socialnetwork.api.responses.PostEntityResponse;
 import ru.skillbox.socialnetwork.services.PostService;
 
 @RestController
@@ -36,108 +27,84 @@ public class PostController {
   }
 
   @GetMapping("/")
-  public ResponseEntity<?> getApiPost(
-      @Param("text") String text,
-      @Param("date_from") long dateFrom,
-      @Param("date_to") long dateTo,
-      @Param("offset") int offset,
-      @Param("itemPerPage") int itemPerPage) {
+  public ResponseEntity<?> getApiPost(@Param("text") String text, @Param("date_from") long dateFrom,
+                                      @Param("date_to") long dateTo, @Param("offset") int offset,
+                                      @Param("itemPerPage") int itemPerPage) {
 
     return postService.getApiPost(text, dateFrom, dateTo, offset, itemPerPage);
   }
 
 
   @GetMapping("/{id}")
-  public ResponseEntity<?> getApiPostId(@PathVariable("id") int id) {
-    return ResponseEntity.status(200)
-        .body(new ErrorTimeDataResponse("", 123456, new PostEntityResponse()));
+  public ResponseEntity<?> getApiPostId(@PathVariable("id") long id) {
+    return postService.getApiPostId(id);
   }
 
 
   @PutMapping("/{id}")
-  public ResponseEntity<?> putApiPostId(
-      @PathVariable("id") int id,
-      @Param("publish_date") long publishDate,
-      @RequestBody TitlePostTextRequest requestBody) {
-    return ResponseEntity.status(200)
-        .body(new ErrorTimeDataResponse("", 123456789, new PostEntityResponse()));
+  public ResponseEntity<?> putApiPostId(@PathVariable("id") int id, @Param("publish_date") long publishDate,
+                                        @RequestBody TitlePostTextRequest requestBody) {
+    return postService.putApiPostId(id, publishDate, requestBody);
   }
 
 
   @DeleteMapping("/{id}")
   public ResponseEntity<?> deleteApiPostId(@PathVariable("id") int id) {
-    return ResponseEntity.status(200)
-        .body(new ErrorTimeDataResponse("", 123456789, new IdResponse()));
+    return postService.deleteApiPostId(id);
   }
 
 
   @PutMapping("/{id}/recover")
   public ResponseEntity<?> putApiPostIdRecover(@PathVariable("id") int id) {
-    return ResponseEntity.status(200)
-        .body(new ErrorTimeDataResponse("", 123456789, new PostEntityResponse()));
+    return postService.putApiPostIdRecover(id);
   }
 
 
   @GetMapping("/{id}/comments")
-  public ResponseEntity<?> getApiPostIdComments(@PathVariable("id") int id,
-      @Param("offset") int offset, @Param("itemPerPage") int itemPerPage) {
-    return ResponseEntity.status(200)
-        .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
-            "error",
-            12346589,
-            125,
-            0,
-            20,
-            new ArrayList<CommentEntityResponse>()
-        ));
+  public ResponseEntity<?> getApiPostIdComments(@PathVariable("id") int id, @Param("offset") int offset,
+                                                @Param("itemPerPage") int itemPerPage) {
+    return postService.getApiPostIdComments(id, offset, itemPerPage);
   }
 
 
   @PostMapping("/{id}/comments")
   public ResponseEntity<?> postApiPostIdComments(@PathVariable("id") int id,
-      @RequestBody ParentIdCommentTextRequest requestBody) {
-    return ResponseEntity.status(200)
-        .body(new ErrorTimeDataResponse("", 1235214, new CommentEntityResponse()));
+                                                 @RequestBody ParentIdCommentTextRequest requestBody) {
+    return postService.postApiPostIdComments(id, requestBody);
   }
 
 
   @PutMapping("/{id}/comments/{comment_id}")
-  public ResponseEntity<?> putApiPostIdCommentsCommentId(
-      @PathVariable("id") int id,
-      @PathVariable("comment_id") int commentId,
-      @RequestBody ParentIdCommentTextRequest requestBody) {
-    return ResponseEntity.status(200)
-        .body(new ErrorTimeDataResponse("", 123456, new CommentEntityResponse()));
+  public ResponseEntity<?> putApiPostIdCommentsCommentId(@PathVariable("id") int id,
+                                                         @PathVariable("comment_id") int commentId,
+                                                         @RequestBody ParentIdCommentTextRequest requestBody) {
+    return postService.putApiPostIdCommentsCommentId(id, commentId, requestBody);
   }
 
 
   @DeleteMapping("/{id}/comments/{comment_id}")
   public ResponseEntity<?> deleteApiPostIdCommentsCommentId(@PathVariable("id") int id,
-      @PathVariable("comment_id") int commentId) {
-    return ResponseEntity.status(200)
-        .body(new ErrorTimeDataResponse("", 123456, new IdResponse(123)));
+                                                            @PathVariable("comment_id") int commentId) {
+    return postService.deleteApiPostIdCommentsCommentId(id, commentId);
   }
 
 
   @PutMapping("/{id}/comments/{comment_id}/recover")
   public ResponseEntity<?> putApiPostIdCommentsCommentId(@PathVariable("id") int id,
-      @PathVariable("comment_id") int commentId) {
-    return ResponseEntity.status(200)
-        .body(new ErrorTimeListDataResponse("", 12345, new ArrayList<CommentEntityResponse>()));
+                                                         @PathVariable("comment_id") int commentId) {
+    return postService.putApiPostIdCommentsCommentId(id, commentId);
   }
 
 
   @PostMapping("/{id}/report")
   public ResponseEntity<?> postApiPostIdReport(@PathVariable("id") int id) {
-    return ResponseEntity.status(200)
-        .body(new ErrorTimeDataResponse("", 123, new MessageResponse("")));
+    return postService.postApiPostIdReport(id);
   }
 
 
   @PostMapping("/{id}/comments/{comment_id}/report")
   public ResponseEntity<?> postApiPostIdCommentsCommentIdReport(@PathVariable("id") int id,
-      @PathVariable("comment_id") int commentId) {
-    return ResponseEntity.status(200)
-        .body(new ErrorTimeDataResponse("", 1234, new MessageResponse("")));
+                                                                @PathVariable("comment_id") int commentId) {
+    return postService.postApiPostIdCommentsCommentIdReport(id, commentId);
   }
 }
