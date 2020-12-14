@@ -138,9 +138,7 @@ public class PostService {
         List<PostEntityResponse> postEntityResponseList = new ArrayList<>();
 
         for (Post post : posts) {
-
-            postEntityResponseList.add(getPostEntityResponseByPost(post)
-            );
+            postEntityResponseList.add(getPostEntityResponseByPost(post));
         }
         return postEntityResponseList;
     }
