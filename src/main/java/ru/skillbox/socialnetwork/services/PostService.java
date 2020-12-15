@@ -69,7 +69,7 @@ public class PostService {
 
         Pageable pageable = PageRequest.of(offset, itemPerPage);
         List<Post> posts = postRepository
-                .findByPostTextLikeAndTimeAfterAndTimeBeforeAAndIsDeletedFalseOrderByIdDesc(text, dateFrom,
+                .findByPostTextLikeAndTimeAfterAndTimeBeforeAndIsDeletedFalseOrderByIdDesc(text, dateFrom,
                         Math.min(dateTo, System.currentTimeMillis()), pageable);
 
         return ResponseEntity.status(HttpStatus.OK)

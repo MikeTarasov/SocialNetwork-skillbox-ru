@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-    List<Post> findByPostTextLikeAndTimeAfterAndTimeBeforeAAndIsDeletedFalseOrderByIdDesc(String text, long timeFrom,
+    List<Post> findByPostTextLikeAndTimeAfterAndTimeBeforeAndIsDeletedFalseOrderByIdDesc(String text, long timeFrom,
                                                                  long timeTo, Pageable pageable);
 
 
