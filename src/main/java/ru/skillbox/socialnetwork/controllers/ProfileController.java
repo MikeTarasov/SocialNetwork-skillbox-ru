@@ -1,26 +1,18 @@
 package ru.skillbox.socialnetwork.controllers;
 
-import java.util.ArrayList;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.skillbox.socialnetwork.api.requests.PersonEditRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
-import ru.skillbox.socialnetwork.api.responses.MessageResponse;
 import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
 import ru.skillbox.socialnetwork.api.responses.PostEntityResponse;
 import ru.skillbox.socialnetwork.services.ProfileService;
+
+import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -35,22 +27,23 @@ public class ProfileController {
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser() {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeDataResponse("", 123, new PersonEntityResponse()));
+        ErrorTimeDataResponse response = profileService.getCurrentUser();
+        return ResponseEntity.ok(response);
     }
 
 
     @PutMapping("/me")
     public ResponseEntity<?> updateCurrentUser(@RequestBody PersonEditRequest requestBody) {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeDataResponse("", 123, new PersonEntityResponse()));
+        // TODO: verify at least one field in PersonEditRequest != null
+        ErrorTimeDataResponse response = profileService.updateCurrentUser(requestBody);
+        return ResponseEntity.ok(response);
     }
 
 
     @DeleteMapping("/me")
     public ResponseEntity<?> deleteCurrentUser() {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeDataResponse("", 123, new MessageResponse()));
+        ErrorTimeDataResponse response = profileService.deleteCurrentUser();
+        return ResponseEntity.ok(response);
     }
 
 
@@ -104,13 +97,13 @@ public class ProfileController {
 
     @PutMapping("/block/{id}")
     public ResponseEntity<?> blockUserById(@PathVariable("id") int id) {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeDataResponse("", 123, new MessageResponse()));
+        ErrorTimeDataResponse response = profileService.setBlockUserById(id, 1);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/block/{id}")
     public ResponseEntity<?> unblockUserById(@PathVariable("id") int id) {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeDataResponse("", 123, new MessageResponse()));
+        ErrorTimeDataResponse response = profileService.setBlockUserById(id, 0);
+        return ResponseEntity.ok(response);
     }
 }
