@@ -13,11 +13,11 @@ import java.util.Optional;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-    List<Post> findByPostTextLikeAndTimeAfterAndTimeBeforeOrderByIdDesc(String text, long timeFrom,
+    List<Post> findByPostTextLikeAndTimeAfterAndTimeBeforeAAndIsDeletedFalseOrderByIdDesc(String text, long timeFrom,
                                                                  long timeTo, Pageable pageable);
 
 
-    Optional<Post> findByIdAndAndTimeIsBefore(long id, long timeTo);
+    Optional<Post> findByIdAndTimeIsBefore(long id, long timeTo);
 
     @Query(value = "SELECT post.author_id FROM post WHERE post.id = :post_id", nativeQuery = true)
     long getAuthorId(@Param("post_id") long postId);

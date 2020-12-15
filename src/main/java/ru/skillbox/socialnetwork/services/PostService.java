@@ -69,7 +69,7 @@ public class PostService {
 
         Pageable pageable = PageRequest.of(offset, itemPerPage);
         List<Post> posts = postRepository
-                .findByPostTextLikeAndTimeAfterAndTimeBeforeOrderByIdDesc(text, dateFrom,
+                .findByPostTextLikeAndTimeAfterAndTimeBeforeAAndIsDeletedFalseOrderByIdDesc(text, dateFrom,
                         Math.min(dateTo, System.currentTimeMillis()), pageable);
 
         return ResponseEntity.status(HttpStatus.OK)
@@ -79,18 +79,15 @@ public class PostService {
                         posts.size(),
                         offset,
                         itemPerPage,
-                        getPostEntityResponseListByPosts(posts))
-                );
+                        getPostEntityResponseListByPosts(posts)));
     }
 
     public ResponseEntity<?> getApiPostId(long id) {
-        //запрос возвращает пост, если время публикации поста уже наступило
-        Optional<Post> optionalPost = postRepository.findByIdAndAndTimeIsBefore(id, System.currentTimeMillis());
+        Optional<Post> optionalPost = postRepository.findByIdAndTimeIsBefore(id, System.currentTimeMillis());
         if (optionalPost.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
-
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
                         getPostEntityResponseByPost(optionalPost.get())));
