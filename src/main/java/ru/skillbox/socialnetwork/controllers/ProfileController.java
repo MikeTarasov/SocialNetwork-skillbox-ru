@@ -48,32 +48,25 @@ public class ProfileController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<ErrorTimeDataResponse> getUserById(@PathVariable("id") int id) {
+    public ResponseEntity<ErrorTimeDataResponse> getUserById(@PathVariable("id") long id) {
         ErrorTimeDataResponse response = profileService.getUser(id);
         return ResponseEntity.ok(response);
     }
 
 
     @GetMapping("/{id}/wall")
-    public ResponseEntity<?> getNotesOnUserWall(@PathVariable("id") int id,
-        @Param("offset") int offset, @Param("itemPerPage") int itemPerPage) {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
-                "",
-                123456,
-                123,
-                0,
-                20,
-                new ArrayList<PostEntityResponse>()
-            ));
+    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getNotesOnUserWall(@PathVariable("id") long id,
+                                                @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+                                                @RequestParam(name = "itemPerPage", required = false, defaultValue = "20") int itemPerPage) {
+        return ResponseEntity.ok(profileService.getWallPosts(id, offset, itemPerPage));
     }
 
 
     @PostMapping("/{id}/wall")
-    public ResponseEntity<?> postNoteOnUserWall(@PathVariable("id") int id,
-        @Param("publish_date") long publishDate, @RequestBody TitlePostTextRequest requestBody) {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeDataResponse("", 123, new PostEntityResponse()));
+    public ResponseEntity<?> postNoteOnUserWall(@PathVariable("id") long id,
+                                                @Param("publish_date") long publishDate,
+                                                @RequestBody TitlePostTextRequest requestBody) {
+        return ResponseEntity.ok(new ErrorTimeDataResponse("", 123, new PostEntityResponse()));
     }
 
 
@@ -96,13 +89,13 @@ public class ProfileController {
 
 
     @PutMapping("/block/{id}")
-    public ResponseEntity<?> blockUserById(@PathVariable("id") int id) {
+    public ResponseEntity<?> blockUserById(@PathVariable("id") long id) {
         ErrorTimeDataResponse response = profileService.setBlockUserById(id, 1);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/block/{id}")
-    public ResponseEntity<?> unblockUserById(@PathVariable("id") int id) {
+    public ResponseEntity<?> unblockUserById(@PathVariable("id") long id) {
         ErrorTimeDataResponse response = profileService.setBlockUserById(id, 0);
         return ResponseEntity.ok(response);
     }

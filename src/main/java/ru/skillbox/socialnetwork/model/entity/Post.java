@@ -23,10 +23,10 @@ public class Post {
     @Column(name = "time", columnDefinition = "TIMESTAMP")
     private LocalDateTime time;
 
-//    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-//            CascadeType.DETACH, CascadeType.REFRESH})
-//    @JoinColumn(name = "author_id")
-//    private Person author;
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE,
+            CascadeType.DETACH, CascadeType.REFRESH})
+    @JoinColumn(name = "author_id")
+    private Person author;
 
     @Column(columnDefinition = "VARCHAR(255)")
     private String title;
@@ -41,8 +41,8 @@ public class Post {
     private int isDeleted;
 
 
-//    @OneToMany(mappedBy = "post", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-//            CascadeType.DETACH, CascadeType.REFRESH})
-//    private List<Comment> comments;
+    @OneToMany(mappedBy = "post", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
+            CascadeType.DETACH, CascadeType.REFRESH})
+    private List<PostComment> comments;
 
 }
