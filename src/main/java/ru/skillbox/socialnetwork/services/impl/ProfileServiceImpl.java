@@ -49,19 +49,18 @@ public class ProfileServiceImpl implements ProfileService {
         );
     }
 
-    @Override
-    public ErrorTimeDataResponse getCurrentUser() {
-        return getUser(getCurrentUserId());
+    private Person getCurrentUserAsPerson() {
+        return accountService.getCurrentUser();
     }
 
-    public long getCurrentUserId() {
-        return accountService.getCurrentUser().getId();
+    public ErrorTimeDataResponse getCurrentUser(){
+        return new ErrorTimeDataResponse("", convertPersonToResponse(getCurrentUserAsPerson()));
     }
+
 
     @Override
     public ErrorTimeDataResponse updateCurrentUser(PersonEditRequest personEditRequest) {
-        Person person = personRepository.findById(getCurrentUserId()).orElseThrow(()
-                -> new PersonNotFoundException(getCurrentUserId()));
+        Person person = getCurrentUserAsPerson();
 
         if (personEditRequest.getFirstName() != null) {
             person.setFirstName(personEditRequest.getFirstName());
@@ -94,13 +93,12 @@ public class ProfileServiceImpl implements ProfileService {
             person.setMessagePermission(personEditRequest.getMessagesPermission().toString());
         }
         personRepository.save(person);
-        return new ErrorTimeDataResponse("", new MessageResponse());
+        return new ErrorTimeDataResponse("", new ErrorTimeDataResponse("", convertPersonToResponse(getCurrentUserAsPerson())));
     }
 
     @Override
     public ErrorTimeDataResponse deleteCurrentUser() {
-        Person person = personRepository.findById(getCurrentUserId()).orElseThrow(()
-                -> new PersonNotFoundException(getCurrentUserId()));
+        Person person = getCurrentUserAsPerson();
         person.setIsDeleted(1);
         personRepository.save(person);
         return new ErrorTimeDataResponse("", new MessageResponse());
@@ -109,8 +107,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public ErrorTimeDataResponse setBlockUserById(long id, int block) {
-        Person person = personRepository.findById(getCurrentUserId()).orElseThrow(()
-                -> new PersonNotFoundException(id));
+        Person person = getCurrentUserAsPerson();
         person.setIsBlocked(block);
         personRepository.save(person);
         return new ErrorTimeDataResponse("", new MessageResponse());
