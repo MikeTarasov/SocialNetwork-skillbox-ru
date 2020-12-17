@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+/src/main/java/ru/skillbox/socialnetwork/example_auth/JwtUsernameAndPasswordAuthenticationFilter.java
+/src/main/java/ru/skillbox/socialnetwork/example_auth/JwtTokenAuthenticationFilter.java
+/src/main/java/ru/skillbox/socialnetwork/example_auth/SecurityTokenConfig.java
+/src/main/java/ru/skillbox/socialnetwork/example_auth/JwtConfig.java
+/src/main/java/ru/skillbox/socialnetwork/example_auth/CustomUserDetailsService.java

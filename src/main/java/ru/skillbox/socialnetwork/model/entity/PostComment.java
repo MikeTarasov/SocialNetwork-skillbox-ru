@@ -34,11 +34,11 @@ public class PostComment {
     @Column(name = "is_deleted")
     private int isDeleted;
 
-//    @ManyToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "author_id")
-//    private Person person;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "author_id")
+    private Person person;
 
-//    @ManyToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "post_id")
-//    private Post post;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "post_id")
+    private Post post;
 }

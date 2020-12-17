@@ -1,73 +1,96 @@
 package ru.skillbox.socialnetwork.security;
 
+
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import ru.skillbox.socialnetwork.repository.PersonRepository;
 
-@Configuration
+import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.Collections;
+
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)
-class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-  private final PersonDetailsService personDetailsService;
-  private final AuthorizationFilter authorizationFilter;
+    private final PersonDetailsService personDetailsService;
+    private final PersonRepository personRepository;
+    private final JwtTokenProvider jwtProvider;
+    private final UserNamePasswordAuthorizationFilter userNamePasswordAuthorizationFilter;
+    private final JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter;
+    private final JwtConfig jwtConfig;
 
+    public WebSecurityConfig(PersonDetailsService personDetailsService,
+                             PersonRepository personRepository,
+                             JwtTokenProvider jwtProvider, JwtConfig jwtConfig) {
+        this.personDetailsService = personDetailsService;
+        this.personRepository = personRepository;
+        this.jwtProvider = jwtProvider;
+        this.jwtConfig = jwtConfig;
+        this.userNamePasswordAuthorizationFilter = new UserNamePasswordAuthorizationFilter(
+                personRepository, jwtProvider, jwtConfig.getJwtHeader(), jwtConfig.getJwtPrefix());
+        this.jwtTokenAuthenticationFilter = new JwtTokenAuthenticationFilter(
+                jwtProvider, personDetailsService, jwtConfig.getJwtHeader(), jwtConfig.getJwtPrefix());
+    }
 
-  public WebSecurityConfig(
-      PersonDetailsService personDetailsService,
-      AuthorizationFilter authorizationFilter) {
-    this.personDetailsService = personDetailsService;
-    this.authorizationFilter = authorizationFilter;
-  }
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                .csrf().disable()
+                .cors()
+                .and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .exceptionHandling()
+                .authenticationEntryPoint((req, rsp, e) -> rsp.sendError(HttpServletResponse.SC_UNAUTHORIZED))
+                .and()
+                .authorizeRequests()
+                .antMatchers("/account/register", "/account/password/recovery", "/account/password/set",
+                        "/platform/**", "/api/test/**"
+//                        , "/*/**"     //раскомментирование отключает security
+                ).permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .addFilterBefore(jwtTokenAuthenticationFilter, UserNamePasswordAuthorizationFilter.class)
+                .addFilterAfter(userNamePasswordAuthorizationFilter, JwtTokenAuthenticationFilter.class)
+                .formLogin()
+                .usernameParameter("email")
+                .permitAll()
+                .and()
+                .logout()
+                .logoutUrl("/auth/logout")
+                .clearAuthentication(true)
+                .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler(HttpStatus.ACCEPTED))
+                .permitAll();
+    }
 
-  @Override
-  protected void configure(HttpSecurity http) throws Exception {
-    http
-        .csrf().disable()
-        .authorizeRequests()
-        .antMatchers("/**").permitAll()
-        .anyRequest().authenticated()
-        .and()
-        .addFilterBefore(authorizationFilter, UsernamePasswordAuthenticationFilter.class)
-        .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        .and()
-        .httpBasic().disable()
-        .formLogin().disable();
-  }
+    @Override
+    public void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(personDetailsService).passwordEncoder(bCryptEncoder());
+    }
 
-  @Override
-  public void configure(AuthenticationManagerBuilder auth) throws Exception {
-    auth.userDetailsService(personDetailsService).passwordEncoder(bCryptEncoder());
-  }
+    @Bean
+    public BCryptPasswordEncoder bCryptEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
-  @Bean
-  public BCryptPasswordEncoder bCryptEncoder() {
-    return new BCryptPasswordEncoder();
-  }
-
-  @Bean
-  public CorsConfigurationSource corsConfigurationSource() {
-    final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", new CorsConfiguration().applyPermitDefaultValues());
-
-    return source;
-  }
-
-  @Bean
-  @Override
-  public AuthenticationManager authenticationManagerBean() throws Exception {
-    return super.authenticationManager();
-  }
-
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        final CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Collections.singletonList("*"));
+        configuration.setAllowedMethods(Arrays.asList("HEAD", "GET", "POST", "PUT", "DELETE"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }

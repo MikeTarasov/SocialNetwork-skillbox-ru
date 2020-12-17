@@ -13,11 +13,9 @@ public class EmailSenderService {
 
   private final JavaMailSender emailSender;
 
-  @Value("{application.host}")
+  @Value("${application.host}")
   private String applicationHost;
 
-  @Value("{password.recovery.url}")
-  private String recoveryUrl;
 
   @Autowired
   public EmailSenderService(JavaMailSender emailSender) {
@@ -48,13 +46,13 @@ public class EmailSenderService {
 
   private String createHtmlMessage(String personName, String newPassword) {
     return "<h3>Здравствуйте, " + personName + "!</h3>" +
-        "<p><br>&nbsp;&nbsp;&nbsp;&nbsp;От Вашего имени подана заявка на смену пароля в "
-        + applicationHost + ".<br>" +
-        "Вам сгенерирован новый пароль " + newPassword +
-        "<br><br>&nbsp;&nbsp;&nbsp;&nbsp;Если вы не инициировали это действие, возможно, " +
-        "ваша учетная запись была взломана.<br>" +
-        "Пожалуйста, свяжитесь с администрацией " + applicationHost + "<br><br>" +
-        "С уважением,<br>" +
-        "администрация " + applicationHost + "</p>";
+            "<p><br>&nbsp;&nbsp;&nbsp;&nbsp;От Вашего имени подана заявка на смену пароля в "
+            + applicationHost + ".<br>" +
+            "Вам сгенерирован новый пароль - " + newPassword +
+            "<br><br>&nbsp;&nbsp;&nbsp;&nbsp;Если вы не инициировали это действие, возможно, " +
+            "ваша учетная запись была взломана.<br>" +
+            "Пожалуйста, свяжитесь с администрацией " + applicationHost + "<br><br>" +
+            "С уважением,<br>" +
+            "администрация " + applicationHost + "</p>";
   }
 }

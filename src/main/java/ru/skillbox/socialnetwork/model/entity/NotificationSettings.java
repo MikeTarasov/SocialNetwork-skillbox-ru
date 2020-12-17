@@ -17,13 +17,13 @@ public class NotificationSettings {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-//    @ManyToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "notification_type_id")
-//    private NotificationType notificationType;
-//
-//    @ManyToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "person_id")
-//    private Person personNS;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "notification_type_id")
+    private NotificationType notificationType;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "person_id")
+    private Person personNS;
 
     private int enable;
 }
