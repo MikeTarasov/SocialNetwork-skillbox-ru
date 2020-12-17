@@ -23,7 +23,7 @@ public class Notification {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "person_id")
-    private Person person;
+    private Person personNotification;
 
     @Column(name = "entity_id", nullable = false)
     private Long entityId;
