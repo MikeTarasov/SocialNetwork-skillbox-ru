@@ -12,4 +12,20 @@ public class ParentIdCommentTextRequest {
   private Integer parenId;
   @JsonProperty("comment_text")
   private String commentText;
+
+  public Integer getParenId() {
+    return parenId;
+  }
+
+  public void setParenId(Integer parenId) {
+    this.parenId = parenId;
+  }
+
+  public String getCommentText() {
+    return commentText;
+  }
+
+  public void setCommentText(String commentText) {
+    this.commentText = commentText;
+  }
 }

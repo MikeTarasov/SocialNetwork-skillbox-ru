@@ -43,6 +43,19 @@ public class PostComment {
 //    private Post post;
 
 
+    public PostComment() {
+    }
+
+    public PostComment(long time, long parentId, String commentText, int isBlocked, int isDeleted, long authorId) {
+
+        this.time = time;
+        this.parentId = parentId;
+        this.commentText = commentText;
+        this.isBlocked = isBlocked;
+        this.isDeleted = isDeleted;
+        this.authorId = authorId;
+    }
+
     public long getAuthorId() {
         return authorId;
     }

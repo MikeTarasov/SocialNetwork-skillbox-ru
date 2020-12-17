@@ -9,14 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.skillbox.socialnetwork.api.requests.ParentIdCommentTextRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
-import ru.skillbox.socialnetwork.api.responses.CommentEntityResponse;
-import ru.skillbox.socialnetwork.api.responses.ErrorErrorDescriptionResponse;
-import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
-import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
-import ru.skillbox.socialnetwork.api.responses.IdResponse;
-import ru.skillbox.socialnetwork.api.responses.IdTitleResponse;
-import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
-import ru.skillbox.socialnetwork.api.responses.PostEntityResponse;
+import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
@@ -118,6 +111,7 @@ public class PostService {
         }
         Post post = optionalPost.get();
         post.setIsDeleted(true);
+        post.setIsBlocked(true);
         postRepository.saveAndFlush(post);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse("", System.currentTimeMillis(), new IdResponse(id)));
@@ -137,40 +131,174 @@ public class PostService {
     }
 
     public ResponseEntity<?> getApiPostIdComments(long id, int offset, int itemPerPage) {
+
+        StringBuilder errors = new StringBuilder();
+
+        if (offset <= 0) {
+            errors.append("'offset' should be greater than 0. ");
+        }
+        if (itemPerPage <= 0) {
+            errors.append("'itemPerPage' should be more than 0. ");
+        }
+        if (!errors.toString().equals("")) {
+            return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
+        }
+        Pageable pageable = PageRequest.of(offset, itemPerPage);
+
+        Optional<Post> optionalPost = postRepository.findByIdAndTimeIsBefore(id, System.currentTimeMillis());
+        if (optionalPost.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
+        }
+
         return ResponseEntity.status(HttpStatus.OK)
-                .body(id);
+                .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
+                        "",
+                        System.currentTimeMillis(),
+                        getCommentsByPost(optionalPost.get()).size(),
+                        offset,
+                        itemPerPage,
+                        getCommentsByPost(optionalPost.get(), pageable));
+
     }
 
     public ResponseEntity<?> postApiPostIdComments(long id, ParentIdCommentTextRequest requestBody) {
+
+        StringBuilder errors = new StringBuilder();
+
+        Optional<Post> post = postRepository.findByIdAndTimeIsBefore(id, System.currentTimeMillis());
+
+        if (post.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
+        }
+        if (requestBody.getCommentText().isEmpty()) {
+            errors.append("'commentText' should not be empty");
+        }
+        if (!errors.toString().equals("")) {
+            return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
+        }
+
+        PostComment comment = commentRepository.save(new PostComment(
+                System.currentTimeMillis(),
+                requestBody.getParenId(),
+                requestBody.getCommentText(),
+                false,
+                false,
+                id
+        ));
+
         return ResponseEntity.status(HttpStatus.OK)
-                .body(id);
+                .body(new ErrorTimeDataResponse(
+                        "",
+                        System.currentTimeMillis(),
+                        getCommentEntityResponseByComment(post.get(), comment)
+                ));
     }
 
-    public ResponseEntity<?> putApiPostIdCommentsCommentId(long id, int commentId,
+    public ResponseEntity<?> putApiPostIdCommentsCommentId(long id, long commentId,
                                                            ParentIdCommentTextRequest requestBody) {
+        StringBuilder errors = new StringBuilder();
+
+        Optional<PostComment> optionalPostComment = commentRepository.findById(commentId);
+        Optional<Post> optionalPost = postRepository.findByIdAndTimeIsBefore(id, System.currentTimeMillis());
+        if (optionalPostComment.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + " not found."));
+        }
+        if (optionalPost.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
+        }
+        if (requestBody.getCommentText().isEmpty()) {
+            errors.append("'commentText' should not be empty");
+        }
+        if (!errors.toString().equals("")) {
+            return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
+        }
+
+        PostComment comment = optionalPostComment.get();
+        comment.setCommentText(requestBody.getCommentText());
+        commentRepository.saveAndFlush(comment);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(id);
+                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
+                        getCommentEntityResponseByComment(optionalPost.get(), comment)));
     }
 
 
-    public ResponseEntity<?> deleteApiPostIdCommentsCommentId(long id, int commentId) {
+    public ResponseEntity<?> deleteApiPostIdCommentsCommentId(long id, long commentId) {
+
+        Optional<PostComment> optionalPostComment = commentRepository.findById(commentId);
+        Optional<Post> optionalPost = postRepository.findByIdAndTimeIsBefore(id, System.currentTimeMillis());
+        if (optionalPostComment.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + " not found."));
+        }
+        if (optionalPost.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
+        }
+
+        PostComment comment = optionalPostComment.get();
+        comment.setIsBlocked(1);
+        comment.setIsDeleted(1);
+        commentRepository.saveAndFlush(comment);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(id);
+                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(), new IdResponse(commentId)));
     }
 
-    public ResponseEntity<?> putApiPostIdCommentsCommentId(long id, int commentId) {
+    public ResponseEntity<?> putApiPostIdCommentsCommentId(long id, long commentId) {
+        Optional<PostComment> optionalPostComment = commentRepository.findById(commentId);
+        Optional<Post> optionalPost = postRepository.findByIdAndTimeIsBefore(id, System.currentTimeMillis());
+        if (optionalPostComment.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + " not found."));
+        }
+        if (optionalPost.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
+        }
+
+        PostComment comment = optionalPostComment.get();
+        comment.setIsBlocked(0);
+        comment.setIsDeleted(0);
+        commentRepository.saveAndFlush(comment);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(id);
+                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
+                        getCommentEntityResponseByComment(optionalPost.get(), comment)));
     }
 
     public ResponseEntity<?> postApiPostIdReport(long id) {
+
+        Optional<Post> optionalPost = postRepository.findByIdAndTimeIsBefore(id, System.currentTimeMillis());
+
+        if (optionalPost.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
+        }
+
         return ResponseEntity.status(HttpStatus.OK)
-                .body(id);
+                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
+                        new MessageResponse()));
+
     }
 
-    public ResponseEntity<?> postApiPostIdCommentsCommentIdReport(long id, int commentId) {
+    public ResponseEntity<?> postApiPostIdCommentsCommentIdReport(long id, long commentId) {
+        Optional<PostComment> optionalPostComment = commentRepository.findById(commentId);
+        Optional<Post> optionalPost = postRepository.findByIdAndTimeIsBefore(id, System.currentTimeMillis());
+        if (optionalPostComment.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + " not found."));
+        }
+        if (optionalPost.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
+        }
+
+
         return ResponseEntity.status(HttpStatus.OK)
-                .body(id);
+                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
+                        new MessageResponse()));
     }
 
     private List<PostEntityResponse> getPostEntityResponseListByPosts(List<Post> posts) {
@@ -223,6 +351,15 @@ public class PostService {
 
         List<CommentEntityResponse> commentEntityResponseList = new ArrayList<>();
         List<PostComment> comments = commentRepository.getCommentsByPostId(post.getId());
+        for (PostComment comment : comments) {
+            commentEntityResponseList.add(getCommentEntityResponseByComment(post, comment));
+        }
+        return commentEntityResponseList;
+    }
+
+    private List<CommentEntityResponse> getCommentsByPost(Post post, Pageable pageable) {
+        List<CommentEntityResponse> commentEntityResponseList = new ArrayList<>();
+        List<PostComment> comments = commentRepository.getCommentsByPostId(post.getId(), pageable);
         for (PostComment comment : comments) {
             commentEntityResponseList.add(getCommentEntityResponseByComment(post, comment));
         }
