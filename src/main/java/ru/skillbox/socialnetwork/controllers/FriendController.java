@@ -31,12 +31,12 @@ public class FriendController {
 
     @PostMapping("/friends")
     public long add(){
-        return 0;
+        return 0L;
     }
 
     @DeleteMapping("/friends")
     public long delete(){
-        return 0;
+        return 0L;
     }
 
     @GetMapping("/friends/{id}")

@@ -24,6 +24,6 @@ public class NotificationType {
     @Column(name = "name", columnDefinition = "varchar(255)")
     private String name;
 
-//    @OneToMany(mappedBy = "notificationType", orphanRemoval = true)
-//    private List<NotificationSettings> notificationSettingsList;
+    @OneToMany(mappedBy = "notificationType", orphanRemoval = true)
+    private List<NotificationSettings> notificationSettingsList;
 }

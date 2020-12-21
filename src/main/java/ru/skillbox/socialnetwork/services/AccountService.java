@@ -18,6 +18,7 @@ import ru.skillbox.socialnetwork.api.responses.MessageResponse;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -66,16 +67,22 @@ public class AccountService {
 
     private boolean isNameCorrect(String name) {
         return name.toLowerCase()
-                .replaceAll("(^[a-z0-9-]+$)", "").equals("");
+                .replaceAll("(^[a-zа-яё0-9-]+$)", "").equals("");
     }
 
     private boolean savePerson(EmailPassPassFirstNameLastNameCodeRequest requestBody) {
-        personRepository.save(new Person(requestBody));
+        personRepository.save(new Person(
+                requestBody.getEmail(),
+                encoder.encode(requestBody.getPasswd1()),
+                requestBody.getFirstName(),
+                requestBody.getLastName(),
+                LocalDateTime.now()));
         return personRepository.findByEmail(requestBody.getEmail()).isPresent();
     }
 
     private void changePassword(Person person, String password) {
-        person.setPassword(password);
+        person.setPassword(encoder.encode(password));
+        person.setConfirmationCode(null);
         personRepository.save(person);
     }
 
@@ -145,7 +152,7 @@ public class AccountService {
 
         Person person = getCurrentUser();
 
-        if (!person.getConfirmationCode().equals(requestBody.getToken())) {
+        if (person.getConfirmationCode() == null || !person.getConfirmationCode().equals(requestBody.getToken())) {
             return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse("Code is expired!"));
         }
 
@@ -157,7 +164,12 @@ public class AccountService {
 
     public ResponseEntity<?> putApiAccountEmail(@RequestBody EmailRequest requestBody) {
 
+        if (!isEmailCorrect(requestBody.getEmail())) {
+            return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse("Email is not valid!"));
+        }
+
         changeEmail(getCurrentUser(), requestBody.getEmail());
+        //TODO нужно поменять токен!!!!!!!!!!!!!!!!
 
         return ResponseEntity.status(200)
                 .body(new ErrorTimeDataResponse("", new MessageResponse()));

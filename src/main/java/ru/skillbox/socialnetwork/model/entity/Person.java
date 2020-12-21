@@ -3,6 +3,7 @@ package ru.skillbox.socialnetwork.model.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.aspectj.weaver.ast.Not;
 import org.springframework.data.annotation.CreatedDate;
 import ru.skillbox.socialnetwork.api.requests.EmailPassPassFirstNameLastNameCodeRequest;
 
@@ -75,18 +76,26 @@ public class Person {
     @Column(name = "is_deleted")
     private int isDeleted;
 
-//    @OneToMany(mappedBy = "personNS", orphanRemoval = true)
-//    private List<NotificationSettings> notificationSettings;
-//
-//    @OneToMany(mappedBy = "personN", orphanRemoval = true)
-//    private List<Person> notificationPersons;
+    @OneToMany(mappedBy = "personNS", orphanRemoval = true)
+    private List<NotificationSettings> notificationSettings;
+
+    @OneToMany(mappedBy = "personNotification")
+    private List<Notification> notificationPersons;
+
+    public boolean isBlocked() {
+        return isBlocked == 1;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted == 1;
+    }
 
 
-    public Person(EmailPassPassFirstNameLastNameCodeRequest requestBody) {
-        email = requestBody.getEmail();
-        password = requestBody.getPasswd1();
-        firstName = requestBody.getFirstName();
-        lastName = requestBody.getLastName();
-        regDate = LocalDateTime.now();
+    public Person(String email, String password, String firstName, String lastName, LocalDateTime regDate) {
+        this.email = email;
+        this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.regDate = regDate;
     }
 }

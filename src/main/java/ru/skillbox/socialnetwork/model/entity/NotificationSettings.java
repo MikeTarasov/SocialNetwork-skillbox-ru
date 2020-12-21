@@ -23,7 +23,7 @@ public class NotificationSettings {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "person_id")
-    private Person person;
+    private Person personNS;
 
-    private byte enable;
+    private int enable;
 }
