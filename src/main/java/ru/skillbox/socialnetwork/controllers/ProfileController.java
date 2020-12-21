@@ -1,18 +1,13 @@
 package ru.skillbox.socialnetwork.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.skillbox.socialnetwork.api.requests.PersonEditRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
-import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
-import ru.skillbox.socialnetwork.api.responses.PostEntityResponse;
 import ru.skillbox.socialnetwork.services.ProfileService;
-
-import java.util.ArrayList;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -55,36 +50,39 @@ public class ProfileController {
 
 
     @GetMapping("/{id}/wall")
-    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getNotesOnUserWall(@PathVariable("id") long id,
-                                                @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
-                                                @RequestParam(name = "itemPerPage", required = false, defaultValue = "20") int itemPerPage) {
+    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getNotesOnUserWall(
+            @PathVariable("id") long id,
+            @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+            @RequestParam(name = "itemPerPage", required = false, defaultValue = "20") int itemPerPage) {
         return ResponseEntity.ok(profileService.getWallPosts(id, offset, itemPerPage));
     }
 
 
     @PostMapping("/{id}/wall")
-    public ResponseEntity<?> postNoteOnUserWall(@PathVariable("id") long id,
-                                                @Param("publish_date") long publishDate,
-                                                @RequestBody TitlePostTextRequest requestBody) {
-        return ResponseEntity.ok(new ErrorTimeDataResponse("", 123, new PostEntityResponse()));
+    public ResponseEntity<ErrorTimeDataResponse> postNoteOnUserWall
+            (@PathVariable("id") long id,
+             @RequestParam(name = "publish_date", required = false) Long publishDate,
+             @RequestBody TitlePostTextRequest requestBody
+             ) {
+        return ResponseEntity.ok(profileService.putPostOnWall(id, publishDate, requestBody));
     }
 
 
     @GetMapping("/search")
-    public ResponseEntity<?> userSearch(@Param("first_name") String firstName,
-        @Param("last_name") String lastName, @Param("age_from") int ageFrom,
-        @Param("age_to") int ageTo, @Param("country_id") int countryId,
-        @Param("city_id") int cityId, @Param("offset") int offset,
-        @Param("itemPerPage") int itemPerPage) {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
-                "",
-                123456,
-                123,
-                0,
-                20,
-                new ArrayList<PersonEntityResponse>()
-            ));
+    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> userSearch(
+            @RequestParam(name = "first_name", required = false) String firstName,
+            @RequestParam(name = "last_name", required = false) String lastName,
+            @RequestParam(name = "age_from", required = false, defaultValue = "0") int ageFrom,
+            @RequestParam(name = "age_to", required = false, defaultValue = "0") int ageTo,
+            //@RequestParam(name = "country_id", required = false) int countryId,
+            //@RequestParam(name = "city_id", required = false) int cityId,
+            @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+            @RequestParam(name = "itemPerPage", required = false, defaultValue = "20") int itemPerPage) {
+
+        return ResponseEntity.ok(profileService.search(
+                firstName, lastName, ageFrom, ageTo,
+                offset, itemPerPage
+                ));
     }
 
 

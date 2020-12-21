@@ -8,7 +8,6 @@ import ru.skillbox.socialnetwork.api.requests.EmailPassPassFirstNameLastNameCode
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
