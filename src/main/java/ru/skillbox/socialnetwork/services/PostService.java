@@ -1,6 +1,7 @@
 package ru.skillbox.socialnetwork.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -17,13 +18,20 @@ import ru.skillbox.socialnetwork.repository.CommentRepository;
 import ru.skillbox.socialnetwork.repository.PostLikeRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.TimeZone;
 
 @Service
 @Transactional
 public class PostService {
+    @Value("@{db.timezone}")
+    private String timezone;
 
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
@@ -95,7 +103,9 @@ public class PostService {
         Post post = optionalPost.get();
         post.setTitle(requestBody.getTitle());
         post.setPostText(requestBody.getPostText());
-        post.setTime(Math.max(publishDate.orElseGet(System::currentTimeMillis), System.currentTimeMillis()));
+        post.setTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(publishDate.orElseGet(System::currentTimeMillis)),
+                TimeZone.getDefault().toZoneId()));
+
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse(
                         "",
@@ -110,8 +120,7 @@ public class PostService {
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
         Post post = optionalPost.get();
-        post.setIsDeleted(true);
-        post.setIsBlocked(true);
+        post.setIsDeleted(1);
         postRepository.saveAndFlush(post);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse("", System.currentTimeMillis(), new IdResponse(id)));
@@ -124,7 +133,7 @@ public class PostService {
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
         Post post = optionalPost.get();
-        post.setIsDeleted(false);
+        post.setIsDeleted(0);
         postRepository.saveAndFlush(post);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse("", System.currentTimeMillis(), new IdResponse(id)));
@@ -180,8 +189,9 @@ public class PostService {
             return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
         }
 
+
         PostComment comment = commentRepository.save(new PostComment(
-                System.currentTimeMillis(),
+                LocalDateTime.now().atZone(ZoneId.of(timezone)).toLocalDateTime(),
                 requestBody.getParenId(),
                 requestBody.getCommentText(),
                 false,
@@ -313,11 +323,11 @@ public class PostService {
     private PostEntityResponse getPostEntityResponseByPost(Post post) {
         return new PostEntityResponse(
                 post.getId(),
-                post.getTime(),
+                post.getTime().toInstant(ZoneOffset.of(timezone)).toEpochMilli(),
                 getPersonEntityResponseByPost(post),
                 post.getTitle(),
                 post.getPostText(),
-                post.getIsBlocked(),
+                post.getIsBlocked() == 1,
                 postLikeRepository.getAmountOfLikes(post.getId()),
                 getCommentsByPost(post)
         );
@@ -329,16 +339,16 @@ public class PostService {
                 author.getId(),
                 author.getFirstName(),
                 author.getLastName(),
-                author.getRegDate(),
-                author.getBirthDate(),
+                author.getRegDate().toInstant(ZoneOffset.of(timezone)).toEpochMilli(),
+                author.getBirthDate().toInstant(ZoneOffset.of(timezone)).toEpochMilli(),
                 author.getEmail(),
                 author.getPhone(),
                 author.getPhoto(),
                 author.getAbout(),
-                getIdTitleResponse(author.getCity()),
-                getIdTitleResponse(author.getCountry()),
+                author.getCity(),
+                author.getCountry(),
                 author.getMessagePermission(),
-                author.getLastOnlineTime(),
+                author.getLastOnlineTime().toInstant(ZoneOffset.of(timezone)).toEpochMilli(),
                 author.getIsBlocked() == 1
         );
     }
@@ -372,8 +382,8 @@ public class PostService {
                 comment.getId(),
                 comment.getParentId(),
                 post.getId(),
-                comment.getTime(),
-                comment.getAuthor().getId(),
+                comment.getTime().toInstant(ZoneOffset.of(timezone)).toEpochMilli(),
+                comment.getPerson().getId(),
                 comment.getCommentText(),
                 comment.getIsBlocked()
         );

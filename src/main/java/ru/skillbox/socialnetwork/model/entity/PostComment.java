@@ -20,10 +20,10 @@ public class PostComment {
     private long id;
 
     @Column(name = "time", columnDefinition = "TIMESTAMP")
-    private long time;
+    private LocalDateTime time;
 
     @Column(name = "parent_id")
-    private long parentId;
+    private Long parentId;
 
     @Column(name = "comment_text", columnDefinition = "VARCHAR(255)")
     private String commentText;
@@ -36,21 +36,19 @@ public class PostComment {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "author_id")
-    private Person author;
+    private Person person;
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "post_id")
     private Post post;
 
-
-
-    public PostComment(long time, long parentId, String commentText, boolean isBlocked, boolean isDeleted, Person author) {
+    public PostComment(LocalDateTime time, long parentId, String commentText, boolean isBlocked, boolean isDeleted, Person person) {
         this.time = time;
         this.parentId = parentId;
         this.commentText = commentText;
         this.isBlocked = isBlocked ? 1 : 0;
         this.isDeleted = isDeleted ? 1 : 0;
-        this.author = author;
+        this.person = person;
     }
 
     public boolean getIsBlocked() {

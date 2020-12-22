@@ -3,6 +3,7 @@ package ru.skillbox.socialnetwork.model.entity;
 import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "post_like")
@@ -14,8 +15,8 @@ public class PostLike {
     private long id;
 
     @CreatedDate
-    @Column(name = "time", columnDefinition = "TIMESTAMP", nullable = false)
-    private long time;
+    @Column(name = "time", nullable = false)
+    private LocalDateTime time;
 
     @Column(name = "person_id")
     private long personId;
@@ -32,11 +33,11 @@ public class PostLike {
         this.id = id;
     }
 
-    public long getTime() {
+    public LocalDateTime getTime() {
         return time;
     }
 
-    public void setTime(long time) {
+    public void setTime(LocalDateTime time) {
         this.time = time;
     }
 

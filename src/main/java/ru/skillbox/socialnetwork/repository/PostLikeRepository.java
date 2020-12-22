@@ -9,6 +9,6 @@ import ru.skillbox.socialnetwork.model.entity.PostLike;
 @Repository
 public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
 
-    @Query(value = "SELECT COUNT(*) FROM post_like WHERE post_like.post_id = :post_id")
+    @Query(value = "SELECT COUNT(*) FROM post_like WHERE post_like.post_id = :post_id", nativeQuery = true)
     int getAmountOfLikes (@Param("post_id") long postId);
 }

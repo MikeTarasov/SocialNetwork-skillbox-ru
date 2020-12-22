@@ -1,110 +1,100 @@
 package ru.skillbox.socialnetwork.controllers;
 
-import java.util.ArrayList;
-import org.springframework.data.repository.query.Param;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.skillbox.socialnetwork.api.requests.PersonEditRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
-import ru.skillbox.socialnetwork.api.responses.MessageResponse;
-import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
-import ru.skillbox.socialnetwork.api.responses.PostEntityResponse;
+import ru.skillbox.socialnetwork.services.ProfileService;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/api/v1/users")
 public class ProfileController {
 
-    //service
+    private final ProfileService profileService;
 
-    //constructor ProfileController(Service service)
+    @Autowired
+    public ProfileController(ProfileService profileService) {
+        this.profileService = profileService;
+    }
 
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser() {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeDataResponse("", 123, new PersonEntityResponse()));
+        ErrorTimeDataResponse response = profileService.getCurrentUser();
+        return ResponseEntity.ok(response);
     }
 
 
     @PutMapping("/me")
     public ResponseEntity<?> updateCurrentUser(@RequestBody PersonEditRequest requestBody) {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeDataResponse("", 123, new PersonEntityResponse()));
+        // TODO: verify at least one field in PersonEditRequest != null
+        ErrorTimeDataResponse response = profileService.updateCurrentUser(requestBody);
+        return ResponseEntity.ok(response);
     }
 
 
     @DeleteMapping("/me")
     public ResponseEntity<?> deleteCurrentUser() {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeDataResponse("", 123, new MessageResponse()));
+        ErrorTimeDataResponse response = profileService.deleteCurrentUser();
+        return ResponseEntity.ok(response);
     }
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable("id") int id) {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeDataResponse("", 123, new PersonEntityResponse()));
+    public ResponseEntity<ErrorTimeDataResponse> getUserById(@PathVariable("id") long id) {
+        ErrorTimeDataResponse response = profileService.getUser(id);
+        return ResponseEntity.ok(response);
     }
 
 
     @GetMapping("/{id}/wall")
-    public ResponseEntity<?> getNotesOnUserWall(@PathVariable("id") int id,
-        @Param("offset") int offset, @Param("itemPerPage") int itemPerPage) {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
-                "",
-                123456,
-                123,
-                0,
-                20,
-                new ArrayList<PostEntityResponse>()
-            ));
+    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getNotesOnUserWall(
+            @PathVariable("id") long id,
+            @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+            @RequestParam(name = "itemPerPage", required = false, defaultValue = "20") int itemPerPage) {
+        return ResponseEntity.ok(profileService.getWallPosts(id, offset, itemPerPage));
     }
 
 
     @PostMapping("/{id}/wall")
-    public ResponseEntity<?> postNoteOnUserWall(@PathVariable("id") int id,
-        @Param("publish_date") long publishDate, @RequestBody TitlePostTextRequest requestBody) {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeDataResponse("", 123, new PostEntityResponse()));
+    public ResponseEntity<ErrorTimeDataResponse> postNoteOnUserWall
+            (@PathVariable("id") long id,
+             @RequestParam(name = "publish_date", required = false) Long publishDate,
+             @RequestBody TitlePostTextRequest requestBody
+             ) {
+        return ResponseEntity.ok(profileService.putPostOnWall(id, publishDate, requestBody));
     }
 
 
     @GetMapping("/search")
-    public ResponseEntity<?> userSearch(@Param("first_name") String firstName,
-        @Param("last_name") String lastName, @Param("age_from") int ageFrom,
-        @Param("age_to") int ageTo, @Param("country_id") int countryId,
-        @Param("city_id") int cityId, @Param("offset") int offset,
-        @Param("itemPerPage") int itemPerPage) {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
-                "",
-                123456,
-                123,
-                0,
-                20,
-                new ArrayList<PersonEntityResponse>()
-            ));
+    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> userSearch(
+            @RequestParam(name = "first_name", required = false) String firstName,
+            @RequestParam(name = "last_name", required = false) String lastName,
+            @RequestParam(name = "age_from", required = false, defaultValue = "0") int ageFrom,
+            @RequestParam(name = "age_to", required = false, defaultValue = "0") int ageTo,
+            //@RequestParam(name = "country_id", required = false) int countryId,
+            //@RequestParam(name = "city_id", required = false) int cityId,
+            @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
+            @RequestParam(name = "itemPerPage", required = false, defaultValue = "20") int itemPerPage) {
+
+        return ResponseEntity.ok(profileService.search(
+                firstName, lastName, ageFrom, ageTo,
+                offset, itemPerPage
+                ));
     }
 
 
     @PutMapping("/block/{id}")
-    public ResponseEntity<?> blockUserById(@PathVariable("id") int id) {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeDataResponse("", 123, new MessageResponse()));
+    public ResponseEntity<?> blockUserById(@PathVariable("id") long id) {
+        ErrorTimeDataResponse response = profileService.setBlockUserById(id, 1);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/block/{id}")
-    public ResponseEntity<?> unblockUserById(@PathVariable("id") int id) {
-        return ResponseEntity.status(200)
-            .body(new ErrorTimeDataResponse("", 123, new MessageResponse()));
+    public ResponseEntity<?> unblockUserById(@PathVariable("id") long id) {
+        ErrorTimeDataResponse response = profileService.setBlockUserById(id, 0);
+        return ResponseEntity.ok(response);
     }
 }

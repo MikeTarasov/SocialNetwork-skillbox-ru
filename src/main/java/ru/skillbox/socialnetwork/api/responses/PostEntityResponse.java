@@ -4,10 +4,13 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.skillbox.socialnetwork.model.entity.Person;
 
-
+@Builder
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -37,46 +40,6 @@ public class PostEntityResponse {
     this.comments = comments;
   }
 
-  public long getId() {
-    return id;
-  }
-
-  public void setId(long id) {
-    this.id = id;
-  }
-
-  public long getTime() {
-    return time;
-  }
-
-  public void setTime(long time) {
-    this.time = time;
-  }
-
-  public PersonEntityResponse getAuthor() {
-    return author;
-  }
-
-  public void setAuthor(PersonEntityResponse author) {
-    this.author = author;
-  }
-
-  public String getTitle() {
-    return title;
-  }
-
-  public void setTitle(String title) {
-    this.title = title;
-  }
-
-  public String getPostText() {
-    return postText;
-  }
-
-  public void setPostText(String postText) {
-    this.postText = postText;
-  }
-
   public boolean isBlocked() {
     return isBlocked;
   }
@@ -85,27 +48,4 @@ public class PostEntityResponse {
     isBlocked = blocked;
   }
 
-  public int getLikes() {
-    return likes;
-  }
-
-  public void setLikes(int likes) {
-    this.likes = likes;
-  }
-
-  public List<CommentEntityResponse> getComments() {
-    return comments;
-  }
-
-  public void setComments(List<CommentEntityResponse> comments) {
-    this.comments = comments;
-  }
-
-  public String getType() {
-    return type;
-  }
-
-  public void setType(String type) {
-    this.type = type;
-  }
 }

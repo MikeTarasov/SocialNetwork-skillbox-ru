@@ -20,6 +20,7 @@ public class AccountController {
         this.accountService = accountService;
     }
 
+
     @PostMapping("/register")
     public ResponseEntity<?> postApiAccountRegister(
             @RequestBody EmailPassPassFirstNameLastNameCodeRequest requestBody) {
