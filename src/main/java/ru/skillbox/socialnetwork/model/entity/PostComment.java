@@ -23,7 +23,7 @@ public class PostComment {
     private LocalDateTime time;
 
     @Column(name = "parent_id")
-    private long parentId;
+    private Long parentId;
 
     @Column(name = "comment_text", columnDefinition = "VARCHAR(255)")
     private String commentText;

@@ -4,6 +4,6 @@ create table post(
                      author_id  bigint    NOT NULL REFERENCES person (id),
                      title      text,
                      post_text  text,
-                     is_blocked int2,
-                     is_deleted int2
+                     is_blocked int4,
+                     is_deleted int4
 );

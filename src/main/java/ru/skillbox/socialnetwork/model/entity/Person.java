@@ -3,9 +3,7 @@ package ru.skillbox.socialnetwork.model.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.aspectj.weaver.ast.Not;
 import org.springframework.data.annotation.CreatedDate;
-import ru.skillbox.socialnetwork.api.requests.EmailPassPassFirstNameLastNameCodeRequest;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;

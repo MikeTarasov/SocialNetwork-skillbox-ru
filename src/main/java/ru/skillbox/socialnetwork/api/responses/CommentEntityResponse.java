@@ -2,22 +2,26 @@ package ru.skillbox.socialnetwork.api.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
+@Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommentEntityResponse {
 
-    private int id;
+    private long id;
     @JsonProperty("parent_id")
-    private Integer parentId;
+    private long parentId;
     @JsonProperty("post_id")
     private String postId;
     @JsonProperty("author_id")
-    private int authorId;
+    private long authorId;
     @JsonProperty("comment_text")
     private String commentText;
     @JsonProperty("is_blocked")
     private boolean isBlocked;
+    private long time;
 }

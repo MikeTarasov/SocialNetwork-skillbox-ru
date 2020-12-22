@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TitlePostTextRequest {
 
-  private String title;
-  @JsonProperty("post_text")
-  private String postText;
+    @JsonProperty("title")
+    private String title;
+    @JsonProperty("post_text")
+    private String postText;
 }
