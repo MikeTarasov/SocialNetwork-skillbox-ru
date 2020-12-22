@@ -37,12 +37,10 @@ public class PostController {
     return postService.getApiPost(text, dateFrom, dateTo, offset, itemPerPage);
   }
 
-
   @GetMapping("/{id}")
   public ResponseEntity<?> getApiPostId(@PathVariable("id") long id) {
     return postService.getApiPostId(id);
   }
-
 
   @PutMapping("/{id}")
   public ResponseEntity<?> putApiPostId(@PathVariable("id") long id,
@@ -51,18 +49,15 @@ public class PostController {
     return postService.putApiPostId(id, publishDate, requestBody);
   }
 
-
   @DeleteMapping("/{id}")
   public ResponseEntity<?> deleteApiPostId(@PathVariable("id") long id) {
     return postService.deleteApiPostId(id);
   }
 
-
   @PutMapping("/{id}/recover")
   public ResponseEntity<?> putApiPostIdRecover(@PathVariable("id") long id) {
     return postService.putApiPostIdRecover(id);
   }
-
 
   @GetMapping("/{id}/comments")
   public ResponseEntity<?> getApiPostIdComments(@PathVariable("id") long id, @Param("offset") int offset,
@@ -70,13 +65,11 @@ public class PostController {
     return postService.getApiPostIdComments(id, offset, itemPerPage);
   }
 
-
   @PostMapping("/{id}/comments")
   public ResponseEntity<?> postApiPostIdComments(@PathVariable("id") long id,
                                                  @RequestBody ParentIdCommentTextRequest requestBody) {
     return postService.postApiPostIdComments(id, requestBody);
   }
-
 
   @PutMapping("/{id}/comments/{comment_id}")
   public ResponseEntity<?> putApiPostIdCommentsCommentId(@PathVariable("id") long id,
@@ -85,13 +78,11 @@ public class PostController {
     return postService.putApiPostIdCommentsCommentId(id, commentId, requestBody);
   }
 
-
   @DeleteMapping("/{id}/comments/{comment_id}")
   public ResponseEntity<?> deleteApiPostIdCommentsCommentId(@PathVariable("id") long id,
                                                             @PathVariable("comment_id") long commentId) {
     return postService.deleteApiPostIdCommentsCommentId(id, commentId);
   }
-
 
   @PutMapping("/{id}/comments/{comment_id}/recover")
   public ResponseEntity<?> putApiPostIdCommentsCommentId(@PathVariable("id") long id,
@@ -99,12 +90,10 @@ public class PostController {
     return postService.putApiPostIdCommentsCommentId(id, commentId);
   }
 
-
   @PostMapping("/{id}/report")
   public ResponseEntity<?> postApiPostIdReport(@PathVariable("id") long id) {
     return postService.postApiPostIdReport(id);
   }
-
 
   @PostMapping("/{id}/comments/{comment_id}/report")
   public ResponseEntity<?> postApiPostIdCommentsCommentIdReport(@PathVariable("id") long id,

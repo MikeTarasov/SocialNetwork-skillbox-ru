@@ -34,81 +34,38 @@ public class PostComment {
     @Column(name = "is_deleted")
     private int isDeleted;
 
-//    @ManyToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "author_id")
-    private long authorId;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "author_id")
+    private Person author;
 
-//    @ManyToOne(cascade = CascadeType.ALL)
-//    @JoinColumn(name = "post_id")
-//    private Post post;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "post_id")
+    private Post post;
 
 
-    public PostComment() {
-    }
 
-    public PostComment(long time, long parentId, String commentText, int isBlocked, int isDeleted, long authorId) {
-
+    public PostComment(long time, long parentId, String commentText, boolean isBlocked, boolean isDeleted, Person author) {
         this.time = time;
         this.parentId = parentId;
         this.commentText = commentText;
-        this.isBlocked = isBlocked;
-        this.isDeleted = isDeleted;
-        this.authorId = authorId;
+        this.isBlocked = isBlocked ? 1 : 0;
+        this.isDeleted = isDeleted ? 1 : 0;
+        this.author = author;
     }
 
-    public long getAuthorId() {
-        return authorId;
+    public boolean getIsBlocked() {
+        return isBlocked == 1;
     }
 
-    public void setAuthorId(long authorId) {
-        this.authorId = authorId;
+    public void setIsBlocked(boolean isBlocked) {
+        this.isBlocked = isBlocked ? 1 : 0;
     }
 
-    public long getId() {
-        return id;
+    public boolean getIsDeleted() {
+        return isDeleted == 1;
     }
 
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public long getTime() {
-        return time;
-    }
-
-    public void setTime(long time) {
-        this.time = time;
-    }
-
-    public long getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(long parentId) {
-        this.parentId = parentId;
-    }
-
-    public String getCommentText() {
-        return commentText;
-    }
-
-    public void setCommentText(String commentText) {
-        this.commentText = commentText;
-    }
-
-    public int getIsBlocked() {
-        return isBlocked;
-    }
-
-    public void setIsBlocked(int isBlocked) {
-        this.isBlocked = isBlocked;
-    }
-
-    public int getIsDeleted() {
-        return isDeleted;
-    }
-
-    public void setIsDeleted(int isDeleted) {
-        this.isDeleted = isDeleted;
+    public void setIsDeleted(boolean isDeleted) {
+        this.isDeleted = isDeleted ? 1 : 0;
     }
 }

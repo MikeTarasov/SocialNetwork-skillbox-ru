@@ -95,7 +95,7 @@ public class PostService {
         Post post = optionalPost.get();
         post.setTitle(requestBody.getTitle());
         post.setPostText(requestBody.getPostText());
-        post.setTime(Math.max(publishDate.get(), System.currentTimeMillis()));
+        post.setTime(Math.max(publishDate.orElseGet(System::currentTimeMillis), System.currentTimeMillis()));
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse(
                         "",
@@ -158,7 +158,7 @@ public class PostService {
                         getCommentsByPost(optionalPost.get()).size(),
                         offset,
                         itemPerPage,
-                        getCommentsByPost(optionalPost.get(), pageable));
+                        getCommentsByPost(optionalPost.get(), pageable)));
 
     }
 
@@ -166,12 +166,13 @@ public class PostService {
 
         StringBuilder errors = new StringBuilder();
 
-        Optional<Post> post = postRepository.findByIdAndTimeIsBefore(id, System.currentTimeMillis());
+        Optional<Post> optionalPost = postRepository.findByIdAndTimeIsBefore(id, System.currentTimeMillis());
 
-        if (post.isEmpty()) {
+        if (optionalPost.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
+        Post post = optionalPost.get();
         if (requestBody.getCommentText().isEmpty()) {
             errors.append("'commentText' should not be empty");
         }
@@ -185,14 +186,14 @@ public class PostService {
                 requestBody.getCommentText(),
                 false,
                 false,
-                id
+                post.getAuthor()
         ));
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse(
                         "",
                         System.currentTimeMillis(),
-                        getCommentEntityResponseByComment(post.get(), comment)
+                        getCommentEntityResponseByComment(optionalPost.get(), comment)
                 ));
     }
 
@@ -240,8 +241,8 @@ public class PostService {
         }
 
         PostComment comment = optionalPostComment.get();
-        comment.setIsBlocked(1);
-        comment.setIsDeleted(1);
+        comment.setIsBlocked(true);
+        comment.setIsDeleted(true);
         commentRepository.saveAndFlush(comment);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse("", System.currentTimeMillis(), new IdResponse(commentId)));
@@ -260,8 +261,8 @@ public class PostService {
         }
 
         PostComment comment = optionalPostComment.get();
-        comment.setIsBlocked(0);
-        comment.setIsDeleted(0);
+        comment.setIsBlocked(false);
+        comment.setIsDeleted(false);
         commentRepository.saveAndFlush(comment);
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
@@ -372,9 +373,9 @@ public class PostService {
                 comment.getParentId(),
                 post.getId(),
                 comment.getTime(),
-                comment.getAuthorId(),
+                comment.getAuthor().getId(),
                 comment.getCommentText(),
-                comment.getIsBlocked() == 1
+                comment.getIsBlocked()
         );
     }
 }

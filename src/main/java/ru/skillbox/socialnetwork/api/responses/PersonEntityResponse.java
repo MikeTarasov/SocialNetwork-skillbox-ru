@@ -37,8 +37,7 @@ public class PersonEntityResponse {
 
 
   // Friends ->  token = null !!!
-  public PersonEntityResponse(long id, String firstName, String lastName, long regDate,
-      long birthDate,
+  public PersonEntityResponse(long id, String firstName, String lastName, long regDate, long birthDate,
       String email, String phone, String photo, String about,
       IdTitleResponse city, IdTitleResponse country, String messagesPermission,
       long lastOnlineTime, boolean isBlocked) {
@@ -57,8 +56,6 @@ public class PersonEntityResponse {
     this.lastOnlineTime = lastOnlineTime;
     this.isBlocked = isBlocked;
   }
-
-  public PersonEntityResponse () {}
 
   public long getId() {
     return id;
