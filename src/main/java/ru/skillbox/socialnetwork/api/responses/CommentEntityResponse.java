@@ -24,4 +24,5 @@ public class CommentEntityResponse {
     private String commentText;
     @JsonProperty("is_blocked")
     private boolean isBlocked;
+    private long time;
 }
