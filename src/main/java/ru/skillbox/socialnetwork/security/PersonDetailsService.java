@@ -18,13 +18,13 @@ class PersonDetailsService implements UserDetailsService {
         this.personRepository = personRepository;
     }
 
-  @Override
-  public PersonDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    @Override
+    public PersonDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 
-      Optional<Person> per = personRepository.findByEmail(email);
-      if (per.isEmpty()) {
-          throw new UsernameNotFoundException(" - User with : " + email + " not found");
-      }
-      return PersonDetails.fromUser(per.get());
-  }
+        Optional<Person> per = personRepository.findByEmail(email);
+        if (per.isEmpty()) {
+            throw new UsernameNotFoundException(" - User with : " + email + " not found");
+        }
+        return PersonDetails.fromUser(per.get());
+    }
 }

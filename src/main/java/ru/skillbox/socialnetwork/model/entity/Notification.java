@@ -12,7 +12,7 @@ public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "type_id", nullable = false)
@@ -23,7 +23,7 @@ public class Notification {
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "person_id")
-    private Person person;
+    private Person personNotification;
 
     @Column(name = "entity_id", nullable = false)
     private Long entityId;
@@ -31,6 +31,6 @@ public class Notification {
     @Column(name = "contact", nullable = false, columnDefinition = "varchar(255)")
     private String contact;
 
-    @Column(name = "is_readed", nullable = false)
-    private byte isReaded;
+    @Column(name = "is_read", nullable = false)
+    private byte isRead;
 }

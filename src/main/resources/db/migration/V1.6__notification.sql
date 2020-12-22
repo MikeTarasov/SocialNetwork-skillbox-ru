@@ -3,7 +3,7 @@ create table notification(
                              type_id   bigint                NOT NULL REFERENCES notification_type (id),
                              sent_time timestamp             NOT NULL,
                              person_id bigint                NOT NULL REFERENCES person (id),
-                             entity_id int4,
+                             entity_id bigint,
                              contact   varchar(255),
-                             is_readed int2
+                             is_read int2
 );
