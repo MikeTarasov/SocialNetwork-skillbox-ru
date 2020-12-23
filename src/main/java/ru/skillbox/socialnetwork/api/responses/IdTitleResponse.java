@@ -3,7 +3,6 @@ package ru.skillbox.socialnetwork.api.responses;
 import lombok.NoArgsConstructor;
 
 
-
 @NoArgsConstructor
 public class IdTitleResponse {
 
