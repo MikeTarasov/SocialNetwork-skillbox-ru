@@ -129,6 +129,7 @@ public class PostService {
     }
 
     public ResponseEntity<?> putApiPostIdRecover(long id) {
+        boolean isDeleted = false;
         Optional<Post> optionalPost = postRepository.findById(id);
         if (optionalPost.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK)
@@ -246,7 +247,6 @@ public class PostService {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + " not found."));
         }
-
         PostComment comment = optionalPostComment.get();
         comment.setIsBlocked(true);
         comment.setIsDeleted(true);
@@ -265,11 +265,6 @@ public class PostService {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + " not found."));
         }
-        if (postRepository.findByIdAndTimeIsBefore(id, System.currentTimeMillis()).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
-                    .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
-        }
-
         PostComment comment = optionalPostComment.get();
         comment.setIsBlocked(false);
         comment.setIsDeleted(false);
@@ -305,7 +300,6 @@ public class PostService {
             return ResponseEntity.status(HttpStatus.OK)
                     .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + " not found."));
         }
-
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
                         new MessageResponse()));
