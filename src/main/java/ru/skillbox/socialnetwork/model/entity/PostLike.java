@@ -1,10 +1,16 @@
 package ru.skillbox.socialnetwork.model.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "post_like")
 public class PostLike {
@@ -15,7 +21,7 @@ public class PostLike {
     private long id;
 
     @CreatedDate
-    @Column(name = "time", nullable = false)
+    @Column(name = "time", columnDefinition = "timestamp", nullable = false)
     private LocalDateTime time;
 
     @Column(name = "person_id")
@@ -23,37 +29,4 @@ public class PostLike {
 
     @Column(name = "post_id")
     private long postId;
-
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public LocalDateTime getTime() {
-        return time;
-    }
-
-    public void setTime(LocalDateTime time) {
-        this.time = time;
-    }
-
-    public long getPersonId() {
-        return personId;
-    }
-
-    public void setPersonId(long personId) {
-        this.personId = personId;
-    }
-
-    public long getPostId() {
-        return postId;
-    }
-
-    public void setPostId(long postId) {
-        this.postId = postId;
-    }
 }

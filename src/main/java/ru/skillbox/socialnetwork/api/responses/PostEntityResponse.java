@@ -39,13 +39,4 @@ public class PostEntityResponse {
     this.likes = likes;
     this.comments = comments;
   }
-
-  public boolean isBlocked() {
-    return isBlocked;
-  }
-
-  public void setBlocked(boolean blocked) {
-    isBlocked = blocked;
-  }
-
 }

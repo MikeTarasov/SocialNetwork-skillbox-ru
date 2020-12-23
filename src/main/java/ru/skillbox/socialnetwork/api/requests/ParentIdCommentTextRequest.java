@@ -9,15 +9,15 @@ import lombok.Data;
 public class ParentIdCommentTextRequest {
 
   @JsonProperty("parent_id")
-  private Integer parenId;
+  private Long parenId;
   @JsonProperty("comment_text")
   private String commentText;
 
-  public Integer getParenId() {
+  public Long getParenId() {
     return parenId;
   }
 
-  public void setParenId(Integer parenId) {
+  public void setParenId(Long parenId) {
     this.parenId = parenId;
   }
 
