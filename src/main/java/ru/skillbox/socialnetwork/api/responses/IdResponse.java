@@ -8,5 +8,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class IdResponse {
 
-  private int id;
+  private long id;
 }

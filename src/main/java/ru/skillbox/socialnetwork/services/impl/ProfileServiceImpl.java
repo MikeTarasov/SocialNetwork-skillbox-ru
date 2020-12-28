@@ -258,9 +258,9 @@ public class ProfileServiceImpl implements ProfileService {
                                 .id(comment.getId())
                                 .authorId(comment.getPerson().getId())
                                 .commentText(comment.getCommentText())
-                                .isBlocked(comment.getIsBlocked() == 1)
+                                .isBlocked(comment.getIsBlocked())
                                 .parentId(comment.getParentId() == null ? 0 : comment.getParentId())
-                                .postId(String.valueOf(comment.getPost().getId()))
+                                .postId(comment.getPost().getId())
                                 .time(comment.getTime().atZone(ZoneId.of(timezone)).toEpochSecond())
                                 .build()
                 );

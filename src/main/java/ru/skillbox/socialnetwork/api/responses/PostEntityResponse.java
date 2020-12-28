@@ -1,16 +1,19 @@
 package ru.skillbox.socialnetwork.api.responses;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.skillbox.socialnetwork.model.entity.Person;
 
 @Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PostEntityResponse {
 
   private long id;
@@ -24,4 +27,16 @@ public class PostEntityResponse {
   private int likes;
   private List<CommentEntityResponse> comments;
   private String type; //TODO type = enum[ POSTED, QUEUED ]
+
+  public PostEntityResponse(long id, long time, PersonEntityResponse author, String title, String postText,
+                            boolean isBlocked, int likes, List<CommentEntityResponse> comments) {
+    this.id = id;
+    this.time = time;
+    this.author = author;
+    this.title = title;
+    this.postText = postText;
+    this.isBlocked = isBlocked;
+    this.likes = likes;
+    this.comments = comments;
+  }
 }
