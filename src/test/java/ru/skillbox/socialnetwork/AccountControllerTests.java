@@ -18,9 +18,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.skillbox.socialnetwork.api.requests.EmailPassPassFirstNameLastNameCodeRequest;
 import ru.skillbox.socialnetwork.api.requests.EmailRequest;
 import ru.skillbox.socialnetwork.api.requests.TokenPasswordRequest;
-import ru.skillbox.socialnetwork.security.JwtTokenProvider;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
+import ru.skillbox.socialnetwork.security.JwtTokenProvider;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -77,13 +77,6 @@ public class AccountControllerTests {
         SecurityContextHolder.clearContext();
     }
 
-    private void sleep() {
-        try {
-            Thread.sleep(10_000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 
     private void expectOK(ResultActions resultActions) throws Exception {
         resultActions
@@ -117,7 +110,6 @@ public class AccountControllerTests {
         assertTrue(personRepository.findByEmail(email).isPresent());
 
         deleteOptional(true);
-        sleep();
     }
 
     @Test
@@ -135,7 +127,6 @@ public class AccountControllerTests {
         assertFalse(personRepository.findByEmail(email).isPresent());
 
         deleteOptional(false);
-        sleep();
     }
 
     @Test
@@ -153,7 +144,6 @@ public class AccountControllerTests {
         assertFalse(personRepository.findByEmail(email).isPresent());
 
         deleteOptional(false);
-        sleep();
     }
 
     @Test
@@ -171,7 +161,6 @@ public class AccountControllerTests {
         assertFalse(personRepository.findByEmail(email).isPresent());
 
         deleteOptional(false);
-        sleep();
     }
 
     @Test
@@ -187,7 +176,6 @@ public class AccountControllerTests {
                 .content(objectMapper.writeValueAsString(request))), " This email is already registered! ");
 
         deleteOptional(false);
-        sleep();
     }
 
     @Test
@@ -207,7 +195,6 @@ public class AccountControllerTests {
         assertNotNull(person.getConfirmationCode());
 
         delete(email1, test);
-        sleep();
     }
 
     @Test
@@ -222,7 +209,6 @@ public class AccountControllerTests {
                 .content(objectMapper.writeValueAsString(request))), "This email is not registered!");
 
         delete(email, testPerson);
-        sleep();
     }
 
     @Test
@@ -245,7 +231,6 @@ public class AccountControllerTests {
 
         delete(email, testPerson);
         clearContext();
-        sleep();
     }
 
     @Test
@@ -258,7 +243,6 @@ public class AccountControllerTests {
                 .content(objectMapper.writeValueAsString(requestBody)))
 
                 .andExpect(status().is(401));
-        sleep();
     }
 
     @Test
@@ -279,7 +263,6 @@ public class AccountControllerTests {
 
         delete(email, testPerson);
         clearContext();
-        sleep();
     }
 
     @Test
@@ -300,7 +283,6 @@ public class AccountControllerTests {
 
         clearContext();
         delete(1 + email, testPerson);
-        sleep();
     }
 
     @Test
@@ -313,7 +295,6 @@ public class AccountControllerTests {
                 .content(objectMapper.writeValueAsString(requestBody)))
 
                 .andExpect(status().is(401));
-        sleep();
     }
 
     @Test
@@ -334,6 +315,5 @@ public class AccountControllerTests {
 
         clearContext();
         delete(email, testPerson);
-        sleep();
     }
 }
