@@ -26,4 +26,4 @@ build:
 test:
   stage: test
   script:
-    - mvn test -e
+    - mvn test
