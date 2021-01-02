@@ -16,12 +16,12 @@ public class CommentEntityResponse {
     @JsonProperty("parent_id")
     private long parentId;
     @JsonProperty("post_id")
-    private String postId;
+    private long postId;
+    private long time;
     @JsonProperty("author_id")
     private long authorId;
     @JsonProperty("comment_text")
     private String commentText;
     @JsonProperty("is_blocked")
     private boolean isBlocked;
-    private long time;
 }

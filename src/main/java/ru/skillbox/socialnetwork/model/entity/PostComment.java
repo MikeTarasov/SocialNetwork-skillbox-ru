@@ -41,4 +41,29 @@ public class PostComment {
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "post_id")
     private Post post;
+
+    public PostComment(LocalDateTime time, long parentId, String commentText, boolean isBlocked, boolean isDeleted, Person person) {
+        this.time = time;
+        this.parentId = parentId;
+        this.commentText = commentText;
+        this.isBlocked = isBlocked ? 1 : 0;
+        this.isDeleted = isDeleted ? 1 : 0;
+        this.person = person;
+    }
+
+    public boolean getIsBlocked() {
+        return isBlocked == 1;
+    }
+
+    public void setIsBlocked(boolean isBlocked) {
+        this.isBlocked = isBlocked ? 1 : 0;
+    }
+
+    public boolean getIsDeleted() {
+        return isDeleted == 1;
+    }
+
+    public void setIsDeleted(boolean isDeleted) {
+        this.isDeleted = isDeleted ? 1 : 0;
+    }
 }

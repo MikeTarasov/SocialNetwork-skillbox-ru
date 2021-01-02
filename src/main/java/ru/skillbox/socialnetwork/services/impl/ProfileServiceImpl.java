@@ -260,7 +260,7 @@ public class ProfileServiceImpl implements ProfileService {
                                 .commentText(comment.getCommentText())
                                 .isBlocked(comment.getIsBlocked() == 1)
                                 .parentId(comment.getParentId() == null ? 0 : comment.getParentId())
-                                .postId(String.valueOf(comment.getPost().getId()))
+                                .postId(comment.getPost().getId())
                                 .time(comment.getTime().atZone(ZoneId.of(timezone)).toInstant().toEpochMilli())
                                 .build()
                 );

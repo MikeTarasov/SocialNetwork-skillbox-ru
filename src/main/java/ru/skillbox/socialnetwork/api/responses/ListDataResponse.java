@@ -10,4 +10,12 @@ import lombok.NoArgsConstructor;
 public class ListDataResponse {
 
   private List<?> data;
+
+  public List<?> getData() {
+    return data;
+  }
+
+  public void setData(List<?> data) {
+    this.data = data;
+  }
 }
