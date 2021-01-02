@@ -1,0 +1,1 @@
+update person set is_blocked = 0 where id = 2;

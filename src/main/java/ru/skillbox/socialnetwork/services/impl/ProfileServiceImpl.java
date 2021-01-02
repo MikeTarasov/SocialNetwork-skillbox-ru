@@ -47,7 +47,7 @@ public class ProfileServiceImpl implements ProfileService {
         Person person = personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
         return new ErrorTimeDataResponse(
                 "",
-                LocalDateTime.now().atZone(ZoneId.of(timezone)).toEpochSecond(),
+                LocalDateTime.now().atZone(ZoneId.of(timezone)).toInstant().toEpochMilli(),
                 convertPersonToResponse(person)
         );
     }
@@ -56,7 +56,7 @@ public class ProfileServiceImpl implements ProfileService {
         return accountService.getCurrentUser();
     }
 
-    public ErrorTimeDataResponse getCurrentUser(){
+    public ErrorTimeDataResponse getCurrentUser() {
         return new ErrorTimeDataResponse("", convertPersonToResponse(getCurrentUserAsPerson()));
     }
 
@@ -74,23 +74,23 @@ public class ProfileServiceImpl implements ProfileService {
         }
         if (personEditRequest.getBirthDate() != 0) {
             LocalDateTime birthDate =
-                    LocalDateTime.ofEpochSecond(personEditRequest.getBirthDate(), 0, ZoneOffset.ofHours(3));
+                    LocalDateTime.ofInstant(Instant.ofEpochMilli(personEditRequest.getBirthDate()), TimeZone.getDefault().toZoneId());
             person.setBirthDate(birthDate);
         }
         if (personEditRequest.getPhone() != null) {
             person.setPhone(personEditRequest.getPhone());
         }
-        if (personEditRequest.getPhotoId() != 0) {
-            person.setPhoto(String.valueOf(personEditRequest.getPhotoId()));
+        if (personEditRequest.getPhotoId() != null) {
+            person.setPhoto(personEditRequest.getPhotoId());
         }
         if (personEditRequest.getAbout() != null) {
             person.setAbout(personEditRequest.getAbout());
         }
-        if (personEditRequest.getTownId() != 0) {
-            person.setCity(String.valueOf(personEditRequest.getTownId()));
+        if (personEditRequest.getTownId() != null) {
+            person.setCity(personEditRequest.getTownId());
         }
-        if (personEditRequest.getCountryId() != 0) {
-            person.setCountry(String.valueOf(personEditRequest.getCountryId()));
+        if (personEditRequest.getCountryId() != null) {
+            person.setCountry(personEditRequest.getCountryId());
         }
         if (personEditRequest.getMessagesPermission() != null) {
             person.setMessagePermission(personEditRequest.getMessagesPermission().toString());
@@ -110,7 +110,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public ErrorTimeDataResponse setBlockUserById(long id, int block) {
-        Person person = getCurrentUserAsPerson();
+        Person person = personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
         person.setIsBlocked(block);
         personRepository.save(person);
         return new ErrorTimeDataResponse("", new MessageResponse());
@@ -124,7 +124,7 @@ public class ProfileServiceImpl implements ProfileService {
         Page<Post> posts = postRepository.findByAuthorAndTimeBeforeAndIsBlockedAndIsDeleted(person, LocalDateTime.now(), 0, 0,  paging);
         return new ErrorTimeTotalOffsetPerPageListDataResponse(
                 "",
-                LocalDateTime.now().atZone(ZoneId.of(timezone)).toEpochSecond(),
+                LocalDateTime.now().atZone(ZoneId.of(timezone)).toInstant().toEpochMilli(),
                 posts.getTotalElements(),
                 offset,
                 itemPerPage,
@@ -136,7 +136,7 @@ public class ProfileServiceImpl implements ProfileService {
         LocalDateTime dateToPublish;
         if (publishDate == null) {
             dateToPublish = LocalDateTime.now();
-            publishDate = dateToPublish.atZone(ZoneId.of(timezone)).toEpochSecond();
+            publishDate = dateToPublish.atZone(ZoneId.of(timezone)).toInstant().toEpochMilli();
         }
         else {
             dateToPublish = LocalDateTime.ofInstant(Instant.ofEpochMilli(publishDate), TimeZone.getDefault().toZoneId());
@@ -167,7 +167,7 @@ public class ProfileServiceImpl implements ProfileService {
         Page<Person> personPage = personRepository.findPersons(firstName, lastName, startDate, endDate, paging);
         return new ErrorTimeTotalOffsetPerPageListDataResponse(
                 "",
-                LocalDateTime.now().atZone(ZoneId.of(timezone)).toEpochSecond(),
+                LocalDateTime.now().atZone(ZoneId.of(timezone)).toInstant().toEpochMilli(),
                 personPage.getTotalElements(),
                 offset,
                 itemPerPage,
@@ -186,8 +186,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .id(person.getId())
                 .firstName(person.getFirstName())
                 .lastName(person.getLastName())
-                .regDate(person.getRegDate().atZone(ZoneId.of(timezone)).toEpochSecond())
-                .birthDate(person.getBirthDate().atZone(ZoneId.of(timezone)).toEpochSecond())
+                .regDate(person.getRegDate().atZone(ZoneId.of(timezone)).toInstant().toEpochMilli())
+                .birthDate(person.getBirthDate().atZone(ZoneId.of(timezone)).toInstant().toEpochMilli())
                 .email(person.getEmail())
                 .phone(person.getPhone())
                 .photo(person.getPhoto())
@@ -195,7 +195,7 @@ public class ProfileServiceImpl implements ProfileService {
                 .city(person.getCity())
                 .country(person.getCountry())
                 .messagesPermission(person.getMessagePermission())
-                .lastOnlineTime(person.getLastOnlineTime().atZone(ZoneId.of(timezone)).toEpochSecond())
+                .lastOnlineTime(person.getLastOnlineTime().atZone(ZoneId.of(timezone)).toInstant().toEpochMilli())
                 .isBlocked(person.getIsBlocked() == 1)
                 .build();
     }
@@ -234,7 +234,7 @@ public class ProfileServiceImpl implements ProfileService {
     private PostEntityResponse convertPostToPostResponse(Post post) {
         return PostEntityResponse.builder()
                 .id(post.getId())
-                .time(post.getTime().atZone(ZoneId.of(timezone)).toEpochSecond())
+                .time(post.getTime().atZone(ZoneId.of(timezone)).toInstant().toEpochMilli())
                 .title(post.getTitle())
                 .author(convertPersonToResponse(post.getAuthor()))
                 .postText(post.getPostText())
@@ -261,7 +261,7 @@ public class ProfileServiceImpl implements ProfileService {
                                 .isBlocked(comment.getIsBlocked() == 1)
                                 .parentId(comment.getParentId() == null ? 0 : comment.getParentId())
                                 .postId(String.valueOf(comment.getPost().getId()))
-                                .time(comment.getTime().atZone(ZoneId.of(timezone)).toEpochSecond())
+                                .time(comment.getTime().atZone(ZoneId.of(timezone)).toInstant().toEpochMilli())
                                 .build()
                 );
             });
