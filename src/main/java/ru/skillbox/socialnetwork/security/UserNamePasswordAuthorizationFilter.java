@@ -3,7 +3,6 @@ package ru.skillbox.socialnetwork.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
@@ -36,9 +35,6 @@ class UserNamePasswordAuthorizationFilter extends UsernamePasswordAuthentication
     private final Logger logger;
     private final String jwtHeader;
     private final String jwtPrefix;
-
-    @Value("${db.timezone}")
-    private String timeZone;
 
 
     public UserNamePasswordAuthorizationFilter(PersonRepository personRepository,
@@ -124,8 +120,7 @@ class UserNamePasswordAuthorizationFilter extends UsernamePasswordAuthentication
                             person.getMessagePermission(),
                             person.getLastOnlineTime(),
                             person.isBlocked(),
-                            token,
-                            timeZone
+                            token
                     ));
             response.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(response.getOutputStream(), dataResponse);
