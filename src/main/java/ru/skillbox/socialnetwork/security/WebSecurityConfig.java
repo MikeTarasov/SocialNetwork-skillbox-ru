@@ -1,6 +1,7 @@
 package ru.skillbox.socialnetwork.security;
 
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -25,6 +26,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements W
     private final UserNamePasswordAuthorizationFilter userNamePasswordAuthorizationFilter;
     private final JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter;
     private final JwtConfig jwtConfig;
+
+    @Value("${application.host}")
+    private String applicationHost;
 
     public WebSecurityConfig(PersonDetailsService personDetailsService,
                              PersonRepository personRepository,
@@ -84,7 +88,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements W
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:8080")
+                .allowedOrigins(applicationHost)
                 .allowedMethods("HEAD", "GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("Authorization", "Cache-Control", "Content-Type", "Access-Control-Allow-Origin")
                 .allowCredentials(true);
