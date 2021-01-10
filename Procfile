@@ -1,1 +1,1 @@
-web: java -jar target/social-network-1.jar
+web: java -Dserver.port=$PORT -jar target/social-network-1.jar
