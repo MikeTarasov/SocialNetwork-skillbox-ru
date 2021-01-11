@@ -21,10 +21,8 @@ import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimeZone;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
@@ -70,9 +68,8 @@ public class ProfileServiceImpl implements ProfileService {
             person.setLastName(personEditRequest.getLastName());
         }
         if (personEditRequest.getBirthDate() != 0) { //TODO
-            LocalDateTime birthDate =
-                    LocalDateTime.ofEpochSecond(personEditRequest.getBirthDate(), 0, ZoneOffset.ofHours(3));
-            person.setBirthDate(birthDate);
+            person.setBirthDate(Instant.ofEpochMilli(personEditRequest.getBirthDate()).atZone(ZoneId.systemDefault())
+                    .toLocalDateTime());
         }
         if (personEditRequest.getPhone() != null) {
             person.setPhone(personEditRequest.getPhone());
@@ -133,9 +130,9 @@ public class ProfileServiceImpl implements ProfileService {
         LocalDateTime dateToPublish;
         if (publishDate == null) {
             dateToPublish = LocalDateTime.now();
-            publishDate = System.currentTimeMillis();
+            publishDate = System.currentTimeMillis(); //TODO зачем это?
         } else {
-            dateToPublish = LocalDateTime.ofInstant(Instant.ofEpochMilli(publishDate), TimeZone.getDefault().toZoneId());
+            dateToPublish = Instant.ofEpochMilli(publishDate).atZone(ZoneId.systemDefault()).toLocalDateTime();
         }
 
         Post post = Post.builder()
