@@ -79,11 +79,15 @@ class UserNamePasswordAuthorizationFilter extends UsernamePasswordAuthentication
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
                                             Authentication authResult) throws IOException {
 
-        String email = new ObjectMapper().readValue(request.getInputStream(), PersonDetails.class).getEmail();
+        PersonDetails personDetails = new ObjectMapper().readValue(request.getInputStream(), PersonDetails.class);
+        String email = personDetails.getEmail();
+        String password = personDetails.getPassword();
+
 
         Optional<Person> optionalPerson = personRepository.findByEmail(email);
 
-        if (optionalPerson.isPresent()) {
+        if (optionalPerson.isPresent() && optionalPerson.get().getPassword().equals(password)) {
+
             String token = jwtProvider.generateToken(email);
             response.addHeader(jwtHeader, token);
 
@@ -95,7 +99,7 @@ class UserNamePasswordAuthorizationFilter extends UsernamePasswordAuthentication
                 successResponse(person, response, token);
             }
         } else {
-            errorResponse("This email is not registered", response, HttpStatus.BAD_REQUEST);
+            errorResponse("Email or password are incorrect!", response, HttpStatus.BAD_REQUEST);
         }
     }
 
