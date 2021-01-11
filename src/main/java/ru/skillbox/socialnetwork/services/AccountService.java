@@ -132,7 +132,7 @@ public class AccountService {
         Optional<Person> optionalPerson = findPersonByEmail(requestBody.getEmail());
 
         if (optionalPerson.isEmpty()) {
-            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("This email is not registered!"));
+            return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse("This email is not registered!"));
         }
 
         Person person = optionalPerson.get();
@@ -145,7 +145,7 @@ public class AccountService {
                     .body(new ErrorTimeDataResponse("", new MessageResponse()));
         }
 
-        return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Error sending email"));
+        return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse("Error sending email"));
     }
 
     public ResponseEntity<?> putApiAccountPasswordSet(@RequestBody TokenPasswordRequest requestBody) {

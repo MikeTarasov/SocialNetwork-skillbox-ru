@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 
 class UserNamePasswordAuthorizationFilter extends UsernamePasswordAuthenticationFilter {
@@ -80,23 +81,29 @@ class UserNamePasswordAuthorizationFilter extends UsernamePasswordAuthentication
 
         String email = new ObjectMapper().readValue(request.getInputStream(), PersonDetails.class).getEmail();
 
-        String token = jwtProvider.generateToken(email);
-        response.addHeader(jwtHeader, token);
+        Optional<Person> optionalPerson = personRepository.findByEmail(email);
 
-        Person person = personRepository.findByEmail(email).orElseThrow();
-        if (person.isBlocked() || person.isDeleted()) {
-            errorResponse(String.format("user block(%s) or deleted(%s)!", person.isBlocked(), person.isDeleted()),
-                    response);
+        if (optionalPerson.isPresent()) {
+            String token = jwtProvider.generateToken(email);
+            response.addHeader(jwtHeader, token);
+
+            Person person = optionalPerson.get();
+            if (person.isBlocked() || person.isDeleted()) {
+                errorResponse(String.format("user block(%s) or deleted(%s)!", person.isBlocked(), person.isDeleted()),
+                        response, HttpStatus.BAD_REQUEST);
+            } else {
+                successResponse(person, response, token);
+            }
         } else {
-            successResponse(person, response, token);
+            errorResponse("This email is not registered", response, HttpStatus.BAD_REQUEST);
         }
     }
 
-    private void errorResponse(String message, HttpServletResponse response) throws IOException {
+    private void errorResponse(String message, HttpServletResponse response, HttpStatus httpStatus) throws IOException {
         ErrorErrorDescriptionResponse errorApi = new ErrorErrorDescriptionResponse(message);
         response.getOutputStream()
                 .println(objectMapper.writeValueAsString(errorApi));
-        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setStatus(httpStatus.value());
     }
 
     private void successResponse(Person person, HttpServletResponse response, String token) throws IOException {
@@ -126,7 +133,7 @@ class UserNamePasswordAuthorizationFilter extends UsernamePasswordAuthentication
             objectMapper.writeValue(response.getOutputStream(), dataResponse);
         } catch (Exception e) {
             logger.error(e);
-            errorResponse("Invalid authorization", response);
+            errorResponse("Invalid authorization", response, HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -134,6 +141,6 @@ class UserNamePasswordAuthorizationFilter extends UsernamePasswordAuthentication
     protected void unsuccessfulAuthentication(HttpServletRequest request,
                                               HttpServletResponse response,
                                               AuthenticationException failed) throws IOException {
-        errorResponse("Un authorized", response);
+        errorResponse("Un authorized", response, HttpStatus.UNAUTHORIZED);
     }
 }
