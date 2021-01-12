@@ -43,8 +43,7 @@ public class StorageService {
   }
 
 
-  public ResponseEntity<?> getUpload2(String pathToFile) {
-
+  public ResponseEntity<?> getUpload(String pathToFile) {
     try {
       File srcFile = validateFile(pathToFile);
       Cloudinary cloudinary = new Cloudinary(makeConfig());

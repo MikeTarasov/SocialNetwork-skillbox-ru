@@ -17,7 +17,7 @@ public class StorageController {
 
   @PostMapping("/storage")
   public ResponseEntity<?> uploadFile(@RequestParam(value = "type") String pathToFile) {
-    return storageService.getUpload2(pathToFile);
+    return storageService.getUpload(pathToFile);
   }
 
 }
