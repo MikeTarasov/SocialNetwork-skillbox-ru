@@ -7,11 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 
 @Data
 @Builder
@@ -73,9 +71,8 @@ public class PersonEntityResponse {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
-        if (regDate != null) this.regDate = regDate.toEpochSecond(ZoneOffset.UTC);
-        if (birthDate != null) this.birthDate = birthDate.toEpochSecond(ZoneOffset.UTC);
-        ;
+        if (regDate != null) this.regDate = regDate.atZone(ZoneId.systemDefault()).toEpochSecond();
+        if (birthDate != null) this.birthDate = birthDate.atZone(ZoneId.systemDefault()).toEpochSecond();
         this.email = email;
         this.phone = phone;
         this.photo = photo;
@@ -83,10 +80,8 @@ public class PersonEntityResponse {
         this.city = city;
         this.country = country;
         this.messagesPermission = messagesPermission;
-        if (lastOnlineTime != null) this.lastOnlineTime = lastOnlineTime.toEpochSecond(ZoneOffset.UTC);
-        ;
+        if (lastOnlineTime != null) this.lastOnlineTime = lastOnlineTime.atZone(ZoneId.systemDefault()).toEpochSecond();
         this.isBlocked = isBlocked;
         this.token = token;
-
     }
 }
