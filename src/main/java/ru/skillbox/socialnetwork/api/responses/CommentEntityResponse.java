@@ -12,16 +12,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CommentEntityResponse {
 
-    private long id;
     @JsonProperty("parent_id")
-    private long parentId;
+    private Long parentId;
+    @JsonProperty("comment_text")
+    private String commentText;
+    private long id;
     @JsonProperty("post_id")
     private long postId;
     private long time;
     @JsonProperty("author_id")
     private long authorId;
-    @JsonProperty("comment_text")
-    private String commentText;
     @JsonProperty("is_blocked")
     private boolean isBlocked;
 }
