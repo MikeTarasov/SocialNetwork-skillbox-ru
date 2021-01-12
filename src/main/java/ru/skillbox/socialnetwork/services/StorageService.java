@@ -1,14 +1,13 @@
 package ru.skillbox.socialnetwork.services;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
-import java.util.stream.Collectors;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,23 +19,20 @@ import ru.skillbox.socialnetwork.model.enums.FileType;
 @Service
 public class StorageService {
 
-  @Value("${upload.path}")
-  private String uploadPath;
+  @Value("${cloudinary.cloud.name}")
+  private String cloudName;
 
-  @Value("${upload.subdir.name.length}")
-  private int nameSubdirLength;
+  @Value("${cloudinary.api.key}")
+  private String cloudApiKey;
 
-  @Value("${upload.subdir.depth}")
-  private int uploadSubdirDepth;
+  @Value("${cloudinary.api.secret}")
+  private String cloudApiSecret;
 
   @Value("${upload.max.file.size}")
   private int maxFileSizeInMb;
 
   @Value("#{'${upload.file.types}'.split(',')}")
   private List<String> uploadFileTypes;
-
-  @Value("${upload.length.file.id}")
-  private int lengthFileId;
 
   private final long BYTES_IN_MEGABYTES = 1000000;
 
@@ -47,31 +43,15 @@ public class StorageService {
   }
 
 
-  public ResponseEntity<?> getUpload(String pathToFile) {
-
-    InputStream is = null;
-    OutputStream os = null;
-    File dstFile;
+  public ResponseEntity<?> getUpload2(String pathToFile) {
 
     try {
       File srcFile = validateFile(pathToFile);
-      dstFile = new File(makeDirectories() + "/" + srcFile.getName());
-
-      is = new FileInputStream(srcFile);
-      os = new FileOutputStream(dstFile);
-
-      byte[] buffer = new byte[1024];
-      int length;
-
-      while ((length = is.read(buffer)) > 0) {
-        os.write(buffer, 0, length);
-      }
+      Cloudinary cloudinary = new Cloudinary(makeConfig());
+      Map res = cloudinary.uploader().upload(srcFile, ObjectUtils.emptyMap());
 
       return ResponseEntity.status(HttpStatus.OK)
-          .body(new ErrorTimeDataResponse(
-              "",
-              System.currentTimeMillis(),
-              makeFileUploadResponse(dstFile)));
+          .body(makeFileUploadResponse(res));
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -81,37 +61,37 @@ public class StorageService {
               e.getMessage(),
               System.currentTimeMillis(),
               null));
-
-    } finally {
-      closeStreams(is, os);
     }
   }
 
-
-  private FileUploadResponse makeFileUploadResponse(File dstFile) {
+  private FileUploadResponse makeFileUploadResponse(Map<?, ?> res) {
     return FileUploadResponse.builder()
-        .id(generateRandomString(lengthFileId))
+        .id((String) res.get("public_id"))
         .ownerId(accountService.getCurrentUser().getId())
-        .fileName(dstFile.getName())
-        .relativeFilePath(dstFile.getPath())
-        .rawFileURL(dstFile.toURI().toString())
-        .fileFormat(getFileExtension(dstFile))
-        .bytes(dstFile.length())
+        .fileName((String) res.get("original_filename"))
+        .relativeFilePath((String) res.get("secure_url"))
+        .rawFileURL((String) res.get("secure_url"))
+        .fileFormat((String) res.get("format"))
+        .bytes((int) (res.get("bytes")))
         .fileType(FileType.IMAGE)
-        .createdAt(System.currentTimeMillis())
+        .createdAt(getTimestamp((String) res.get("created_at")))
         .build();
   }
 
-  private void closeStreams(InputStream is, OutputStream os) {
-    try {
-      is.close();
-      os.close();
-    } catch (IOException | NullPointerException e) {
-      e.printStackTrace();
-    }
+  private long getTimestamp(String dateTime) {
+    return ZonedDateTime.parse(dateTime).toLocalDateTime().atZone(ZoneId.systemDefault())
+        .toEpochSecond();
   }
 
-  private File validateFile(String pathToFile) {
+  private Map<String, String> makeConfig() {
+    Map<String, String> config = new HashMap<>();
+    config.put("cloud_name", cloudName);
+    config.put("api_key", cloudApiKey);
+    config.put("api_secret", cloudApiSecret);
+    return config;
+  }
+
+  private File validateFile(String pathToFile) throws Exception {
     if (pathToFile.isEmpty()) {
       throw new IllegalArgumentException("Path to file is empty");
     }
@@ -137,19 +117,6 @@ public class StorageService {
     return srcFile;
   }
 
-
-  private File makeDirectories() {
-    File dstPath = new File(uploadPath +
-        getRandomPathToFile(nameSubdirLength, uploadSubdirDepth));
-
-    if (dstPath.mkdirs()) {
-      System.out.println("File upload directories " + dstPath.getPath() + " was created");
-    } else {
-      throw new RuntimeException("File upload directories not created");
-    }
-    return dstPath;
-  }
-
   private String getFileExtension(File file) {
     String fileName = file.getName();
     if (fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0) {
@@ -158,27 +125,4 @@ public class StorageService {
       return "";
     }
   }
-
-  private String getRandomPathToFile(int lenChar, int countSubDir) {
-    String randomString = generateRandomString(lenChar * countSubDir);
-    StringBuilder sb = new StringBuilder();
-
-    for (int i = 0; i < countSubDir; i++) {
-      String randChar = new Random().ints(lenChar, 0, randomString.length())
-          .mapToObj(randomString::charAt)
-          .map(Object::toString)
-          .collect(Collectors.joining());
-      sb.append("/").append(randChar);
-    }
-    return sb.toString();
-  }
-
-  private String generateRandomString(int len) {
-    String symbols = "abcdefghijklmnopqrstuvwxyz0123456789";
-    return new Random().ints(len, 0, symbols.length())
-        .mapToObj(symbols::charAt)
-        .map(Object::toString)
-        .collect(Collectors.joining());
-  }
-
 }
