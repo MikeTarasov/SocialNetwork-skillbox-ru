@@ -1,1 +1,0 @@
-update post set is_deleted = 0 where id = 1;
