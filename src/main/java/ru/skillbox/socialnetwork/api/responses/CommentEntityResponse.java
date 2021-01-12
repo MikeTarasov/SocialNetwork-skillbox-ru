@@ -16,7 +16,7 @@ public class CommentEntityResponse {
     @JsonProperty("parent_id")
     private long parentId;
     @JsonProperty("post_id")
-    private String postId;
+    private long postId;
     @JsonProperty("author_id")
     private long authorId;
     @JsonProperty("comment_text")

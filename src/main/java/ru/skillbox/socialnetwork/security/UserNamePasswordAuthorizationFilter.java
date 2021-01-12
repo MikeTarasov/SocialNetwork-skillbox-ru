@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -86,7 +87,8 @@ class UserNamePasswordAuthorizationFilter extends UsernamePasswordAuthentication
 
         Optional<Person> optionalPerson = personRepository.findByEmail(email);
 
-        if (optionalPerson.isPresent() && optionalPerson.get().getPassword().equals(password)) {
+        if (optionalPerson.isPresent() &&
+                new BCryptPasswordEncoder().matches(password, optionalPerson.get().getPassword())) {
 
             String token = jwtProvider.generateToken(email);
             response.addHeader(jwtHeader, token);
