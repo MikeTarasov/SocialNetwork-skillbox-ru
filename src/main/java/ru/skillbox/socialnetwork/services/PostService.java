@@ -129,7 +129,7 @@ public class PostService {
     }
 
     public ResponseEntity<?> putApiPostIdRecover(long id) {
-        boolean isDeleted = false;
+
         Optional<Post> optionalPost = postRepository.findById(id);
         if (optionalPost.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK)
@@ -365,12 +365,12 @@ public class PostService {
 
     private CommentEntityResponse getCommentEntityResponseByComment(PostComment comment) {
         return new CommentEntityResponse(
-                comment.getId(),
                 comment.getParentId(),
+                comment.getCommentText(),
+                comment.getId(),
                 comment.getPost().getId(),
                 comment.getTime().toInstant(ZoneOffset.of(timezone)).toEpochMilli(),
                 comment.getPerson().getId(),
-                comment.getCommentText(),
                 comment.getIsBlocked()
         );
     }

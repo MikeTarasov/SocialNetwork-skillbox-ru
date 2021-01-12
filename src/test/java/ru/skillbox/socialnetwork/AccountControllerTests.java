@@ -18,9 +18,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.skillbox.socialnetwork.api.requests.EmailPassPassFirstNameLastNameCodeRequest;
 import ru.skillbox.socialnetwork.api.requests.EmailRequest;
 import ru.skillbox.socialnetwork.api.requests.TokenPasswordRequest;
-import ru.skillbox.socialnetwork.security.JwtTokenProvider;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
+import ru.skillbox.socialnetwork.security.JwtTokenProvider;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -76,6 +76,7 @@ public class AccountControllerTests {
     private void clearContext() {
         SecurityContextHolder.clearContext();
     }
+
 
     private void expectOK(ResultActions resultActions) throws Exception {
         resultActions
