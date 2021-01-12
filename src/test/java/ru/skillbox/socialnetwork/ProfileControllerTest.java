@@ -20,6 +20,7 @@ import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 
 import java.time.ZoneId;
+import java.util.TimeZone;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -66,11 +67,11 @@ public class ProfileControllerTest {
                 .andExpect(jsonPath("$.data.city").value("Великие Луки"))
                 .andExpect(jsonPath("$.data.country").value("Россия"))
                 .andExpect(jsonPath("$.data.first_name").value("Дед"))
-                .andExpect(jsonPath("$.data.reg_date").value("1599502215000"))
+                .andExpect(jsonPath("$.data.reg_date").value("1599491415000"))
                 .andExpect(jsonPath("$.data.last_name").value("Мороз"))
-                .andExpect(jsonPath("$.data.birth_date").value("925516800000"))
+                .andExpect(jsonPath("$.data.birth_date").value("925502400000"))
                 .andExpect(jsonPath("$.data.messages_permission").value("ALL"))
-                .andExpect(jsonPath("$.data.last_online_time").value("1606950687000"))
+                .andExpect(jsonPath("$.data.last_online_time").value("1606939887000"))
                 .andExpect(jsonPath("$.data.is_blocked").value("false"));
     }
 
@@ -90,11 +91,11 @@ public class ProfileControllerTest {
                 .andExpect(jsonPath("$.data.city").value("Book"))
                 .andExpect(jsonPath("$.data.country").value("Wonderland"))
                 .andExpect(jsonPath("$.data.first_name").value("Котик"))
-                .andExpect(jsonPath("$.data.reg_date").value("1595445025000"))
+                .andExpect(jsonPath("$.data.reg_date").value("1595434225000"))
                 .andExpect(jsonPath("$.data.last_name").value("Чеширский"))
-                .andExpect(jsonPath("$.data.birth_date").value("46310400000"))
+                .andExpect(jsonPath("$.data.birth_date").value("46299600000"))
                 .andExpect(jsonPath("$.data.messages_permission").value("ALL"))
-                .andExpect(jsonPath("$.data.last_online_time").value("1606947087000"))
+                .andExpect(jsonPath("$.data.last_online_time").value("1606936287000"))
                 .andExpect(jsonPath("$.data.is_blocked").value("false"));
     }
 
@@ -184,7 +185,7 @@ public class ProfileControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(jsonPath("$.data.id").value(currentUserId))
-                .andExpect(jsonPath("$.data.birth_date").value(expectedPerson.getBirthDate().atZone(ZoneId.of("UTC")).toInstant().toEpochMilli()));
+                .andExpect(jsonPath("$.data.birth_date").value(expectedPerson.getBirthDate().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli()));
 
         assertTrue(personRepository.findById(currentUserId).isPresent());
         Person actualPerson = personRepository.findById(currentUserId).get();

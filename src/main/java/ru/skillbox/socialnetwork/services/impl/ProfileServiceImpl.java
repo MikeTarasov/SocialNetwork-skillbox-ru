@@ -20,9 +20,9 @@ import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
@@ -68,7 +68,7 @@ public class ProfileServiceImpl implements ProfileService {
             person.setLastName(personEditRequest.getLastName());
         }
         if (personEditRequest.getBirthDate() != 0) { //TODO
-            person.setBirthDate(Instant.ofEpochMilli(personEditRequest.getBirthDate()).atZone(ZoneId.systemDefault())
+            person.setBirthDate(Instant.ofEpochMilli(personEditRequest.getBirthDate()).atZone(TimeZone.getDefault().toZoneId())
                     .toLocalDateTime());
         }
         if (personEditRequest.getPhone() != null) {
@@ -132,7 +132,7 @@ public class ProfileServiceImpl implements ProfileService {
             dateToPublish = LocalDateTime.now();
             publishDate = System.currentTimeMillis(); //TODO зачем это?
         } else {
-            dateToPublish = Instant.ofEpochMilli(publishDate).atZone(ZoneId.systemDefault()).toLocalDateTime();
+            dateToPublish = Instant.ofEpochMilli(publishDate).atZone(TimeZone.getDefault().toZoneId()).toLocalDateTime();
         }
 
         Post post = Post.builder()
@@ -179,8 +179,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .id(person.getId())
                 .firstName(person.getFirstName())
                 .lastName(person.getLastName())
-                .regDate(person.getRegDate().atZone(ZoneId.systemDefault()).toEpochSecond())
-                .birthDate(person.getBirthDate().atZone(ZoneId.systemDefault()).toEpochSecond())
+                .regDate(person.getRegDate().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
+                .birthDate(person.getBirthDate().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
                 .email(person.getEmail())
                 .phone(person.getPhone())
                 .photo(person.getPhoto())
@@ -188,7 +188,7 @@ public class ProfileServiceImpl implements ProfileService {
                 .city(person.getCity())
                 .country(person.getCountry())
                 .messagesPermission(person.getMessagePermission())
-                .lastOnlineTime(person.getLastOnlineTime().atZone(ZoneId.systemDefault()).toEpochSecond())
+                .lastOnlineTime(person.getLastOnlineTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
                 .isBlocked(person.getIsBlocked() == 1)
                 .build();
     }
@@ -227,7 +227,7 @@ public class ProfileServiceImpl implements ProfileService {
     private PostEntityResponse convertPostToPostResponse(Post post) {
         return PostEntityResponse.builder()
                 .id(post.getId())
-                .time(post.getTime().atZone(ZoneId.systemDefault()).toEpochSecond())
+                .time(post.getTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
                 .title(post.getTitle())
                 .author(convertPersonToResponse(post.getAuthor()))
                 .postText(post.getPostText())
@@ -254,7 +254,7 @@ public class ProfileServiceImpl implements ProfileService {
                                 .isBlocked(comment.getIsBlocked())
                                 .parentId(comment.getParentId() == null ? 0 : comment.getParentId())
                                 .postId(comment.getPost().getId())
-                                .time(comment.getTime().atZone(ZoneId.systemDefault()).toEpochSecond())
+                                .time(comment.getTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
                                 .build()
                 );
             });
