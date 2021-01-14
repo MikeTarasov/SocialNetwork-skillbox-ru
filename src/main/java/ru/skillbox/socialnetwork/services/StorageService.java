@@ -2,7 +2,6 @@ package ru.skillbox.socialnetwork.services;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import java.io.File;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
@@ -12,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 import ru.skillbox.socialnetwork.api.responses.FileUploadResponse;
 import ru.skillbox.socialnetwork.model.enums.FileType;
@@ -28,13 +28,8 @@ public class StorageService {
   @Value("${cloudinary.api.secret}")
   private String cloudApiSecret;
 
-  @Value("${upload.max.file.size}")
-  private int maxFileSizeInMb;
-
   @Value("#{'${upload.file.types}'.split(',')}")
   private List<String> uploadFileTypes;
-
-  private final long BYTES_IN_MEGABYTES = 1000000;
 
   private final AccountService accountService;
 
@@ -43,16 +38,20 @@ public class StorageService {
   }
 
 
-  public ResponseEntity<?> getUpload(String pathToFile) {
+
+  public ResponseEntity<?> getUpload(String type, MultipartFile file){
     try {
-      File srcFile = validateFile(pathToFile);
+      validateFile(file);
       Cloudinary cloudinary = new Cloudinary(makeConfig());
-      Map res = cloudinary.uploader().upload(srcFile, ObjectUtils.emptyMap());
+      Map res = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
 
       return ResponseEntity.status(HttpStatus.OK)
-          .body(makeFileUploadResponse(res));
+          .body(new ErrorTimeDataResponse(
+              "",
+              System.currentTimeMillis(),
+              makeFileUploadResponse(res)));
 
-    } catch (Exception e) {
+    }catch (Exception e) {
       e.printStackTrace();
 
       return ResponseEntity.status(HttpStatus.OK)
@@ -61,6 +60,23 @@ public class StorageService {
               System.currentTimeMillis(),
               null));
     }
+  }
+
+
+  public void validateFile(MultipartFile file) throws Exception{
+    String contType = file.getContentType();
+
+    if(file.isEmpty()){
+      throw new IllegalArgumentException("File can not be empty");
+    }
+    if(contType == null){
+      throw new IllegalArgumentException("Content type is null");
+    }
+
+    if(uploadFileTypes.stream().noneMatch(contType::contains)){
+      throw new IllegalArgumentException("Unknown file type");
+    }
+
   }
 
   private FileUploadResponse makeFileUploadResponse(Map<?, ?> res) {
@@ -79,7 +95,7 @@ public class StorageService {
 
   private long getTimestamp(String dateTime) {
     return ZonedDateTime.parse(dateTime).toLocalDateTime().atZone(ZoneId.systemDefault())
-        .toEpochSecond();
+        .toInstant().toEpochMilli();
   }
 
   private Map<String, String> makeConfig() {
@@ -88,40 +104,5 @@ public class StorageService {
     config.put("api_key", cloudApiKey);
     config.put("api_secret", cloudApiSecret);
     return config;
-  }
-
-  private File validateFile(String pathToFile) throws Exception {
-    if (pathToFile.isEmpty()) {
-      throw new IllegalArgumentException("Path to file is empty");
-    }
-
-    File srcFile = new File(pathToFile);
-
-    if (!srcFile.isFile()) {
-      throw new IllegalArgumentException("No file found in the specified path");
-    }
-
-    String ext = getFileExtension(srcFile);
-
-    if (ext.isBlank() || !uploadFileTypes.contains(ext)) {
-      throw new IllegalArgumentException("Unknown file type");
-    }
-
-    if (srcFile.length() == 0) {
-      throw new IllegalArgumentException("File is empty");
-    }
-    if (srcFile.length() > maxFileSizeInMb * BYTES_IN_MEGABYTES) {
-      throw new IllegalArgumentException("File size exceeds maximum");
-    }
-    return srcFile;
-  }
-
-  private String getFileExtension(File file) {
-    String fileName = file.getName();
-    if (fileName.lastIndexOf(".") != -1 && fileName.lastIndexOf(".") != 0) {
-      return fileName.substring(fileName.lastIndexOf(".") + 1);
-    } else {
-      return "";
-    }
   }
 }
