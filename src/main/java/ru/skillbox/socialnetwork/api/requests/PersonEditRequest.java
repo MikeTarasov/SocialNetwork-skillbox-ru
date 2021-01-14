@@ -19,12 +19,12 @@ public class PersonEditRequest {
   private long birthDate;
   private String phone;
   @JsonProperty("photo_id")
-  private int photoId;
+  private String photoId;
   private String about;
   @JsonProperty("town_id")
-  private int townId;
+  private String townId;
   @JsonProperty("country_id")
-  private int countryId;
+  private String countryId;
   @JsonProperty("messages_permission")
   private MessagesPermissions messagesPermission;
 
