@@ -14,16 +14,15 @@ import ru.skillbox.socialnetwork.api.requests.ListUserIdsRequest;
 import ru.skillbox.socialnetwork.controllers.DialogController;
 import ru.skillbox.socialnetwork.model.entity.Dialog;
 import ru.skillbox.socialnetwork.model.entity.Person;
+import ru.skillbox.socialnetwork.model.entity.PersonToDialog;
 import ru.skillbox.socialnetwork.repository.DialogRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.repository.PersonToDialogRepository;
-import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -37,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Sql(value = {"/ClearDialogsAfterTest.sql","/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 public class DialogControllerTests {
 
-    private final long currentUserId = 9L;  // shred@mail.who
+    private final long currentPersonId = 9L;  // shred@mail.who
     @Autowired
     private DialogController dialogController;
     @Autowired
@@ -51,10 +50,12 @@ public class DialogControllerTests {
     @Autowired
     private PersonToDialogRepository personToDialogRepository;
 
+
+
     @Test
-    public void createOneDialog() throws Exception {
+    public void createDialogForOne() throws Exception {
         List<Long> idList = new ArrayList<>();
-        idList.add(currentUserId);
+        idList.add(currentPersonId);
         ListUserIdsRequest request = new ListUserIdsRequest(idList);
         this.mockMvc.perform(post("/api/v1/dialogs/").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
@@ -65,19 +66,35 @@ public class DialogControllerTests {
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.data.id").exists());
 
-        List<Dialog> dialogs = dialogRepository.findByOwner(personRepository.findById(currentUserId)
-                .orElseThrow(() -> new PersonNotFoundException(currentUserId)));
-        assertEquals(1, dialogs.size());
-        Person currentUser = personRepository.findById(currentUserId)
-                .orElseThrow(() -> new PersonNotFoundException(currentUserId));
-        assertTrue(personToDialogRepository.findByPerson(currentUser).isPresent());
-        assertTrue(dialogs.contains(personToDialogRepository.findByPerson(currentUser).get().getDialog()));
+        Person currentPerson = personRepository.findById(currentPersonId).orElseThrow();
+        assertTrue(dialogRepository.findByOwner(currentPerson).isPresent());
+        Dialog dialog = dialogRepository.findByOwner(currentPerson).get();
+        List<PersonToDialog> personToDialogConnections = personToDialogRepository.findByDialog(dialog);
+        assertEquals(1, personToDialogConnections.size());
     }
 
     @Test
-    public void createTwoDialogs() throws Exception {
+    public void createDialogForOne_Error() throws Exception {
         List<Long> idList = new ArrayList<>();
-        idList.add(currentUserId);
+        idList.add(15L);
+        ListUserIdsRequest request = new ListUserIdsRequest(idList);
+        this.mockMvc.perform(post("/api/v1/dialogs/").contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.data.id").doesNotExist());
+
+        assertTrue(dialogRepository.findAll().isEmpty());
+        assertTrue(personToDialogRepository.findAll().isEmpty());
+    }
+
+    @Test
+    public void createDialogsForTwo() throws Exception {
+        List<Long> idList = new ArrayList<>();
+        idList.add(currentPersonId);
         Long secondId = 8L;
         idList.add(secondId);
         ListUserIdsRequest request = new ListUserIdsRequest(idList);
@@ -90,23 +107,46 @@ public class DialogControllerTests {
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.data.id").exists());
 
-        Person currentUser = personRepository.findById(currentUserId)
-                .orElseThrow(() -> new PersonNotFoundException(currentUserId));
-        Person secondUser = personRepository.findById(secondId)
-                .orElseThrow(() -> new PersonNotFoundException(secondId));
-        List<Dialog> dialogs = dialogRepository.findByOwner(personRepository.findById(currentUserId)
-                .orElseThrow(() -> new PersonNotFoundException(currentUserId)));
-        assertEquals(2, dialogs.size());
-        assertTrue(personToDialogRepository.findByPerson(currentUser).isPresent());
-        assertTrue(personToDialogRepository.findByPerson(secondUser).isPresent());
-        assertTrue(dialogs.contains(personToDialogRepository.findByPerson(currentUser).get().getDialog()));
-        assertTrue(dialogs.contains(personToDialogRepository.findByPerson(secondUser).get().getDialog()));
+        Person currentPerson = personRepository.findById(currentPersonId).orElseThrow();
+        assertTrue(dialogRepository.findByOwner(currentPerson).isPresent());
+        Dialog dialog = dialogRepository.findByOwner(currentPerson).get();
+        assertEquals(2, personToDialogRepository.findByDialog(dialog).size());
+        assertEquals(1, personToDialogRepository.findByPerson(currentPerson).size());
     }
 
     @Test
-    public void createTwoDialogsError() throws Exception {
+    public void createDialogsForThree() throws Exception {
         List<Long> idList = new ArrayList<>();
-        idList.add(currentUserId);
+        idList.add(currentPersonId);
+        Long secondId = 8L;
+        Long thirdId = 7L;
+        idList.add(secondId);
+        idList.add(thirdId);
+        ListUserIdsRequest request = new ListUserIdsRequest(idList);
+        this.mockMvc.perform(post("/api/v1/dialogs/").contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.id").exists());
+
+        Person currentPerson = personRepository.findById(currentPersonId).orElseThrow();
+        assertTrue(dialogRepository.findByOwner(currentPerson).isPresent());
+        Dialog dialog = dialogRepository.findByOwner(currentPerson).get();
+        assertEquals(3, personToDialogRepository.findByDialog(dialog).size());
+        assertEquals(1, personToDialogRepository.findByPerson(currentPerson).size());
+        Person secondPerson = personRepository.findById(secondId).orElseThrow();
+        assertEquals(1, personToDialogRepository.findByPerson(secondPerson).size());
+        Person thirdPerson = personRepository.findById(thirdId).orElseThrow();
+        assertEquals(1, personToDialogRepository.findByPerson(thirdPerson).size());
+    }
+
+    @Test
+    public void createDialogsForTwo_Error() throws Exception {
+        List<Long> idList = new ArrayList<>();
+        idList.add(currentPersonId);
         Long secondId = 15L;
         idList.add(secondId);
         ListUserIdsRequest request = new ListUserIdsRequest(idList);
@@ -119,8 +159,7 @@ public class DialogControllerTests {
                 .andExpect(jsonPath("$.error").value("invalid_request"))
                 .andExpect(jsonPath("$.data.id").doesNotExist());
 
-        List<Dialog> dialogs = dialogRepository.findByOwner(personRepository.findById(currentUserId)
-                                                                .orElseThrow(() -> new PersonNotFoundException(currentUserId)));
-        assertEquals(0, dialogs.size());
+        assertTrue(dialogRepository.findAll().isEmpty());
+        assertTrue(personToDialogRepository.findAll().isEmpty());
     }
 }

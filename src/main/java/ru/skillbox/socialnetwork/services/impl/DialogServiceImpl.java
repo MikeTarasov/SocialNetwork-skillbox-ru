@@ -34,32 +34,26 @@ public class DialogServiceImpl implements DialogService {
 
     @Override
     public ErrorTimeDataResponse createDialog(List<Long> userIds) {
-             //check
+        // checking for correct IDs
         for (long id: userIds) {
-            if (personRepository.findById(id).isEmpty())
-                throw new PersonNotFoundException(id);
+            personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
         }
-
         Person owner = accountService.getCurrentUser();
-        IdResponse idResponse = null;
-
+        Dialog dialog = new Dialog();
+        dialog.setIsDeleted(0);
+        dialog.setUnreadCount(0);
+        dialog.setOwner(owner);
+        dialog.setInviteCode(getRandomString(5));
+        dialogRepository.save(dialog);
         for (long id: userIds) {
-            Dialog dialog = new Dialog();
-            dialog.setIsDeleted(0);
-            dialog.setUnreadCount(0);
-            dialog.setOwner(owner);
-            dialog.setInviteCode(getRandomString(5));
             PersonToDialog personToDialog = new PersonToDialog();
             personToDialog.setDialog(dialog);
             personToDialog.setPerson(personRepository.findById(id).get());
-            dialogRepository.save(dialog);
             personToDialogRepository.save(personToDialog);
-            if (owner.getId() == id)
-                idResponse = new IdResponse(dialog.getId());
         }
 
         return new ErrorTimeDataResponse("",
-                idResponse);
+                new IdResponse(dialog.getId()));
     }
 
 

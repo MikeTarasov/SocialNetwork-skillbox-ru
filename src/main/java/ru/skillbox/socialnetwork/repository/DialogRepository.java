@@ -5,10 +5,10 @@ import org.springframework.stereotype.Repository;
 import ru.skillbox.socialnetwork.model.entity.Dialog;
 import ru.skillbox.socialnetwork.model.entity.Person;
 
-import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DialogRepository extends JpaRepository<Dialog, Long> {
 
-    List<Dialog> findByOwner(Person person);
+    Optional<Dialog> findByOwner(Person person);
 }
