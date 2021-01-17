@@ -8,6 +8,7 @@ import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 
 import java.time.LocalDateTime;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,4 +21,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Optional<Post> findByIdAndTimeIsBefore(long id, long timeTo);
 
     Page<Post> findByAuthorAndTimeBeforeAndIsBlockedAndIsDeleted(Person person, LocalDateTime timeBefore, int isBlocked, int isDeleted, Pageable paging);
+
+    Optional<Post> findByTitle(String title);
 }
