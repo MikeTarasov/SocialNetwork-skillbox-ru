@@ -18,7 +18,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findByPostTextLikeAndTimeAfterAndTimeBeforeAndIsDeletedFalseOrderByIdDesc(String text, long timeFrom,
                                                                                          long timeTo, Pageable pageable);
 
-    Optional<Post> findByIdAndTimeIsBefore(long id, long timeTo);
+    Optional<Post> findByIdAndTimeIsBefore(long id, LocalDateTime time);
 
     Page<Post> findByAuthorAndTimeBeforeAndIsBlockedAndIsDeleted(Person person, LocalDateTime timeBefore, int isBlocked, int isDeleted, Pageable paging);
 

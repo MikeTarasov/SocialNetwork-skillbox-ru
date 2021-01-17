@@ -1,32 +1,20 @@
 package ru.skillbox.socialnetwork;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.test.context.event.annotation.BeforeTestMethod;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 import ru.skillbox.socialnetwork.api.responses.CommentEntityResponse;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
 import ru.skillbox.socialnetwork.api.responses.PostEntityResponse;
-import ru.skillbox.socialnetwork.controllers.PostController;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
@@ -39,29 +27,27 @@ import ru.skillbox.socialnetwork.security.JwtTokenProvider;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class PostControllerTests {
 
-    String timezone = "Europe/Moscow";
-
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private final String email = "diesel-z@yandex.ru";
     private final String password = "dsd";
-    private final long postId = 125;
-    private final long authorId = 125;
+    private final long postId = 35;
+    private final long authorId = 49;
     private final long postLikeId = 125;
-    private final long postCommentId = 125;
+    private final long postCommentId = 12;
     private final LocalDateTime time = LocalDateTime.now();
     private final Person author = new Person( authorId,
             "andrew", "larkin", LocalDateTime.of(2020, 1,
@@ -86,7 +72,7 @@ public class PostControllerTests {
             12, 20, 45, 25), authorId, postId);
 
     private final PostComment postComment = new PostComment(postCommentId, LocalDateTime.of(2021, 1,
-            12, 20, 45, 25), 0L,
+            12, 20, 45, 25), null,
             "Good article!", 0, 0, author, testPost);
 
 
@@ -131,17 +117,17 @@ public class PostControllerTests {
 
     private void save() {
         if (postRepository.findByTitle(title).isEmpty()) {
-            postRepository.save(testPost);
+            //postRepository.save(testPost);
             commentRepository.save(postComment);
-            personRepository.save(author);
+            //personRepository.save(author);
             //postLikeRepository.save(postLike);
         }
     }
 
     private void delete() {
         if (postRepository.findByTitle(title).isPresent()) postRepository.delete(testPost);
-        if (commentRepository.findById(postCommentId).isPresent()) commentRepository.delete(postComment);
-        if (personRepository.findById(authorId).isPresent()) personRepository.delete(author);
+        if (commentRepository.findByCommentText(postComment.getCommentText()).isPresent()) commentRepository.delete(postComment);
+        if (personRepository.findByEmail(email).isPresent()) personRepository.delete(author);
         //if (postLikeRepository.findById(postLikeId).isPresent()) postLikeRepository.delete(postLike);
     }
     ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
@@ -155,38 +141,14 @@ public class PostControllerTests {
         assertEquals(idd, postTest.get().getId());
     }
 
-   /* private void delete() {
-        if (postRepository.findById(postId).isPresent()) postRepository.delete(testPost);
-    }
-
-    private void save() {
-        delete();
-        if (postRepository.findById(postId).isEmpty()) postRepository.save(testPost);
-    }
-
-    private void deleteOptional(boolean isPresent) {
-        Optional<Post> optionalPost = postRepository.findById(postId);
-        if (isPresent) assertTrue(optionalPost.isPresent());
-        optionalPost.ifPresent(post -> postRepository.delete(post));
-    }
-
-    private void expectOK(ResultActions resultActions) throws Exception {
-        resultActions
-                .andExpect(status().is(200))
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.error").value(""))
-                .andExpect(jsonPath("$.data.message").value("ok"));
-    }*/
-
-
    @Test
     void testGetApiPostById() throws Exception {
 
-       delete();
-       save();
+      // delete();
+       //save();
        String jwtToken = auth();
 
-        mvc.perform(MockMvcRequestBuilders.get("/post/1").header(HttpHeaders.AUTHORIZATION, jwtToken))
+        mvc.perform(MockMvcRequestBuilders.get("/post/" + postId).header(HttpHeaders.AUTHORIZATION, jwtToken))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
 
