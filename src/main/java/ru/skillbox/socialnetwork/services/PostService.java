@@ -33,6 +33,8 @@ public class PostService {
     @Value("@{db.timezone}")
     private String timezone;
 
+    private final int isDeleted = 0;
+
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
     private final CommentRepository commentRepository;
@@ -60,7 +62,7 @@ public class PostService {
         if (dateFrom > dateTo) {
             errors.append("'dateFrom' should be less than or equal to 'dateTo'. ");
         }
-        if (offset <= 0) {
+        if (offset < 0) {
             errors.append("'offset' should be greater than 0. ");
         }
         if (itemPerPage <= 0) {
@@ -72,8 +74,9 @@ public class PostService {
 
         Pageable pageable = PageRequest.of(offset, itemPerPage);
         List<Post> posts = postRepository
-                .findByPostTextLikeAndTimeAfterAndTimeBeforeAndIsDeletedFalseOrderByIdDesc(text, dateFrom,
-                        Math.min(dateTo, System.currentTimeMillis()), pageable);
+                .findByPostTextContainingIgnoreCaseAndTimeBetweenAndIsDeletedOrderByIdDesc(text,
+                        getMillisecondsToLocalDateTime(dateFrom), getMillisecondsToLocalDateTime(dateTo),
+                        isDeleted, pageable);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
@@ -384,5 +387,28 @@ public class PostService {
                 comment.getPerson().getId(),
                 comment.getIsBlocked()
         );
+    }
+
+    private LocalDateTime getMillisecondsToLocalDateTime(long milliseconds) {
+        LocalDateTime localDateTime =
+                Instant.ofEpochMilli(milliseconds).atZone(ZoneId.of("Europe/Moscow")).toLocalDateTime();
+        return localDateTime;
+
+    }
+
+    //for testing
+    public ResponseEntity<?> getPostBySearching(String text, long dateStart, long dateEnd, int isDeleted) {
+        List<Post> posts = postRepository.findByPostTextContainingAndTimeBetweenAndIsDeletedOrderByIdDesc(text,
+                getMillisecondsToLocalDateTime(dateStart), getMillisecondsToLocalDateTime(dateEnd),
+                isDeleted);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
+                        "",
+                        System.currentTimeMillis(),
+                        posts.size(),
+                        0,
+                        5,
+                        getPostEntityResponseListByPosts(posts)));
     }
 }

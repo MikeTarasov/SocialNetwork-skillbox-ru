@@ -31,9 +31,9 @@ public class PostController {
   }
 
   @GetMapping("/")
-  public ResponseEntity<?> getApiPost(@Param("text") String text, @Param("date_from") long dateFrom,
-                                      @Param("date_to") long dateTo, @Param("offset") int offset,
-                                      @Param("itemPerPage") int itemPerPage) {
+  public ResponseEntity<?> getApiPost(@RequestParam("text") String text, @RequestParam("date_from") long dateFrom,
+                                      @RequestParam("date_to") long dateTo,
+                                      @RequestParam("offset") int offset, @RequestParam("itemPerPage") int itemPerPage) {
     return postService.getApiPost(text, dateFrom, dateTo, offset, itemPerPage);
   }
 
@@ -99,5 +99,14 @@ public class PostController {
   public ResponseEntity<?> postApiPostIdCommentsCommentIdReport(@PathVariable("id") long id,
                                                                 @PathVariable("comment_id") long commentId) {
     return postService.postApiPostIdCommentsCommentIdReport(id, commentId);
+  }
+
+  //for testing
+  @GetMapping("/search")
+  public ResponseEntity<?> getPostBySearching(@RequestParam("postText") String postText,
+                                              @RequestParam("dateStart") long dateStart,
+                                              @RequestParam("dateEnd") long dateEnd,
+                                              @RequestParam("isDeleted") int isDeleted) {
+    return postService.getPostBySearching(postText, dateStart, dateEnd, isDeleted);
   }
 }

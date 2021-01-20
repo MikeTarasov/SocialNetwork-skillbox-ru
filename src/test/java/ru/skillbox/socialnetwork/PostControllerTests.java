@@ -10,11 +10,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.skillbox.socialnetwork.api.responses.CommentEntityResponse;
-import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
-import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
-import ru.skillbox.socialnetwork.api.responses.PostEntityResponse;
+import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
@@ -33,8 +31,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -48,7 +45,7 @@ public class PostControllerTests {
     private final long authorId = 49;
     private final long postLikeId = 125;
     private final long postCommentId = 12;
-    private final LocalDateTime time = LocalDateTime.now();
+    private final LocalDateTime time = LocalDateTime.of(2021, 1, 17, 23, 38, 12, 195177000);
     private final Person author = new Person( authorId,
             "andrew", "larkin", LocalDateTime.of(2020, 1,
             12, 20, 40, 25),
@@ -131,8 +128,23 @@ public class PostControllerTests {
         //if (postLikeRepository.findById(postLikeId).isPresent()) postLikeRepository.delete(postLike);
     }
     ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
-            "", System.currentTimeMillis(), getPostEntityResponseByPost(testPost));
+            "", getTimeZonedMillis(), getPostEntityResponseByPost(testPost));
 
+    private List<Post> setPosts (Post post) {
+        List<Post> list = new ArrayList<>();
+        list.add(post);
+        return list;
+    }
+
+    ErrorTimeTotalOffsetPerPageListDataResponse errorTimeTotalOffsetPerPageListDataResponse =
+            new ErrorTimeTotalOffsetPerPageListDataResponse(
+                    "",
+                    System.currentTimeMillis(),
+                    1,
+                    0,
+                    5,
+                    getPostEntityResponseListByPosts(setPosts(testPost))
+            );
     @Test
     void testGetSome() {
         long idd = 2;
@@ -144,16 +156,36 @@ public class PostControllerTests {
    @Test
     void testGetApiPostById() throws Exception {
 
-      // delete();
-       //save();
        String jwtToken = auth();
 
-        mvc.perform(MockMvcRequestBuilders.get("/post/" + postId).header(HttpHeaders.AUTHORIZATION, jwtToken))
+
+        MvcResult mvcResult = (MvcResult) mvc.perform(MockMvcRequestBuilders.get("/post/" + postId).header(HttpHeaders.AUTHORIZATION, jwtToken))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
 
 
+
     }
+
+    @Test
+    void testGetApiPostSearch() throws Exception {
+
+        String jwtToken = auth();
+        long minusMonth = 1;
+        MvcResult mvcResult = (MvcResult) mvc.perform(MockMvcRequestBuilders
+                .get("/post/")
+                .header(HttpHeaders.AUTHORIZATION, jwtToken)
+                .param("text", postText)
+                .param("date_from", getlMillis(time.minusMonths(minusMonth)).toString())
+                .param("date_to", getlMillis(LocalDateTime.now()).toString())
+                .param("offset", String.valueOf(0))
+                .param("itemPerPage", String.valueOf(5)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeTotalOffsetPerPageListDataResponse)));
+
+    }
+
+
 
     private PostEntityResponse getPostEntityResponseByPost(Post post) {
         return new PostEntityResponse(
@@ -203,15 +235,6 @@ public class PostControllerTests {
         return commentEntityResponseList;
     }
 
-   /* private List<CommentEntityResponse> getCommentEntitiResponseListByPost(Post post, Pageable pageable) {
-        List<CommentEntityResponse> commentEntityResponseList = new ArrayList<>();
-        List<PostComment> comments = commentRepository.getCommentsByPostId(post.getId(), pageable);
-        for (PostComment comment : comments) {
-            commentEntityResponseList.add(getCommentEntityResponseByComment(comment));
-        }
-        return commentEntityResponseList;
-    }*/
-
     private CommentEntityResponse getCommentEntityResponseByComment(PostComment comment) {
         return new CommentEntityResponse(
                 comment.getParentId(),
@@ -226,5 +249,23 @@ public class PostControllerTests {
         );
     }
 
+    private Long getTimeZonedMillis() {
+        return java.util.Date
+                .from(LocalDateTime.now().atZone(ZoneId.of("Europe/Moscow"))
+                        .toInstant()).getTime();
+    }
 
+    private Long getlMillis(LocalDateTime localDateTime) {
+        return java.util.Date
+                .from(localDateTime.atZone(ZoneId.of("Europe/Moscow"))
+                        .toInstant()).getTime();
+    }
+
+    private List<PostEntityResponse> getPostEntityResponseListByPosts(List<Post> posts) {
+        List<PostEntityResponse> postEntityResponseList = new ArrayList<>();
+        for (Post post : posts) {
+            postEntityResponseList.add(getPostEntityResponseByPost(post));
+        }
+        return postEntityResponseList;
+    }
 }
