@@ -1,6 +1,8 @@
 package ru.skillbox.socialnetwork;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,46 +35,30 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @AutoConfigureMockMvc
 public class PostControllerTests {
 
+    private final String email = "test@test.gmail";
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-    private final String email = "diesel-z@yandex.ru";
-    private final String password = "dsd";
-    private final long postId = 35;
-    private final long authorId = 49;
-    private final long postLikeId = 125;
-    private final long postCommentId = 12;
-    private final LocalDateTime time = LocalDateTime.of(2021, 1, 17, 23, 38, 12, 195177000);
-    private final Person author = new Person( authorId,
-            "andrew", "larkin", LocalDateTime.of(2020, 1,
-            12, 20, 40, 25),
-            LocalDateTime.of(2021, 1,
-                    12, 20, 40, 25),
-            email, "712345678914",  encoder.encode(password),"44","Moscow", "Russia", "dd", "sss", 1, "dsd",
-            LocalDateTime.of(2021, 1,
-                    12, 20, 40, 25),
-            1, 0, 0, new ArrayList<>(), new ArrayList<>());
+    private final String password = "testPassword";
+    private Post savedPost = null;
+    private PostComment savedComment = null;
 
-    private final String title = "LinkedList vs. ArrayList";
-    private final String postText = "In this article, we'll provide a comparative view of three popular technologies of Java";
-    private final int isBlocked = 0;
-    private final int isDeleted = 0;
+    private Person testPerson = new Person(0, "Steve", "Jobs",
+            LocalDateTime.of(2020, 1, 1, 15, 30, 00),
+            LocalDateTime.of(1982, 12, 31, 21, 00, 00),
+            email, "+71234567890", encoder.encode(password), "pictures.org/photo.jpg",
+            "smth about author", "Ufa", "Russian Federation", "some confirmation code",
+            1, "ALL", LocalDateTime.of(2020, 5, 5, 5, 30, 00),
+            0, 0, 0, new ArrayList<>(), new ArrayList<>());
 
-    private final List<PostComment> comments = new ArrayList<>();
+    private Post testPost = new Post(0, LocalDateTime.of(2021, 1, 1, 15, 30, 00),
+            testPerson, "Test post title", "Test post text", 0, 0, new ArrayList<>());
 
-    private Post testPost = new Post(postId, time, author, title, postText,
-            isBlocked, isDeleted, comments);
-    private PostLike postLike = new PostLike(postLikeId, LocalDateTime.of(2021, 1,
-            12, 20, 45, 25), authorId, postId);
-
-    private final PostComment postComment = new PostComment(postCommentId, LocalDateTime.of(2021, 1,
+    private PostComment testPostComment = new PostComment(0, LocalDateTime.of(2021, 1,
             12, 20, 45, 25), null,
-            "Good article!", 0, 0, author, testPost);
-
-
+            "Good article!", 0, 0, testPerson, testPost);
 
     @Autowired
     private MockMvc mvc;
@@ -84,13 +70,7 @@ public class PostControllerTests {
         return jwtTokenProvider.getAuthentication(email, password);
     }
 
-    /*@InjectMocks
-    private PostController postController;*/
 
-   /* @BeforeEach
-    void setUp() {
-        mvc = MockMvcBuilders.standaloneSetup(postController).build();
-    }*/
 
     @Autowired
     private PostRepository postRepository;
@@ -108,27 +88,22 @@ public class PostControllerTests {
     private ObjectMapper objectMapper;
 
 
-    /*long idd = 1;
-    Optional<Post> post = postRepository.findById(idd);
-*/
-
-    private void save() {
-        if (postRepository.findByTitle(title).isEmpty()) {
-            //postRepository.save(testPost);
-            commentRepository.save(postComment);
-            //personRepository.save(author);
-            //postLikeRepository.save(postLike);
-        }
+    @BeforeEach
+    public void savePostToPostRepository() {
+        savedPost = postRepository.save(testPost);
+        testPostComment.setPerson(savedPost.getAuthor());
+        testPostComment.setPost(savedPost);
+        savedComment = commentRepository.save(testPostComment);
     }
 
-    private void delete() {
-        if (postRepository.findByTitle(title).isPresent()) postRepository.delete(testPost);
-        if (commentRepository.findByCommentText(postComment.getCommentText()).isPresent()) commentRepository.delete(postComment);
-        if (personRepository.findByEmail(email).isPresent()) personRepository.delete(author);
-        //if (postLikeRepository.findById(postLikeId).isPresent()) postLikeRepository.delete(postLike);
+    @AfterEach
+    public void restoreDb() {
+        commentRepository.delete(savedComment);
+        postRepository.delete(savedPost);
+        personRepository.delete(savedPost.getAuthor());
     }
-    ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
-            "", getTimeZonedMillis(), getPostEntityResponseByPost(testPost));
+
+
 
     private List<Post> setPosts (Post post) {
         List<Post> list = new ArrayList<>();
@@ -136,15 +111,11 @@ public class PostControllerTests {
         return list;
     }
 
-    ErrorTimeTotalOffsetPerPageListDataResponse errorTimeTotalOffsetPerPageListDataResponse =
-            new ErrorTimeTotalOffsetPerPageListDataResponse(
-                    "",
-                    System.currentTimeMillis(),
-                    1,
-                    0,
-                    5,
-                    getPostEntityResponseListByPosts(setPosts(testPost))
-            );
+
+    @Test
+    public void started() {
+    }
+
     @Test
     void testGetSome() {
         long idd = 2;
@@ -157,26 +128,35 @@ public class PostControllerTests {
     void testGetApiPostById() throws Exception {
 
        String jwtToken = auth();
+       ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
+               "", getTimeZonedMillis(), getPostEntityResponseByPost(savedPost));
 
-
-        MvcResult mvcResult = (MvcResult) mvc.perform(MockMvcRequestBuilders.get("/post/" + postId).header(HttpHeaders.AUTHORIZATION, jwtToken))
+        MvcResult mvcResult = (MvcResult) mvc.perform(MockMvcRequestBuilders.get("/post/" + savedPost.getId()).header(HttpHeaders.AUTHORIZATION, jwtToken))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
-
-
 
     }
 
     @Test
     void testGetApiPostSearch() throws Exception {
 
+        ErrorTimeTotalOffsetPerPageListDataResponse errorTimeTotalOffsetPerPageListDataResponse =
+                new ErrorTimeTotalOffsetPerPageListDataResponse(
+                        "",
+                        System.currentTimeMillis(),
+                        1,
+                        0,
+                        5,
+                        getPostEntityResponseListByPosts(setPosts(savedPost))
+                );
+
         String jwtToken = auth();
         long minusMonth = 1;
         MvcResult mvcResult = (MvcResult) mvc.perform(MockMvcRequestBuilders
                 .get("/post/")
                 .header(HttpHeaders.AUTHORIZATION, jwtToken)
-                .param("text", postText)
-                .param("date_from", getlMillis(time.minusMonths(minusMonth)).toString())
+                .param("text", savedPost.getPostText())
+                .param("date_from", getlMillis(savedPost.getTime().minusMonths(minusMonth)).toString())
                 .param("date_to", getlMillis(LocalDateTime.now()).toString())
                 .param("offset", String.valueOf(0))
                 .param("itemPerPage", String.valueOf(5)))
@@ -185,6 +165,21 @@ public class PostControllerTests {
 
     }
 
+   /* @Test
+    void testPutPostById() throws Exception {
+
+        String jwtToken = auth();
+        MvcResult mvcResult = (MvcResult) mvc.perform(MockMvcRequestBuilders
+                .get("/post/")
+                .header(HttpHeaders.AUTHORIZATION, jwtToken)
+                .param("text", savedPost.getPostText())
+                .param("date_from", getlMillis(savedPost.getTime().minusMonths(minusMonth)).toString())
+                .param("date_to", getlMillis(LocalDateTime.now()).toString())
+                .param("offset", String.valueOf(0))
+                .param("itemPerPage", String.valueOf(5)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeTotalOffsetPerPageListDataResponse)));
+    }*/
 
 
     private PostEntityResponse getPostEntityResponseByPost(Post post) {
@@ -231,7 +226,7 @@ public class PostControllerTests {
     private List<CommentEntityResponse> getCommentEntityResponseListByPost(Post post) {
         List<CommentEntityResponse> commentEntityResponseList = new ArrayList<>();
 
-        commentEntityResponseList.add(getCommentEntityResponseByComment(postComment));
+        commentEntityResponseList.add(getCommentEntityResponseByComment(savedComment));
         return commentEntityResponseList;
     }
 
