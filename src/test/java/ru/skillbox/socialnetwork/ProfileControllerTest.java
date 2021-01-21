@@ -115,8 +115,8 @@
 //        String firstName = "Donald";
 //        String lastName = "Trump";
 //        long birthDate = 1559751301818L;
-//        String phone= "0000000";
-//        String photo= "BLOB";
+//        String phone = "0000000";
+//        String photo = "BLOB";
 //        String about = "Make America great again";
 //        String city = "Balashikha";
 //        String country = "Russia";
@@ -131,7 +131,7 @@
 //                city,
 //                country,
 //                permissions
-//                );
+//        );
 //
 //        this.mockMvc.perform(put("/api/v1/users/me")
 //                .contentType(MediaType.APPLICATION_JSON)
@@ -159,8 +159,8 @@
 //        String firstName = null;
 //        String lastName = null;
 //        long birthDate = 0;
-//        String phone= null;
-//        String photo= null;
+//        String phone = null;
+//        String photo = null;
 //        String about = null;
 //        String city = null;
 //        String country = null;
@@ -249,9 +249,9 @@
 //                .andExpect(jsonPath("$.data[*].id", containsInAnyOrder(8)));
 //    }
 //
-//    @Sql(value = {"/AddTestUsers.sql","/AddPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+//    @Sql(value = {"/AddTestUsers.sql", "/AddPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 //    @Sql(value = {"/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-//     @Test
+//    @Test
 //    public void getNotesOnUserWallTest() throws Exception {
 //        this.mockMvc.perform(get("/api/v1/users/8/wall"))
 //                .andDo(print())
