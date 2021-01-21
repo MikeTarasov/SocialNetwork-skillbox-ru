@@ -19,7 +19,6 @@
 //import ru.skillbox.socialnetwork.repository.PersonRepository;
 //import ru.skillbox.socialnetwork.repository.PostRepository;
 //
-//import java.time.ZoneId;
 //import java.util.TimeZone;
 //
 //import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -53,7 +52,7 @@
 //
 //    @Test
 //    public void getUserTest() throws Exception {
-//        this.mockMvc.perform(get("/api/v1/users/8"))
+//        this.mockMvc.perform(get("/users/8"))
 //                .andDo(print())
 //                .andExpect(status().isOk())
 //                .andExpect(authenticated())
@@ -77,7 +76,7 @@
 //
 //    @Test
 //    public void getCurrentUserTest() throws Exception {
-//        this.mockMvc.perform(get("/api/v1/users/me"))
+//        this.mockMvc.perform(get("/users/me"))
 //                .andDo(print())
 //                .andExpect(status().isOk())
 //                .andExpect(authenticated())
@@ -101,7 +100,7 @@
 //
 //    @Test
 //    public void deleteCurrentUserTest() throws Exception {
-//        this.mockMvc.perform(delete("/api/v1/users/me"))
+//        this.mockMvc.perform(delete("/users/me"))
 //                .andDo(print())
 //                .andExpect(status().isOk())
 //                .andExpect(authenticated());
@@ -133,7 +132,7 @@
 //                permissions
 //        );
 //
-//        this.mockMvc.perform(put("/api/v1/users/me")
+//        this.mockMvc.perform(put("/users/me")
 //                .contentType(MediaType.APPLICATION_JSON)
 //                .content(objectMapper.writeValueAsString(request)))
 //                .andDo(print())
@@ -178,7 +177,7 @@
 //        );
 //
 //        Person expectedPerson = personRepository.findById(currentUserId).get();
-//        this.mockMvc.perform(put("/api/v1/users/me")
+//        this.mockMvc.perform(put("/users/me")
 //                .contentType(MediaType.APPLICATION_JSON)
 //                .content(objectMapper.writeValueAsString(request)))
 //                .andDo(print())
@@ -201,7 +200,7 @@
 //
 //    @Test
 //    public void userSearchByFirstNameTest() throws Exception {
-//        this.mockMvc.perform(get("/api/v1/users/search")
+//        this.mockMvc.perform(get("/users/search")
 //                .queryParam("first_name", "Котик"))
 //                .andDo(print())
 //                .andExpect(status().isOk())
@@ -214,7 +213,7 @@
 //
 //    @Test
 //    public void userSearchByLastNameTest() throws Exception {
-//        this.mockMvc.perform(get("/api/v1/users/search")
+//        this.mockMvc.perform(get("/users/search")
 //                .queryParam("last_name", "Чеширский"))
 //                .andDo(print())
 //                .andExpect(status().isOk())
@@ -227,7 +226,7 @@
 //
 //    @Test
 //    public void userSearchByAgeFromTest() throws Exception {
-//        this.mockMvc.perform(get("/api/v1/users/search")
+//        this.mockMvc.perform(get("/users/search")
 //                .queryParam("age_from", "20"))
 //                .andDo(print())
 //                .andExpect(status().isOk())
@@ -239,7 +238,7 @@
 //
 //    @Test
 //    public void userSearchByAgeToTest() throws Exception {
-//        this.mockMvc.perform(get("/api/v1/users/search")
+//        this.mockMvc.perform(get("/users/search")
 //                .queryParam("age_to", "30"))
 //                .andDo(print())
 //                .andExpect(status().isOk())
@@ -253,7 +252,7 @@
 //    @Sql(value = {"/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 //    @Test
 //    public void getNotesOnUserWallTest() throws Exception {
-//        this.mockMvc.perform(get("/api/v1/users/8/wall"))
+//        this.mockMvc.perform(get("/users/8/wall"))
 //                .andDo(print())
 //                .andExpect(status().isOk())
 //                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -270,7 +269,7 @@
 //    @Test
 //    public void postNoteOnUserWallTest() throws Exception {
 //        TitlePostTextRequest request = new TitlePostTextRequest("TitleTest", "TextTest");
-//        this.mockMvc.perform(post("/api/v1/users/9/wall")
+//        this.mockMvc.perform(post("/users/9/wall")
 //                .contentType(MediaType.APPLICATION_JSON)
 //                .content(objectMapper.writeValueAsString(request)))
 //                .andDo(print())
@@ -287,7 +286,7 @@
 //    @Test
 //    public void blockUserByIdTest() throws Exception {
 //        long UserForBlockingId = 8L;
-//        this.mockMvc.perform(put("/api/v1/users/block/" + UserForBlockingId))
+//        this.mockMvc.perform(put("/users/block/" + UserForBlockingId))
 //                .andDo(print())
 //                .andExpect(status().isOk())
 //                .andExpect(authenticated())
@@ -300,7 +299,7 @@
 //    @Test
 //    public void unblockUserByIdTest() throws Exception {
 //        long UserForUnblockingId = 8L;
-//        this.mockMvc.perform(delete("/api/v1/users/block/" + UserForUnblockingId))
+//        this.mockMvc.perform(delete("/users/block/" + UserForUnblockingId))
 //                .andDo(print())
 //                .andExpect(status().isOk())
 //                .andExpect(authenticated())
@@ -313,7 +312,7 @@
 //    @Test
 //    public void blockUserByIdTest_wrongId() throws Exception {
 //        long UserForBlockingId = 7L;
-//        this.mockMvc.perform(put("/api/v1/users/block/" + UserForBlockingId))
+//        this.mockMvc.perform(put("/users/block/" + UserForBlockingId))
 //                .andDo(print())
 //                .andExpect(status().isOk())
 //                .andExpect(authenticated())

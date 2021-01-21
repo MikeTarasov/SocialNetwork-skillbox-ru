@@ -8,7 +8,7 @@ import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 import ru.skillbox.socialnetwork.services.DialogService;
 
 @RestController
-@RequestMapping("/api/v1/dialogs")
+@RequestMapping("/dialogs")
 public class DialogController {
     private final DialogService dialogService;
 

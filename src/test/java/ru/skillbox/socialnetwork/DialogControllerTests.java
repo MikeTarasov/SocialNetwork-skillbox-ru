@@ -1,6 +1,5 @@
 //package ru.skillbox.socialnetwork;
 //
-//import com.fasterxml.jackson.core.JsonProcessingException;
 //import com.fasterxml.jackson.databind.ObjectMapper;
 //import com.jayway.jsonpath.JsonPath;
 //import org.junit.jupiter.api.Test;
@@ -26,11 +25,10 @@
 //import java.util.ArrayList;
 //import java.util.List;
 //
-//import static org.junit.jupiter.api.Assertions.*;
+//import static org.junit.jupiter.api.Assertions.assertEquals;
+//import static org.junit.jupiter.api.Assertions.assertTrue;
 //import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 //import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 //import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 //
@@ -38,7 +36,6 @@
 //@AutoConfigureMockMvc
 //@WithUserDetails("shred@mail.who")
 //@TestPropertySource("/application-test.properties")
-////@TestPropertySource("/application.properties")
 //@Sql(value = {"/AddUsersForDialogs.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 //@Sql(value = {"/ClearDialogsAfterTest.sql","/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 //public class DialogControllerTests {
@@ -64,7 +61,7 @@
 //        idList.add(currentPersonId);
 //        idList.add(secondId);
 //        ListUserIdsRequest request = new ListUserIdsRequest(idList);
-//        MvcResult result = this.mockMvc.perform(post("/api/v1/dialogs/").contentType(MediaType.APPLICATION_JSON)
+//        MvcResult result = this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
 //                .content(objectMapper.writeValueAsString(request)))
 //                .andDo(print())
 //                .andExpect(status().isOk())
@@ -83,7 +80,7 @@
 //        List<Long> idList = new ArrayList<>();
 //        idList.add(currentPersonId);
 //        ListUserIdsRequest request = new ListUserIdsRequest(idList);
-//        this.mockMvc.perform(post("/api/v1/dialogs/").contentType(MediaType.APPLICATION_JSON)
+//        this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
 //                .content(objectMapper.writeValueAsString(request)))
 //                .andDo(print())
 //                .andExpect(status().isOk())
@@ -104,7 +101,7 @@
 //        List<Long> idList = new ArrayList<>();
 //        idList.add(15L);
 //        ListUserIdsRequest request = new ListUserIdsRequest(idList);
-//        this.mockMvc.perform(post("/api/v1/dialogs/").contentType(MediaType.APPLICATION_JSON)
+//        this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
 //                .content(objectMapper.writeValueAsString(request)))
 //                .andDo(print())
 //                .andExpect(status().isOk())
@@ -124,7 +121,7 @@
 //        Long secondId = 8L;
 //        idList.add(secondId);
 //        ListUserIdsRequest request = new ListUserIdsRequest(idList);
-//        this.mockMvc.perform(post("/api/v1/dialogs/").contentType(MediaType.APPLICATION_JSON)
+//        this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
 //                .content(objectMapper.writeValueAsString(request)))
 //                .andDo(print())
 //                .andExpect(status().isOk())
@@ -149,7 +146,7 @@
 //        idList.add(secondId);
 //        idList.add(thirdId);
 //        ListUserIdsRequest request = new ListUserIdsRequest(idList);
-//        this.mockMvc.perform(post("/api/v1/dialogs/").contentType(MediaType.APPLICATION_JSON)
+//        this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
 //                .content(objectMapper.writeValueAsString(request)))
 //                .andDo(print())
 //                .andExpect(status().isOk())
@@ -176,7 +173,7 @@
 //        Long secondId = 15L;
 //        idList.add(secondId);
 //        ListUserIdsRequest request = new ListUserIdsRequest(idList);
-//        this.mockMvc.perform(post("/api/v1/dialogs/").contentType(MediaType.APPLICATION_JSON)
+//        this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
 //                .content(objectMapper.writeValueAsString(request)))
 //                .andDo(print())
 //                .andExpect(status().isOk())
@@ -202,7 +199,7 @@
 //        idsToAdd.add(thirdId);
 //        ListUserIdsRequest requestAdd = new ListUserIdsRequest(idsToAdd);
 //
-//        this.mockMvc.perform(post("/api/v1/dialogs/").contentType(MediaType.APPLICATION_JSON)
+//        this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
 //                .content(objectMapper.writeValueAsString(request)))
 //                .andDo(print())
 //                .andExpect(status().isOk())
@@ -215,7 +212,7 @@
 //        Dialog dialog = dialogRepository.findByOwner(currentPerson).get();
 //        Long dialogId = dialog.getId();
 //
-//        this.mockMvc.perform(put(String.format("/api/v1/dialogs/%s/users", dialogId)).contentType(MediaType.APPLICATION_JSON)
+//        this.mockMvc.perform(put(String.format("/dialogs/%s/users", dialogId)).contentType(MediaType.APPLICATION_JSON)
 //                .content(objectMapper.writeValueAsString(requestAdd)))
 //                .andDo(print())
 //                .andExpect(status().isOk())
@@ -230,7 +227,7 @@
 //    public void getInviteLink() throws Exception{
 //        Long secondId = 8L;
 //        Dialog dialog = generateDialogForTwo(secondId);
-//        MvcResult result = this.mockMvc.perform(get(String.format("/api/v1/dialogs/%d/users/invite", dialog.getId()))
+//        MvcResult result = this.mockMvc.perform(get(String.format("/dialogs/%d/users/invite", dialog.getId()))
 //                )
 //                .andDo(print())
 //                .andExpect(status().isOk())
