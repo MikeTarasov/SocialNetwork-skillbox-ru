@@ -22,4 +22,21 @@ public class DialogController {
 
         return ResponseEntity.ok(dialogService.createDialog(listUserIdsRequest.getUserIds()));
     }
+
+    @PutMapping("/{id}/users")
+    public ResponseEntity<ErrorTimeDataResponse> addUserToDialog(@PathVariable Long id,
+                                                                 @RequestBody ListUserIdsRequest listUserIdsRequest){
+        return ResponseEntity.ok(dialogService.addUserToDialog(id, listUserIdsRequest.getUserIds()));
+    }
+
+    @DeleteMapping("/{id}/users")
+    public ResponseEntity<ErrorTimeDataResponse> deleteUsersFromDialog(@PathVariable Long id,
+                                                                       @RequestBody ListUserIdsRequest listUserIdsRequest){
+        return ResponseEntity.ok(dialogService.deleteUsersFromDialog(id, listUserIdsRequest.getUserIds()));
+    }
+
+    @GetMapping("/{id}/users/invite")
+    public ResponseEntity<ErrorTimeDataResponse> getInviteLink(@PathVariable Long id){
+        return ResponseEntity.ok(dialogService.getInviteLink(id));
+    }
 }
