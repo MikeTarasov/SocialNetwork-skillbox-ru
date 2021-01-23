@@ -16,6 +16,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
                 HttpStatus.OK);
     }
+    @ExceptionHandler(DialogNotFoundException.class)
+    protected ResponseEntity<ErrorErrorDescriptionResponse> handleDialogNotFoundException(DialogNotFoundException ex) {
+        return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
+                HttpStatus.OK);
+    }
 
+    @ExceptionHandler(RuntimeException.class)
+    protected ResponseEntity<ErrorErrorDescriptionResponse> handleGeneralRuntimeException(RuntimeException ex) {
+        return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
+                HttpStatus.OK);
+    }
 
 }

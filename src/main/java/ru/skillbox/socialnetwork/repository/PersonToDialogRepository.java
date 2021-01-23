@@ -12,4 +12,6 @@ public interface PersonToDialogRepository extends JpaRepository<PersonToDialog, 
     List<PersonToDialog> findByDialog(Dialog dialog);
 
     List<PersonToDialog> findByPerson(Person person);
+
+    List<PersonToDialog> findByDialogAndPerson(Dialog dialog, Person person);
 }

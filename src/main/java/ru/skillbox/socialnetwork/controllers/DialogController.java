@@ -3,8 +3,10 @@ package ru.skillbox.socialnetwork.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.skillbox.socialnetwork.api.requests.LinkRequest;
 import ru.skillbox.socialnetwork.api.requests.ListUserIdsRequest;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
+import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
 import ru.skillbox.socialnetwork.services.DialogService;
 
 @RestController
@@ -17,26 +19,41 @@ public class DialogController {
         this.dialogService = dialogService;
     }
 
-    @PostMapping("/")
+    @GetMapping("")
+    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getDialogList(@RequestParam(required=false,defaultValue = "") String query,
+                                                                                     @RequestParam(required=false, defaultValue = "0") Integer offset,
+                                                                                     @RequestParam(required=false, defaultValue = "0") Integer itemPerPage)
+    {
+        return ResponseEntity.ok(dialogService.getDialogsList(query, offset, itemPerPage));
+    }
+
+    @PostMapping("")
     public ResponseEntity<ErrorTimeDataResponse> getApiPost(@RequestBody ListUserIdsRequest listUserIdsRequest) {
 
         return ResponseEntity.ok(dialogService.createDialog(listUserIdsRequest.getUserIds()));
     }
 
+
+
     @PutMapping("/{id}/users")
     public ResponseEntity<ErrorTimeDataResponse> addUserToDialog(@PathVariable Long id,
-                                                                 @RequestBody ListUserIdsRequest listUserIdsRequest){
-        return ResponseEntity.ok(dialogService.addUserToDialog(id, listUserIdsRequest.getUserIds()));
+                                                                 @RequestBody ListUserIdsRequest listUserIdsRequest) {
+        return ResponseEntity.ok(dialogService.addUsersToDialog(id, listUserIdsRequest.getUserIds()));
     }
 
     @DeleteMapping("/{id}/users")
     public ResponseEntity<ErrorTimeDataResponse> deleteUsersFromDialog(@PathVariable Long id,
-                                                                       @RequestBody ListUserIdsRequest listUserIdsRequest){
+                                                                       @RequestBody ListUserIdsRequest listUserIdsRequest) {
         return ResponseEntity.ok(dialogService.deleteUsersFromDialog(id, listUserIdsRequest.getUserIds()));
     }
 
     @GetMapping("/{id}/users/invite")
-    public ResponseEntity<ErrorTimeDataResponse> getInviteLink(@PathVariable Long id){
+    public ResponseEntity<ErrorTimeDataResponse> getInviteLink(@PathVariable Long id) {
         return ResponseEntity.ok(dialogService.getInviteLink(id));
+    }
+
+    @PutMapping("/{id}/users/join")
+    public ResponseEntity<ErrorTimeDataResponse> joinByInvite(@PathVariable Long id, @RequestBody LinkRequest link) {
+        return ResponseEntity.ok(dialogService.joinByInvite(id, link));
     }
 }

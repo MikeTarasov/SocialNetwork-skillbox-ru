@@ -12,6 +12,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import ru.skillbox.socialnetwork.api.requests.LinkRequest;
 import ru.skillbox.socialnetwork.api.requests.ListUserIdsRequest;
 import ru.skillbox.socialnetwork.controllers.DialogController;
 import ru.skillbox.socialnetwork.model.entity.Dialog;
@@ -56,9 +57,9 @@ public class DialogControllerTests {
 
 
     // intermediate 2 person dialog generator not to repeat
-    Dialog generateDialogForTwo(Long secondId) throws Exception {
+    Dialog generateDialogForTwo(Long firstId, Long secondId) throws Exception {
         List<Long> idList = new ArrayList<>();
-        idList.add(currentPersonId);
+        idList.add(firstId);
         idList.add(secondId);
         ListUserIdsRequest request = new ListUserIdsRequest(idList);
         MvcResult result = this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
@@ -187,18 +188,19 @@ public class DialogControllerTests {
     }
 
     @Test
-    public void createDialog_addTwo() throws Exception {
+    public void createDialog_addTwo_removeTwo() throws Exception {
         List<Long> idList = new ArrayList<>();
         idList.add(currentPersonId);
         ListUserIdsRequest request = new ListUserIdsRequest(idList);
 
-        List<Long> idsToAdd = new ArrayList<>();
+        List<Long> addRemoveList = new ArrayList<>();
         Long secondId = 7L;
         Long thirdId = 8L;
-        idsToAdd.add(secondId);
-        idsToAdd.add(thirdId);
-        ListUserIdsRequest requestAdd = new ListUserIdsRequest(idsToAdd);
+        addRemoveList.add(secondId);
+        addRemoveList.add(thirdId);
+        ListUserIdsRequest requestAddRemove = new ListUserIdsRequest(addRemoveList);
 
+        // create 1 participant dialog
         this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
                 .andDo(print())
@@ -212,8 +214,9 @@ public class DialogControllerTests {
         Dialog dialog = dialogRepository.findByOwner(currentPerson).get();
         Long dialogId = dialog.getId();
 
+        // add 2 participants
         this.mockMvc.perform(put(String.format("/dialogs/%s/users", dialogId)).contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestAdd)))
+                .content(objectMapper.writeValueAsString(requestAddRemove)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
@@ -221,14 +224,28 @@ public class DialogControllerTests {
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.data.user_ids").exists());
         assertEquals(3, personToDialogRepository.findByDialog(dialog).size());
+
+        // remove 2 participants
+        this.mockMvc.perform(delete(String.format("/dialogs/%s/users", dialogId)).contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestAddRemove)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.user_ids").exists());
+        assertEquals(1, personToDialogRepository.findByDialog(dialog).size());
+        assertEquals(currentPersonId, personToDialogRepository.findByDialog(dialog).get(0).getPerson().getId());
     }
 
     @Test
-    public void getInviteLink() throws Exception{
+    public void getInviteLinkAndJoin() throws Exception{
+        Long firstId = 7L;
         Long secondId = 8L;
-        Dialog dialog = generateDialogForTwo(secondId);
-        MvcResult result = this.mockMvc.perform(get(String.format("/dialogs/%d/users/invite", dialog.getId()))
-                )
+        Dialog dialog = generateDialogForTwo(firstId, secondId);
+        // getting invite link
+        MvcResult resultGetInvite = this.mockMvc.perform(get(String.format("/dialogs/%d/users/invite", dialog.getId()))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
@@ -237,7 +254,41 @@ public class DialogControllerTests {
                 .andExpect(jsonPath("$.data.link").exists())
                 .andReturn();
         String inviteCode = dialog.getInviteCode();
-        String link = JsonPath.read(result.getResponse().getContentAsString(), "$.data.link");
+        String link = JsonPath.read(resultGetInvite.getResponse().getContentAsString(), "$.data.link");
         assertEquals(inviteCode, link);
+
+        // joining by invite link
+        LinkRequest linkRequest = new LinkRequest(link);
+        MvcResult resultJoin = this.mockMvc.perform(put(String.format("/dialogs/%d/users/join", dialog.getId()))
+                .contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(linkRequest)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.user_ids").exists())
+                .andReturn()
+                ;
+        Long idInResponse = Long.valueOf(
+                JsonPath.read(resultJoin.getResponse().getContentAsString(), "$.data.user_ids[0]").toString());
+        assertEquals(currentPersonId, idInResponse);
+    }
+
+    @Test
+    public void  getDialogs() throws Exception{
+        // all dialogs, no query/pages etc
+        Long secondId = 8L;
+        Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
+        MvcResult result = this.mockMvc.perform((get("/dialogs/")))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data").isNotEmpty())
+                .andReturn();
+        Long resultDialogId = Long.valueOf(
+                JsonPath.read(result.getResponse().getContentAsString(), "$.data[0].id").toString());
+        assertEquals(dialog.getId(), resultDialogId);
     }
 }

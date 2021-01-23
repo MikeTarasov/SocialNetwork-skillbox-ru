@@ -1,12 +1,9 @@
 package ru.skillbox.socialnetwork.services.impl;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
-import ru.skillbox.socialnetwork.api.responses.IdResponse;
-import ru.skillbox.socialnetwork.api.responses.LinkResponse;
-import ru.skillbox.socialnetwork.api.responses.ListUserIdsResponse;
+import ru.skillbox.socialnetwork.api.requests.LinkRequest;
+import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.Dialog;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.PersonToDialog;
@@ -18,8 +15,8 @@ import ru.skillbox.socialnetwork.services.DialogService;
 import ru.skillbox.socialnetwork.services.exceptions.DialogNotFoundException;
 import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -35,6 +32,19 @@ public class DialogServiceImpl implements DialogService {
         this.dialogRepository = dialogRepository;
         this.personToDialogRepository = personToDialogRepository;
         this.accountService = accountService;
+    }
+
+    @Override
+    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList(String query, Integer offset, Integer itemPerPage){
+        Person currentUser = accountService.getCurrentUser();
+        // find where the user is participant
+        List<PersonToDialog> personToDialogs = personToDialogRepository.findByPerson(currentUser);
+        List<Dialog> dialogList = new ArrayList<>();
+        for (PersonToDialog personToDialog: personToDialogs){
+            dialogList.add(personToDialog.getDialog());
+        }
+        return new ErrorTimeTotalOffsetPerPageListDataResponse(
+                "", 111, dialogList.size(), offset, itemPerPage, dialogList);
     }
 
     @Override
@@ -62,20 +72,24 @@ public class DialogServiceImpl implements DialogService {
     }
 
     @Override
-    public ErrorTimeDataResponse addUserToDialog(Long dialogId, List<Long> userIds){
-        // checking for correct IDs
-        for (long id: userIds) {
-            personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
-        }
-
+    public ErrorTimeDataResponse addUsersToDialog(Long dialogId, List<Long> userIds){
         Dialog dialog = dialogRepository.getOne(dialogId);
-
         for (long id: userIds) {
-            PersonToDialog personToDialog = new PersonToDialog();
-            personToDialog.setDialog(dialog);
-            personToDialog.setPerson(personRepository.findById(id).get());
-            personToDialogRepository.save(personToDialog);
+            // checking for correct IDs
+            Person person = personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
+            // checking if person is already in dialog
+            // need to introduce to GlobalExceptionHandler
+            if (!personToDialogRepository.findByDialogAndPerson(dialog, person).isEmpty()){
+                throw new RuntimeException(String.format("Person ID %d is already in dialog!", id));
+            }
         }
+
+            for (long id: userIds) {
+                PersonToDialog personToDialog = new PersonToDialog();
+                personToDialog.setDialog(dialog);
+                personToDialog.setPerson(personRepository.findById(id).get());
+                personToDialogRepository.save(personToDialog);
+            }
         return new ErrorTimeDataResponse("", new ListUserIdsResponse(userIds));
     }
 
@@ -106,6 +120,19 @@ public class DialogServiceImpl implements DialogService {
         Dialog dialog = dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
         String inviteLink = dialog.getInviteCode(); // just code or full URL?
         return new ErrorTimeDataResponse("", new LinkResponse(inviteLink));
+    }
+
+    @Override
+    public ErrorTimeDataResponse joinByInvite(Long dialogId, LinkRequest inviteLink) {
+        Dialog dialog = dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
+        List<Long> idsList = new ArrayList<>();
+        idsList.add(accountService.getCurrentUser().getId());
+        if (inviteLink.getLink().equals(dialog.getInviteCode())){
+            return addUsersToDialog(dialogId, idsList);
+        }
+        else {
+            return new ErrorTimeDataResponse("", new ErrorErrorDescriptionResponse("incorrect_code"));
+        }
     }
 
     private String getRandomString(int length) {
