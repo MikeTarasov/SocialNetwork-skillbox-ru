@@ -21,9 +21,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
                 HttpStatus.OK);
     }
-
-    @ExceptionHandler(RuntimeException.class)
-    protected ResponseEntity<ErrorErrorDescriptionResponse> handleGeneralRuntimeException(RuntimeException ex) {
+    @ExceptionHandler(CustomException.class)
+    protected ResponseEntity<ErrorErrorDescriptionResponse> handleCustomException(CustomException ex) {
         return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
                 HttpStatus.OK);
     }

@@ -12,6 +12,7 @@ import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.repository.PersonToDialogRepository;
 import ru.skillbox.socialnetwork.services.AccountService;
 import ru.skillbox.socialnetwork.services.DialogService;
+import ru.skillbox.socialnetwork.services.exceptions.CustomException;
 import ru.skillbox.socialnetwork.services.exceptions.DialogNotFoundException;
 import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
@@ -80,7 +81,7 @@ public class DialogServiceImpl implements DialogService {
             // checking if person is already in dialog
             // need to introduce to GlobalExceptionHandler
             if (!personToDialogRepository.findByDialogAndPerson(dialog, person).isEmpty()){
-                throw new RuntimeException(String.format("Person ID %d is already in dialog!", id));
+                throw new CustomException(String.format("Person ID %d is already in dialog!", id));
             }
         }
 

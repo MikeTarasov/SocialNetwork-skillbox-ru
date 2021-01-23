@@ -225,6 +225,18 @@ public class DialogControllerTests {
                 .andExpect(jsonPath("$.data.user_ids").exists());
         assertEquals(3, personToDialogRepository.findByDialog(dialog).size());
 
+        // try to add user already in dialog
+
+        this.mockMvc.perform(put(String.format("/dialogs/%s/users", dialogId)).contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new ListUserIdsRequest(List.of(thirdId)))))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error_description")
+                        .value(String.format("Person ID %d is already in dialog!", thirdId)));
+        assertEquals(3, personToDialogRepository.findByDialog(dialog).size());
+
         // remove 2 participants
         this.mockMvc.perform(delete(String.format("/dialogs/%s/users", dialogId)).contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestAddRemove)))
