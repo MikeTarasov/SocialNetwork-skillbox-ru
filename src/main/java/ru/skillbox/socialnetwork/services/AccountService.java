@@ -15,7 +15,11 @@ import ru.skillbox.socialnetwork.api.requests.TokenPasswordRequest;
 import ru.skillbox.socialnetwork.api.responses.ErrorErrorDescriptionResponse;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 import ru.skillbox.socialnetwork.api.responses.MessageResponse;
+import ru.skillbox.socialnetwork.model.entity.NotificationSettings;
+import ru.skillbox.socialnetwork.model.entity.NotificationType;
 import ru.skillbox.socialnetwork.model.entity.Person;
+import ru.skillbox.socialnetwork.repository.NotificationSettingsRepository;
+import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 
 import java.time.LocalDateTime;
@@ -25,14 +29,20 @@ import java.util.Optional;
 public class AccountService {
 
     private final PersonRepository personRepository;
+    private final NotificationSettingsRepository notificationSettingsRepository;
+    private final NotificationTypeRepository notificationTypeRepository;
     private final EmailSenderService emailSenderService;
     private final BCryptPasswordEncoder encoder;
 
     @Autowired
     public AccountService(PersonRepository personRepository,
+                          NotificationSettingsRepository notificationSettingsRepository,
+                          NotificationTypeRepository notificationTypeRepository,
                           EmailSenderService emailSenderService,
                           BCryptPasswordEncoder encoder) {
         this.personRepository = personRepository;
+        this.notificationSettingsRepository = notificationSettingsRepository;
+        this.notificationTypeRepository = notificationTypeRepository;
         this.emailSenderService = emailSenderService;
         this.encoder = encoder;
     }
@@ -117,7 +127,7 @@ public class AccountService {
         }
 
         if (!errors.toString().equals("")) {
-            return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse(errors.toString()));
+            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse(errors.toString()));
         }
 
         if (savePerson(requestBody)) {
@@ -125,14 +135,14 @@ public class AccountService {
                     .body(new ErrorTimeDataResponse("", new MessageResponse()));
         }
 
-        return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse("Can't save user!"));
+        return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Can't save user!"));
     }
 
     public ResponseEntity<?> putApiAccountPasswordRecovery(EmailRequest requestBody) {
         Optional<Person> optionalPerson = findPersonByEmail(requestBody.getEmail());
 
         if (optionalPerson.isEmpty()) {
-            return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse("This email is not registered!"));
+            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("This email is not registered!"));
         }
 
         Person person = optionalPerson.get();
@@ -145,7 +155,7 @@ public class AccountService {
                     .body(new ErrorTimeDataResponse("", new MessageResponse()));
         }
 
-        return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse("Error sending email"));
+        return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Error sending email"));
     }
 
     public ResponseEntity<?> putApiAccountPasswordSet(@RequestBody TokenPasswordRequest requestBody) {
@@ -153,7 +163,7 @@ public class AccountService {
         Person person = getCurrentUser();
 
         if (person.getConfirmationCode() == null || !person.getConfirmationCode().equals(requestBody.getToken())) {
-            return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse("Code is expired!"));
+            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Code is expired!"));
         }
 
         changePassword(person, requestBody.getPassword());
@@ -165,11 +175,10 @@ public class AccountService {
     public ResponseEntity<?> putApiAccountEmail(@RequestBody EmailRequest requestBody) {
 
         if (!isEmailCorrect(requestBody.getEmail())) {
-            return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse("Email is not valid!"));
+            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Email is not valid!"));
         }
 
         changeEmail(getCurrentUser(), requestBody.getEmail());
-        //TODO нужно поменять токен!!!!!!!!!!!!!!!!
 
         return ResponseEntity.status(200)
                 .body(new ErrorTimeDataResponse("", new MessageResponse()));
@@ -178,10 +187,25 @@ public class AccountService {
     public ResponseEntity<?> putApiAccountNotifications(
             @RequestBody NotificationTypeEnableRequest requestBody) {
 
+        Optional<NotificationType> notificationType =
+                notificationTypeRepository.findByName(requestBody.getNotificationType());
+        if (notificationType.isEmpty()) {
+            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Wrong notification type"));
+        }
+
         Person person = getCurrentUser();
-        String notificationType = requestBody.getNotificationType();
-        boolean enable = requestBody.isEnable();
-        //TODO realize this method
+        boolean isEnable = requestBody.isEnable();
+
+        Optional<NotificationSettings> notificationSettingsOptional = notificationSettingsRepository
+                .findByPersonNSAndNotificationTypeId(person, notificationType.get().getId());
+
+        if (notificationSettingsOptional.isPresent()) {
+            NotificationSettings notificationSettings = notificationSettingsOptional.get();
+            notificationSettings.setEnable(isEnable);
+            notificationSettingsRepository.save(notificationSettings);
+        } else {
+            notificationSettingsRepository.save(new NotificationSettings(notificationType.get(), person, isEnable));
+        }
 
         return ResponseEntity.status(200)
                 .body(new ErrorTimeDataResponse("", new MessageResponse()));

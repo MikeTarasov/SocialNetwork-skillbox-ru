@@ -26,4 +26,14 @@ public class NotificationSettings {
     private Person personNS;
 
     private int enable;
+
+    public NotificationSettings(NotificationType notificationType, Person personNS, boolean isEnable) {
+        this.notificationType = notificationType;
+        this.personNS = personNS;
+        setEnable(isEnable);
+    }
+
+    public void setEnable(boolean isEnable) {
+        this.enable = isEnable ? 1 : 0;
+    }
 }
