@@ -5,9 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 public class IdResponse {
 
   private long id;

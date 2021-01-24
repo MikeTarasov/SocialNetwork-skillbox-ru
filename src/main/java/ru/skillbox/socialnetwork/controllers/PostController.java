@@ -44,7 +44,7 @@ public class PostController {
 
   @PutMapping("/{id}")
   public ResponseEntity<?> putApiPostId(@PathVariable("id") long id,
-                                        @RequestParam(value = "publish_date", required = false, defaultValue = "") Long publishDate,
+                                        @RequestParam(name = "publish_date", required = false, defaultValue = "0") long publishDate,
                                         @RequestBody TitlePostTextRequest requestBody) {
     return postService.putApiPostId(id, publishDate, requestBody);
   }
