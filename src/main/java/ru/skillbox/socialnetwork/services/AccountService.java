@@ -2,27 +2,24 @@ package ru.skillbox.socialnetwork.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
 import ru.skillbox.socialnetwork.api.requests.EmailPassPassFirstNameLastNameCodeRequest;
 import ru.skillbox.socialnetwork.api.requests.EmailRequest;
 import ru.skillbox.socialnetwork.api.requests.NotificationTypeEnableRequest;
 import ru.skillbox.socialnetwork.api.requests.TokenPasswordRequest;
-import ru.skillbox.socialnetwork.api.responses.ErrorErrorDescriptionResponse;
-import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
-import ru.skillbox.socialnetwork.api.responses.MessageResponse;
+import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.NotificationSettings;
 import ru.skillbox.socialnetwork.model.entity.NotificationType;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.repository.NotificationSettingsRepository;
 import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
+import ru.skillbox.socialnetwork.security.PersonDetailsService;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -33,37 +30,22 @@ public class AccountService {
     private final NotificationTypeRepository notificationTypeRepository;
     private final EmailSenderService emailSenderService;
     private final BCryptPasswordEncoder encoder;
+    private final PersonDetailsService personDetailsService;
 
     @Autowired
     public AccountService(PersonRepository personRepository,
                           NotificationSettingsRepository notificationSettingsRepository,
                           NotificationTypeRepository notificationTypeRepository,
                           EmailSenderService emailSenderService,
-                          BCryptPasswordEncoder encoder) {
+                          BCryptPasswordEncoder encoder, PersonDetailsService personDetailsService) {
         this.personRepository = personRepository;
         this.notificationSettingsRepository = notificationSettingsRepository;
         this.notificationTypeRepository = notificationTypeRepository;
         this.emailSenderService = emailSenderService;
         this.encoder = encoder;
+        this.personDetailsService = personDetailsService;
     }
 
-    public Person getCurrentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth == null) {
-            throw new SecurityException("Session is not authorized");
-        }
-
-        String email = auth.getName();
-
-        Optional<Person> per = personRepository.findByEmail(email);
-
-        if (per.isEmpty()) {
-            throw new UsernameNotFoundException(" - User with : " + email + " not found");
-        }
-
-        return per.get();
-    }
 
     public Optional<Person> findPersonByEmail(String email) {
         return personRepository.findByEmail(email);
@@ -158,9 +140,9 @@ public class AccountService {
         return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Error sending email"));
     }
 
-    public ResponseEntity<?> putApiAccountPasswordSet(@RequestBody TokenPasswordRequest requestBody) {
+    public ResponseEntity<?> putApiAccountPasswordSet(TokenPasswordRequest requestBody) {
 
-        Person person = getCurrentUser();
+        Person person = personDetailsService.getCurrentUser();
 
         if (person.getConfirmationCode() == null || !person.getConfirmationCode().equals(requestBody.getToken())) {
             return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Code is expired!"));
@@ -172,20 +154,19 @@ public class AccountService {
                 .body(new ErrorTimeDataResponse("", new MessageResponse()));
     }
 
-    public ResponseEntity<?> putApiAccountEmail(@RequestBody EmailRequest requestBody) {
+    public ResponseEntity<?> putApiAccountEmail(EmailRequest requestBody) {
 
         if (!isEmailCorrect(requestBody.getEmail())) {
             return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Email is not valid!"));
         }
 
-        changeEmail(getCurrentUser(), requestBody.getEmail());
+        changeEmail(personDetailsService.getCurrentUser(), requestBody.getEmail());
 
         return ResponseEntity.status(200)
                 .body(new ErrorTimeDataResponse("", new MessageResponse()));
     }
 
-    public ResponseEntity<?> putApiAccountNotifications(
-            @RequestBody NotificationTypeEnableRequest requestBody) {
+    public ResponseEntity<?> putApiAccountNotifications(NotificationTypeEnableRequest requestBody) {
 
         Optional<NotificationType> notificationType =
                 notificationTypeRepository.findByName(requestBody.getNotificationType());
@@ -193,7 +174,7 @@ public class AccountService {
             return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Wrong notification type"));
         }
 
-        Person person = getCurrentUser();
+        Person person = personDetailsService.getCurrentUser();
         boolean isEnable = requestBody.isEnable();
 
         Optional<NotificationSettings> notificationSettingsOptional = notificationSettingsRepository
@@ -209,5 +190,17 @@ public class AccountService {
 
         return ResponseEntity.status(200)
                 .body(new ErrorTimeDataResponse("", new MessageResponse()));
+    }
+
+    public ResponseEntity<?> getApiAccountNotifications() {
+        List<EnableTypeResponse> result = new ArrayList<>();
+
+        for (NotificationSettings setting :
+                notificationSettingsRepository.findByPersonNS(personDetailsService.getCurrentUser())) {
+
+            result.add(new EnableTypeResponse(setting.getIsEnable(), setting.getNotificationType().getName()));
+        }
+
+        return ResponseEntity.status(200).body(new ErrorTimeListDataResponse(result));
     }
 }

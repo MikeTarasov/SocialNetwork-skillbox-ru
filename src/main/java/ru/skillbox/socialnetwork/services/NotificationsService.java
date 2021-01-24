@@ -9,6 +9,7 @@ import ru.skillbox.socialnetwork.model.entity.Notification;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.repository.*;
+import ru.skillbox.socialnetwork.security.PersonDetailsService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,24 +23,24 @@ public class NotificationsService {
     private final PostCommentRepository postCommentRepository;
     private final MessageRepository messageRepository;
     private final FriendshipRepository friendshipRepository;
-    private final AccountService accountService;
+    private final PersonDetailsService personDetailsService;
 
     public NotificationsService(NotificationsRepository notificationsRepository,
                                 PostRepository postRepository,
                                 PostCommentRepository postCommentRepository,
                                 MessageRepository messageRepository,
                                 FriendshipRepository friendshipRepository,
-                                AccountService accountService) {
+                                PersonDetailsService personDetailsService) {
         this.notificationsRepository = notificationsRepository;
         this.postRepository = postRepository;
         this.postCommentRepository = postCommentRepository;
         this.messageRepository = messageRepository;
         this.friendshipRepository = friendshipRepository;
-        this.accountService = accountService;
+        this.personDetailsService = personDetailsService;
     }
 
     public ResponseEntity<?> getApiNotifications(int offset, int itemPerPage) {
-        Person person = accountService.getCurrentUser();
+        Person person = personDetailsService.getCurrentUser();
 
         return ResponseEntity.status(200).body(new ErrorTimeTotalOffsetPerPageListDataResponse(
                 "",

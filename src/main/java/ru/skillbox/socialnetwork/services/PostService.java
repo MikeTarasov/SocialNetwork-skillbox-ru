@@ -17,6 +17,7 @@ import ru.skillbox.socialnetwork.model.entity.PostComment;
 import ru.skillbox.socialnetwork.repository.CommentRepository;
 import ru.skillbox.socialnetwork.repository.PostLikeRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
+import ru.skillbox.socialnetwork.security.PersonDetailsService;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -36,15 +37,15 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
     private final CommentRepository commentRepository;
-    private final AccountService accountService;
+    private final PersonDetailsService personDetailsService;
 
     @Autowired
     public PostService(PostRepository postRepository, PostLikeRepository postLikeRepository,
-                       CommentRepository commentRepository, AccountService accountService) {
+                       CommentRepository commentRepository, PersonDetailsService personDetailsService) {
         this.postRepository = postRepository;
         this.postLikeRepository = postLikeRepository;
         this.commentRepository = commentRepository;
-        this.accountService = accountService;
+        this.personDetailsService = personDetailsService;
     }
 
     public ResponseEntity<?> getApiPost(String text, long dateFrom, long dateTo,
@@ -194,7 +195,7 @@ public class PostService {
                 requestBody.getCommentText(),
                 false,
                 false,
-                accountService.getCurrentUser()
+                personDetailsService.getCurrentUser()
         ));
 
         return ResponseEntity.status(HttpStatus.OK)
