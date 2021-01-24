@@ -99,7 +99,7 @@ public class PostService {
                         getPostEntityResponseByPost(optionalPost.get())));
     }
 
-    public ResponseEntity<?> putApiPostId(long id, Optional<Long> publishDate, TitlePostTextRequest requestBody) {
+    public ResponseEntity<?> putApiPostId(long id, Long publishDate, TitlePostTextRequest requestBody) {
         Optional<Post> optionalPost = postRepository.findById(id);
         if (optionalPost.isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK)
@@ -108,8 +108,7 @@ public class PostService {
         Post post = optionalPost.get();
         post.setTitle(requestBody.getTitle());
         post.setPostText(requestBody.getPostText());
-        post.setTime(LocalDateTime.ofInstant(Instant.ofEpochMilli(publishDate.orElseGet(System::currentTimeMillis)),
-                TimeZone.getDefault().toZoneId()));
+        post.setTime(getMillisecondsToLocalDateTime(publishDate == 0 ? System.currentTimeMillis() : publishDate));
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse(
@@ -142,14 +141,15 @@ public class PostService {
         post.setIsDeleted(0);
         postRepository.saveAndFlush(post);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(), new IdResponse(id)));
+                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
+                        getPostEntityResponseByPost(optionalPost.get())));
     }
 
     public ResponseEntity<?> getApiPostIdComments(long id, int offset, int itemPerPage) {
 
         StringBuilder errors = new StringBuilder();
 
-        if (offset <= 0) {
+        if (offset < 0) {
             errors.append("'offset' should be greater than 0. ");
         }
         if (itemPerPage <= 0) {
@@ -173,7 +173,7 @@ public class PostService {
                         getCommentEntityResponseListByPost(optionalPost.get()).size(),
                         offset,
                         itemPerPage,
-                        getCommentEntitiResponseListByPost(optionalPost.get(), pageable)));
+                        getCommentEntityResponseListByPost(optionalPost.get(), pageable)));
     }
 
     public ResponseEntity<?> postApiPostIdComments(long id, ParentIdCommentTextRequest requestBody) {
@@ -192,12 +192,13 @@ public class PostService {
         }
 
         PostComment comment = commentRepository.save(new PostComment(
-                LocalDateTime.now().atZone(ZoneId.of(timezone)).toLocalDateTime(),
-                requestBody.getParenId(),
+                getMillisecondsToLocalDateTime(System.currentTimeMillis()),
+                requestBody.getParentId(),
                 requestBody.getCommentText(),
                 false,
                 false,
-                accountService.getCurrentUser()
+                //accountService.getCurrentUser() - пока что не работает
+                postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now()).get().getAuthor()
         ));
 
         return ResponseEntity.status(HttpStatus.OK)
@@ -230,7 +231,7 @@ public class PostService {
         }
 
         PostComment comment = optionalPostComment.get();
-        comment.setParentId(requestBody.getParenId());
+        comment.setParentId(requestBody.getParentId());
         comment.setCommentText(requestBody.getCommentText());
         commentRepository.saveAndFlush(comment);
         return ResponseEntity.status(HttpStatus.OK)
@@ -366,7 +367,7 @@ public class PostService {
         return commentEntityResponseList;
     }
 
-    private List<CommentEntityResponse> getCommentEntitiResponseListByPost(Post post, Pageable pageable) {
+    private List<CommentEntityResponse> getCommentEntityResponseListByPost(Post post, Pageable pageable) {
         List<CommentEntityResponse> commentEntityResponseList = new ArrayList<>();
         List<PostComment> comments = commentRepository.getCommentsByPostId(post.getId(), pageable);
         for (PostComment comment : comments) {

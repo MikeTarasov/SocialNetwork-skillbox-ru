@@ -8,12 +8,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import ru.skillbox.socialnetwork.api.requests.ParentIdCommentTextRequest;
+import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
 import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
@@ -25,6 +30,7 @@ import ru.skillbox.socialnetwork.repository.PostLikeRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 import ru.skillbox.socialnetwork.security.JwtTokenProvider;
 
+import javax.swing.border.TitledBorder;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -57,7 +63,7 @@ public class PostControllerTests {
             testPerson, "Test post title", "Test post text", 0, 0, new ArrayList<>());
 
     private PostComment testPostComment = new PostComment(0, LocalDateTime.of(2021, 1,
-            12, 20, 45, 25), null,
+            12, 20, 45, 25), 1L,
             "Good article!", 0, 0, testPerson, testPost);
 
     @Autowired
@@ -131,7 +137,8 @@ public class PostControllerTests {
        ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
                "", getTimeZonedMillis(), getPostEntityResponseByPost(savedPost));
 
-        MvcResult mvcResult = (MvcResult) mvc.perform(MockMvcRequestBuilders.get("/post/" + savedPost.getId()).header(HttpHeaders.AUTHORIZATION, jwtToken))
+        MvcResult mvcResult = (MvcResult) mvc.perform(MockMvcRequestBuilders
+                .get("/post/" + savedPost.getId()).header(HttpHeaders.AUTHORIZATION, jwtToken))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
 
@@ -165,21 +172,117 @@ public class PostControllerTests {
 
     }
 
-   /* @Test
+    @Test
     void testPutPostById() throws Exception {
+
+        String newTitle = "Updated post title";
+        String newText = "Updated post text";
+
+        TitlePostTextRequest titlePostTextRequest = new TitlePostTextRequest(
+                newTitle,
+                newText
+        );
+
+        savedPost.setTitle(newTitle);
+        savedPost.setPostText(newText);
+
+        ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
+                "", getTimeZonedMillis(), getPostEntityResponseByPost(savedPost));
 
         String jwtToken = auth();
         MvcResult mvcResult = (MvcResult) mvc.perform(MockMvcRequestBuilders
-                .get("/post/")
+                .put("/post/{id}", String.valueOf(savedPost.getId()))
                 .header(HttpHeaders.AUTHORIZATION, jwtToken)
-                .param("text", savedPost.getPostText())
-                .param("date_from", getlMillis(savedPost.getTime().minusMonths(minusMonth)).toString())
-                .param("date_to", getlMillis(LocalDateTime.now()).toString())
+                .param("publish_date", getlMillis(savedPost.getTime()).toString())
+                .content(objectMapper.writeValueAsString(titlePostTextRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
+
+    }
+
+    @Test
+    void testDeletePostById() throws Exception {
+
+        ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
+                "", getTimeZonedMillis(), new IdResponse(savedPost.getId()));
+        assertEquals(0, postRepository.findById(savedPost.getId()).get().getIsDeleted());
+
+        String jwtToken = auth();
+        MvcResult mvcResult = (MvcResult) mvc.perform(MockMvcRequestBuilders
+                .delete("/post/{id}", savedPost.getId())
+                .header(HttpHeaders.AUTHORIZATION, jwtToken))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
+        assertEquals(1, postRepository.findById(savedPost.getId()).get().getIsDeleted());
+
+    }
+
+    @Test
+    void testPutPostRecover() throws Exception {
+
+        savedPost.setIsDeleted(1);
+        postRepository.saveAndFlush(savedPost);
+        ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
+                "", getTimeZonedMillis(), getPostEntityResponseByPost(savedPost));
+
+        assertEquals(1, postRepository.findById(savedPost.getId()).get().getIsDeleted());
+        String jwtToken = auth();
+        MvcResult mvcResult = (MvcResult) mvc.perform(MockMvcRequestBuilders
+                .put("/post/{id}/recover/", String.valueOf(savedPost.getId()))
+                .header(HttpHeaders.AUTHORIZATION, jwtToken))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
+
+        assertEquals(0, postRepository.findById(savedPost.getId()).get().getIsDeleted());
+    }
+
+    @Test
+    void testGetApiPostIdComments() throws Exception {
+
+        ErrorTimeTotalOffsetPerPageListDataResponse errorTimeTotalOffsetPerPageListDataResponse =
+                new ErrorTimeTotalOffsetPerPageListDataResponse(
+                        "",
+                        System.currentTimeMillis(),
+                        getCommentEntityResponseListByPost(savedPost).size(),
+                        0,
+                        5,
+                        getCommentEntityResponseListByPost(savedPost, PageRequest.of(0, 5)));
+
+
+        String jwtToken = auth();
+        MvcResult mvcResult = (MvcResult) mvc.perform(MockMvcRequestBuilders
+                .get("/post/{id}/comments", String.valueOf(savedPost.getId()))
+                .header(HttpHeaders.AUTHORIZATION, jwtToken)
                 .param("offset", String.valueOf(0))
                 .param("itemPerPage", String.valueOf(5)))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(errorTimeTotalOffsetPerPageListDataResponse)));
-    }*/
+
+    }
+
+    @Test
+    void testPostApiPostIdComments() throws Exception {
+
+        ParentIdCommentTextRequest parentIdCommentTextRequest = new ParentIdCommentTextRequest(
+                savedComment.getParentId(),
+                savedComment.getCommentText()
+        );
+
+                ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
+                "", getTimeZonedMillis(), getCommentEntityResponseByComment(savedComment));
+
+        String jwtToken = auth();
+        MvcResult mvcResult = (MvcResult) mvc.perform(MockMvcRequestBuilders
+                .post("/post/{id}/comments", String.valueOf(savedPost.getId()))
+                .header(HttpHeaders.AUTHORIZATION, jwtToken)
+                .content(objectMapper.writeValueAsString(parentIdCommentTextRequest))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
+
+    }
+
 
 
     private PostEntityResponse getPostEntityResponseByPost(Post post) {
@@ -225,8 +328,18 @@ public class PostControllerTests {
 
     private List<CommentEntityResponse> getCommentEntityResponseListByPost(Post post) {
         List<CommentEntityResponse> commentEntityResponseList = new ArrayList<>();
+        for (PostComment comment : commentRepository.getCommentsByPostId(post.getId())) {
+            commentEntityResponseList.add(getCommentEntityResponseByComment(comment));
+        }
+        return commentEntityResponseList;
+    }
 
-        commentEntityResponseList.add(getCommentEntityResponseByComment(savedComment));
+    private List<CommentEntityResponse> getCommentEntityResponseListByPost(Post post, Pageable pageable) {
+        List<CommentEntityResponse> commentEntityResponseList = new ArrayList<>();
+        List<PostComment> comments = commentRepository.getCommentsByPostId(post.getId(), pageable);
+        for (PostComment comment : comments) {
+            commentEntityResponseList.add(getCommentEntityResponseByComment(comment));
+        }
         return commentEntityResponseList;
     }
 
@@ -243,6 +356,7 @@ public class PostControllerTests {
                 comment.getIsBlocked()
         );
     }
+
 
     private Long getTimeZonedMillis() {
         return java.util.Date
