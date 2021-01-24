@@ -17,8 +17,13 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.skillbox.socialnetwork.api.requests.EmailPassPassFirstNameLastNameCodeRequest;
 import ru.skillbox.socialnetwork.api.requests.EmailRequest;
+import ru.skillbox.socialnetwork.api.requests.NotificationTypeEnableRequest;
 import ru.skillbox.socialnetwork.api.requests.TokenPasswordRequest;
+import ru.skillbox.socialnetwork.model.entity.NotificationSettings;
+import ru.skillbox.socialnetwork.model.entity.NotificationType;
 import ru.skillbox.socialnetwork.model.entity.Person;
+import ru.skillbox.socialnetwork.repository.NotificationSettingsRepository;
+import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.security.JwtTokenProvider;
 
@@ -44,6 +49,12 @@ public class AccountControllerTests {
 
     @Autowired
     private PersonRepository personRepository;
+
+    @Autowired
+    private NotificationSettingsRepository notificationSettingsRepository;
+
+    @Autowired
+    private NotificationTypeRepository notificationTypeRepository;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -312,6 +323,48 @@ public class AccountControllerTests {
 
         Optional<Person> person = personRepository.findByEmail(email);
         assertTrue(person.isPresent());
+
+        clearContext();
+        delete(email, testPerson);
+    }
+
+    @Test
+    void testPutApiAccountNotifications200() throws Exception {
+        save(email, testPerson);
+        String jwtToken = auth();
+
+        NotificationTypeEnableRequest request = new NotificationTypeEnableRequest("POST", true);
+
+        expectOK(mvc.perform(MockMvcRequestBuilders
+                .put("/account/notifications")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, jwtToken)
+                .content(objectMapper.writeValueAsString(request))));
+
+        Optional<Person> person = personRepository.findByEmail(email);
+        Optional<NotificationType> notificationType = notificationTypeRepository.findByName("POST");
+        assertTrue(person.isPresent());
+        assertTrue(notificationType.isPresent());
+        NotificationSettings notificationSetting =
+                notificationSettingsRepository.findByPersonNSAndNotificationType(person.get(), notificationType.get());
+        assertTrue(notificationSetting.getIsEnable());
+
+        clearContext();
+        delete(email, testPerson);
+    }
+
+    @Test
+    void testPutApiAccountNotifications400() throws Exception {
+        save(email, testPerson);
+        String jwtToken = auth();
+
+        NotificationTypeEnableRequest request = new NotificationTypeEnableRequest("test", true);
+
+        expectError(mvc.perform(MockMvcRequestBuilders
+                .put("/account/notifications")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, jwtToken)
+                .content(objectMapper.writeValueAsString(request))), "Wrong notification type");
 
         clearContext();
         delete(email, testPerson);
