@@ -4,15 +4,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.skillbox.socialnetwork.api.requests.DialogRequest;
 import ru.skillbox.socialnetwork.api.requests.LinkRequest;
+import ru.skillbox.socialnetwork.api.requests.MessageRequest;
 import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.Dialog;
+import ru.skillbox.socialnetwork.model.entity.Message;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.PersonToDialog;
+import ru.skillbox.socialnetwork.model.enums.ReadStatus;
 import ru.skillbox.socialnetwork.repository.DialogRepository;
+import ru.skillbox.socialnetwork.repository.MessageRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.repository.PersonToDialogRepository;
 import ru.skillbox.socialnetwork.services.AccountService;
@@ -21,6 +28,8 @@ import ru.skillbox.socialnetwork.services.exceptions.CustomException;
 import ru.skillbox.socialnetwork.services.exceptions.DialogNotFoundException;
 import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -32,13 +41,15 @@ public class DialogServiceImpl implements DialogService {
     private final DialogRepository dialogRepository;
     private final PersonToDialogRepository personToDialogRepository;
     private final AccountService accountService;
+    private final MessageRepository messageRepository;
 
     @Autowired
-    public DialogServiceImpl(PersonRepository personRepository, DialogRepository dialogRepository, PersonToDialogRepository personToDialogRepository, AccountService accountService) {
+    public DialogServiceImpl(PersonRepository personRepository, DialogRepository dialogRepository, PersonToDialogRepository personToDialogRepository, AccountService accountService, MessageRepository messageRepository) {
         this.personRepository = personRepository;
         this.dialogRepository = dialogRepository;
         this.personToDialogRepository = personToDialogRepository;
         this.accountService = accountService;
+        this.messageRepository = messageRepository;
     }
 
     @Override
@@ -157,6 +168,31 @@ public class DialogServiceImpl implements DialogService {
         else {
             return new ErrorTimeDataResponse("", new ErrorErrorDescriptionResponse("incorrect_code"));
         }
+    }
+    @Override
+    public ErrorTimeDataResponse getMessagesById(Long id, String query, Integer offset, Integer limit){
+        Dialog dialog = dialogRepository.findById(id).orElseThrow(() -> new DialogNotFoundException(id));
+        Pageable pageable = PageRequest.of(offset / limit, limit);
+        Page<Message> pageMessage = messageRepository.findMessageWithQueryWithPagination(query,id,pageable);
+        return new ErrorTimeDataResponse("", pageMessage);
+    }
+    @Override
+    public ErrorTimeDataResponse sendMessage(Long id, MessageRequest messageRequest){
+        Dialog dialog = dialogRepository.findById(id).orElseThrow(() -> new DialogNotFoundException(id));
+        Message message = new Message();
+        LocalDateTime timeMessage = LocalDateTime.ofInstant(Instant
+                        .ofEpochMilli(messageRequest.getTime()),
+                         TimeZone.getDefault().toZoneId());
+        message.setAuthor(personRepository.findById(messageRequest.getAuthorId()).get());
+        message.setDialog(dialogRepository.findById(id).get());
+        message.setText(messageRequest.getMessageText());
+        message.setTime(timeMessage);
+        message.setReadStatus(ReadStatus.SENT.name());
+        message.setIsDeleted(0);
+        messageRepository.save(message);
+        MessageResponse messageResponse = new MessageResponse();
+        messageResponse.setMessage(messageRequest.getMessageText());
+        return new ErrorTimeDataResponse("", messageResponse);
     }
 
     @Override
