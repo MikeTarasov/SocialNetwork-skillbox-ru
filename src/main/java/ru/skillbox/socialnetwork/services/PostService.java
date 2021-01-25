@@ -149,7 +149,7 @@ public class PostService {
 
         StringBuilder errors = new StringBuilder();
 
-        if (offset <= 0) {
+        if (offset < 0) {
             errors.append("'offset' should be greater than 0. ");
         }
         if (itemPerPage <= 0) {

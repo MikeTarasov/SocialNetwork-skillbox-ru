@@ -13,10 +13,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
 import ru.skillbox.socialnetwork.api.requests.ParentIdCommentTextRequest;
+import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
 import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
@@ -32,10 +31,11 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -114,13 +114,6 @@ public class PostControllerTests {
     public void started() {
     }
 
-    @Test
-    void testGetSome() {
-        long idd = 2;
-        Optional<Post> postTest = postRepository.findById(idd);
-        assertTrue(postTest.isPresent());
-        assertEquals(idd, postTest.get().getId());
-    }
 
     @Test
     void testGetApiPostSearch() throws Exception {
@@ -137,7 +130,7 @@ public class PostControllerTests {
 
         String jwtToken = auth();
         long minusMonth = 1;
-        MvcResult mvcResult = (MvcResult) mvc.perform(MockMvcRequestBuilders
+        mvc.perform(MockMvcRequestBuilders
                 .get("/post/")
                 .header(HttpHeaders.AUTHORIZATION, jwtToken)
                 .param("text", savedPost.getPostText())
@@ -145,8 +138,69 @@ public class PostControllerTests {
                 .param("date_to", getMillis(LocalDateTime.now()).toString())
                 .param("offset", String.valueOf(0))
                 .param("itemPerPage", String.valueOf(5)))
+                .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeTotalOffsetPerPageListDataResponse)));
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.total")
+                        .value(String.valueOf(errorTimeTotalOffsetPerPageListDataResponse.getTotal())))
+                .andExpect(jsonPath("$.offset")
+                        .value(String.valueOf(errorTimeTotalOffsetPerPageListDataResponse.getOffset())))
+                .andExpect(jsonPath("$.perPage")
+                        .value(String.valueOf(errorTimeTotalOffsetPerPageListDataResponse.getPerPage())))
+                .andExpect(jsonPath("$.data[:1].id")
+                        .value(Integer.parseInt(String.valueOf(savedPost.getId()))))
+                .andExpect(jsonPath("$.data[:1].time")
+                        .value(getMillis(savedPost.getTime())))
+                .andExpect(jsonPath("$.data[:1].author.id")
+                        .value(Integer.parseInt(String.valueOf(savedPost.getAuthor().getId()))))
+                .andExpect(jsonPath("$.data[:1].author.email")
+                        .value(String.valueOf(savedPost.getAuthor().getEmail())))
+                .andExpect(jsonPath("$.data[:1].author.phone")
+                        .value(String.valueOf(savedPost.getAuthor().getPhone())))
+                .andExpect(jsonPath("$.data[:1].author.photo")
+                        .value(String.valueOf(savedPost.getAuthor().getPhoto())))
+                .andExpect(jsonPath("$.data[:1].author.about")
+                        .value(String.valueOf(savedPost.getAuthor().getAbout())))
+                .andExpect(jsonPath("$.data[:1].author.city")
+                        .value(String.valueOf(savedPost.getAuthor().getCity())))
+                .andExpect(jsonPath("$.data[:1].author.country")
+                        .value(String.valueOf(savedPost.getAuthor().getCountry())))
+                .andExpect(jsonPath("$.data[:1].author.first_name")
+                        .value(String.valueOf(savedPost.getAuthor().getFirstName())))
+                .andExpect(jsonPath("$.data[:1].author.last_name")
+                        .value(String.valueOf(savedPost.getAuthor().getLastName())))
+                .andExpect(jsonPath("$.data[:1].author.reg_date")
+                        .value(getMillis(savedPost.getAuthor().getRegDate())))
+                .andExpect(jsonPath("$.data[:1].author.birth_date")
+                        .value(getMillis(savedPost.getAuthor().getBirthDate())))
+                .andExpect(jsonPath("$.data[:1].author.messages_permission")
+                        .value(savedPost.getAuthor().getMessagePermission()))
+                .andExpect(jsonPath("$.data[:1].author.last_online_time")
+                        .value(getMillis(savedPost.getAuthor().getLastOnlineTime())))
+                .andExpect(jsonPath("$.data[:1].author.is_blocked")
+                        .value(savedPost.getAuthor().getIsBlocked() == 1))
+                .andExpect(jsonPath("$.data[:1].title")
+                        .value(savedPost.getTitle()))
+                .andExpect(jsonPath("$.data[:1].likes")
+                        .value(getPostEntityResponseByPost(savedPost).getLikes()))
+                .andExpect(jsonPath("$.data[:1].comments[:1].id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
+                .andExpect(jsonPath("$.data[:1].comments[:1].time")
+                        .value(getMillis(savedComment.getTime())))
+                .andExpect(jsonPath("$.data[:1].comments[:1].parent_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
+                .andExpect(jsonPath("$.data[:1].comments[:1].comment_text")
+                        .value(savedComment.getCommentText()))
+                .andExpect(jsonPath("$.data[:1].comments[:1].post_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getPost().getId()))))
+                .andExpect(jsonPath("$.data[:1].comments[:1].author_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getPerson().getId()))))
+                .andExpect(jsonPath("$.data[:1].comments[:1].is_blocked")
+                        .value(savedComment.getIsBlocked()))
+                .andExpect(jsonPath("$.data[:1].post_text")
+                        .value(savedPost.getPostText()))
+                .andExpect(jsonPath("$.data[:1].is_blocked")
+                        .value(savedPost.getIsBlocked() == 1));
     }
 
     @Test
@@ -158,7 +212,61 @@ public class PostControllerTests {
         mvc.perform(MockMvcRequestBuilders
                 .get("/post/" + savedPost.getId()).header(HttpHeaders.AUTHORIZATION, jwtToken))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
+                .andExpect(jsonPath("$.error").value(errorTimeDataResponse.getError()))
+                .andExpect(jsonPath("$.data.id")
+                        .value(Integer.parseInt(String.valueOf(savedPost.getId()))))
+                .andExpect(jsonPath("$.data.time")
+                        .value(getMillis(savedPost.getTime())))
+                .andExpect(jsonPath("$.data.author.id")
+                        .value(Integer.parseInt(String.valueOf(savedPost.getAuthor().getId()))))
+                .andExpect(jsonPath("$.data.author.email")
+                        .value(String.valueOf(savedPost.getAuthor().getEmail())))
+                .andExpect(jsonPath("$.data.author.phone")
+                        .value(String.valueOf(savedPost.getAuthor().getPhone())))
+                .andExpect(jsonPath("$.data.author.photo")
+                        .value(String.valueOf(savedPost.getAuthor().getPhoto())))
+                .andExpect(jsonPath("$.data.author.about")
+                        .value(String.valueOf(savedPost.getAuthor().getAbout())))
+                .andExpect(jsonPath("$.data.author.city")
+                        .value(String.valueOf(savedPost.getAuthor().getCity())))
+                .andExpect(jsonPath("$.data.author.country")
+                        .value(String.valueOf(savedPost.getAuthor().getCountry())))
+                .andExpect(jsonPath("$.data.author.first_name")
+                        .value(String.valueOf(savedPost.getAuthor().getFirstName())))
+                .andExpect(jsonPath("$.data.author.last_name")
+                        .value(String.valueOf(savedPost.getAuthor().getLastName())))
+                .andExpect(jsonPath("$.data.author.reg_date")
+                        .value(getMillis(savedPost.getAuthor().getRegDate())))
+                .andExpect(jsonPath("$.data.author.birth_date")
+                        .value(getMillis(savedPost.getAuthor().getBirthDate())))
+                .andExpect(jsonPath("$.data.author.messages_permission")
+                        .value(savedPost.getAuthor().getMessagePermission()))
+                .andExpect(jsonPath("$.data.author.last_online_time")
+                        .value(getMillis(savedPost.getAuthor().getLastOnlineTime())))
+                .andExpect(jsonPath("$.data.author.is_blocked")
+                        .value(savedPost.getAuthor().getIsBlocked() == 1))
+                .andExpect(jsonPath("$.data.title")
+                        .value(savedPost.getTitle()))
+                .andExpect(jsonPath("$.data.likes")
+                        .value(getPostEntityResponseByPost(savedPost).getLikes()))
+                .andExpect(jsonPath("$.data.comments[:1].id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
+                .andExpect(jsonPath("$.data.comments[:1].time")
+                        .value(getMillis(savedComment.getTime())))
+                .andExpect(jsonPath("$.data.comments[:1].parent_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
+                .andExpect(jsonPath("$.data.comments[:1].comment_text")
+                        .value(savedComment.getCommentText()))
+                .andExpect(jsonPath("$.data.comments[:1].post_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getPost().getId()))))
+                .andExpect(jsonPath("$.data.comments[:1].author_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getPerson().getId()))))
+                .andExpect(jsonPath("$.data.comments[:1].is_blocked")
+                        .value(savedComment.getIsBlocked()))
+                .andExpect(jsonPath("$.data.post_text")
+                        .value(savedPost.getPostText()))
+                .andExpect(jsonPath("$.data.is_blocked")
+                        .value(savedPost.getIsBlocked() == 1));
     }
 
     @Test
@@ -176,12 +284,66 @@ public class PostControllerTests {
 
         mvc.perform(MockMvcRequestBuilders
                 .put("/post/{id}", savedPost.getId())
-                    .header(HttpHeaders.AUTHORIZATION, jwtToken)
-                    .param("publish_date", getMillis(savedPost.getTime()).toString())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
+                .header(HttpHeaders.AUTHORIZATION, jwtToken)
+                .param("publish_date", getMillis(savedPost.getTime()).toString())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
+                .andExpect(jsonPath("$.error").value(errorTimeDataResponse.getError()))
+                .andExpect(jsonPath("$.data.id")
+                        .value(Integer.parseInt(String.valueOf(savedPost.getId()))))
+                .andExpect(jsonPath("$.data.time")
+                        .value(getMillis(savedPost.getTime())))
+                .andExpect(jsonPath("$.data.author.id")
+                        .value(Integer.parseInt(String.valueOf(savedPost.getAuthor().getId()))))
+                .andExpect(jsonPath("$.data.author.email")
+                        .value(String.valueOf(savedPost.getAuthor().getEmail())))
+                .andExpect(jsonPath("$.data.author.phone")
+                        .value(String.valueOf(savedPost.getAuthor().getPhone())))
+                .andExpect(jsonPath("$.data.author.photo")
+                        .value(String.valueOf(savedPost.getAuthor().getPhoto())))
+                .andExpect(jsonPath("$.data.author.about")
+                        .value(String.valueOf(savedPost.getAuthor().getAbout())))
+                .andExpect(jsonPath("$.data.author.city")
+                        .value(String.valueOf(savedPost.getAuthor().getCity())))
+                .andExpect(jsonPath("$.data.author.country")
+                        .value(String.valueOf(savedPost.getAuthor().getCountry())))
+                .andExpect(jsonPath("$.data.author.first_name")
+                        .value(String.valueOf(savedPost.getAuthor().getFirstName())))
+                .andExpect(jsonPath("$.data.author.last_name")
+                        .value(String.valueOf(savedPost.getAuthor().getLastName())))
+                .andExpect(jsonPath("$.data.author.reg_date")
+                        .value(getMillis(savedPost.getAuthor().getRegDate())))
+                .andExpect(jsonPath("$.data.author.birth_date")
+                        .value(getMillis(savedPost.getAuthor().getBirthDate())))
+                .andExpect(jsonPath("$.data.author.messages_permission")
+                        .value(savedPost.getAuthor().getMessagePermission()))
+                .andExpect(jsonPath("$.data.author.last_online_time")
+                        .value(getMillis(savedPost.getAuthor().getLastOnlineTime())))
+                .andExpect(jsonPath("$.data.author.is_blocked")
+                        .value(savedPost.getAuthor().getIsBlocked() == 1))
+                .andExpect(jsonPath("$.data.title")
+                        .value(savedPost.getTitle()))
+                .andExpect(jsonPath("$.data.likes")
+                        .value(getPostEntityResponseByPost(savedPost).getLikes()))
+                .andExpect(jsonPath("$.data.comments[:1].id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
+                .andExpect(jsonPath("$.data.comments[:1].time")
+                        .value(getMillis(savedComment.getTime())))
+                .andExpect(jsonPath("$.data.comments[:1].parent_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
+                .andExpect(jsonPath("$.data.comments[:1].comment_text")
+                        .value(savedComment.getCommentText()))
+                .andExpect(jsonPath("$.data.comments[:1].post_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getPost().getId()))))
+                .andExpect(jsonPath("$.data.comments[:1].author_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getPerson().getId()))))
+                .andExpect(jsonPath("$.data.comments[:1].is_blocked")
+                        .value(savedComment.getIsBlocked()))
+                .andExpect(jsonPath("$.data.post_text")
+                        .value(savedPost.getPostText()))
+                .andExpect(jsonPath("$.data.is_blocked")
+                        .value(savedPost.getIsBlocked() == 1));
     }
 
     @Test
@@ -195,7 +357,9 @@ public class PostControllerTests {
                 .delete("/post/{id}", savedPost.getId())
                 .header(HttpHeaders.AUTHORIZATION, jwtToken))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
+                .andExpect(jsonPath("$.error").value(errorTimeDataResponse.getError()))
+                .andExpect(jsonPath("$.data.id")
+                        .value(Integer.parseInt(String.valueOf(savedPost.getId()))));
         assertEquals(1, postRepository.findById(savedPost.getId()).get().getIsDeleted());
     }
 
@@ -212,7 +376,61 @@ public class PostControllerTests {
                 .put("/post/{id}/recover/", String.valueOf(savedPost.getId()))
                 .header(HttpHeaders.AUTHORIZATION, jwtToken))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
+                .andExpect(jsonPath("$.error").value(errorTimeDataResponse.getError()))
+                .andExpect(jsonPath("$.data.id")
+                        .value(Integer.parseInt(String.valueOf(savedPost.getId()))))
+                .andExpect(jsonPath("$.data.time")
+                        .value(getMillis(savedPost.getTime())))
+                .andExpect(jsonPath("$.data.author.id")
+                        .value(Integer.parseInt(String.valueOf(savedPost.getAuthor().getId()))))
+                .andExpect(jsonPath("$.data.author.email")
+                        .value(String.valueOf(savedPost.getAuthor().getEmail())))
+                .andExpect(jsonPath("$.data.author.phone")
+                        .value(String.valueOf(savedPost.getAuthor().getPhone())))
+                .andExpect(jsonPath("$.data.author.photo")
+                        .value(String.valueOf(savedPost.getAuthor().getPhoto())))
+                .andExpect(jsonPath("$.data.author.about")
+                        .value(String.valueOf(savedPost.getAuthor().getAbout())))
+                .andExpect(jsonPath("$.data.author.city")
+                        .value(String.valueOf(savedPost.getAuthor().getCity())))
+                .andExpect(jsonPath("$.data.author.country")
+                        .value(String.valueOf(savedPost.getAuthor().getCountry())))
+                .andExpect(jsonPath("$.data.author.first_name")
+                        .value(String.valueOf(savedPost.getAuthor().getFirstName())))
+                .andExpect(jsonPath("$.data.author.last_name")
+                        .value(String.valueOf(savedPost.getAuthor().getLastName())))
+                .andExpect(jsonPath("$.data.author.reg_date")
+                        .value(getMillis(savedPost.getAuthor().getRegDate())))
+                .andExpect(jsonPath("$.data.author.birth_date")
+                        .value(getMillis(savedPost.getAuthor().getBirthDate())))
+                .andExpect(jsonPath("$.data.author.messages_permission")
+                        .value(savedPost.getAuthor().getMessagePermission()))
+                .andExpect(jsonPath("$.data.author.last_online_time")
+                        .value(getMillis(savedPost.getAuthor().getLastOnlineTime())))
+                .andExpect(jsonPath("$.data.author.is_blocked")
+                        .value(savedPost.getAuthor().getIsBlocked() == 1))
+                .andExpect(jsonPath("$.data.title")
+                        .value(savedPost.getTitle()))
+                .andExpect(jsonPath("$.data.likes")
+                        .value(getPostEntityResponseByPost(savedPost).getLikes()))
+                .andExpect(jsonPath("$.data.comments[:1].id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
+                .andExpect(jsonPath("$.data.comments[:1].time")
+                        .value(getMillis(savedComment.getTime())))
+                .andExpect(jsonPath("$.data.comments[:1].parent_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
+                .andExpect(jsonPath("$.data.comments[:1].comment_text")
+                        .value(savedComment.getCommentText()))
+                .andExpect(jsonPath("$.data.comments[:1].post_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getPost().getId()))))
+                .andExpect(jsonPath("$.data.comments[:1].author_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getPerson().getId()))))
+                .andExpect(jsonPath("$.data.comments[:1].is_blocked")
+                        .value(savedComment.getIsBlocked()))
+                .andExpect(jsonPath("$.data.post_text")
+                        .value(savedPost.getPostText()))
+                .andExpect(jsonPath("$.data.is_blocked")
+                        .value(savedPost.getIsBlocked() == 1));
 
         assertEquals(0, postRepository.findById(savedPost.getId()).get().getIsDeleted());
     }
@@ -235,18 +453,38 @@ public class PostControllerTests {
                 .param("offset", String.valueOf(0))
                 .param("itemPerPage", String.valueOf(5)))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeTotalOffsetPerPageListDataResponse)));
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.total")
+                        .value(String.valueOf(errorTimeTotalOffsetPerPageListDataResponse.getTotal())))
+                .andExpect(jsonPath("$.offset")
+                        .value(String.valueOf(errorTimeTotalOffsetPerPageListDataResponse.getOffset())))
+                .andExpect(jsonPath("$.perPage")
+                        .value(String.valueOf(errorTimeTotalOffsetPerPageListDataResponse.getPerPage())))
+                .andExpect(jsonPath("$.data[:1].id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
+                .andExpect(jsonPath("$.data[:1].time")
+                        .value(getMillis(savedComment.getTime())))
+                .andExpect(jsonPath("$.data[:1].parent_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
+                .andExpect(jsonPath("$.data[:1].comment_text")
+                        .value(savedComment.getCommentText()))
+                .andExpect(jsonPath("$.data[:1].post_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getPost().getId()))))
+                .andExpect(jsonPath("$.data[:1].author_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getPerson().getId()))))
+                .andExpect(jsonPath("$.data[:1].is_blocked")
+                        .value(savedComment.getIsBlocked()))
+        ;
     }
 
     @Test
     void testPostApiPostIdComments() throws Exception {
-        PostComment newComment = new PostComment(savedComment.getId() + 1, getMillisecondsToLocalDateTime(System.currentTimeMillis()), null,
+        PostComment newComment = new PostComment(savedComment.getId() + 1,
+                getMillisecondsToLocalDateTime(System.currentTimeMillis()), null,
                 "New comment text!", 0, 0, savedPost.getAuthor(), savedPost);
 
         ParentIdCommentTextRequest parentIdCommentTextRequest = new ParentIdCommentTextRequest(
-                newComment.getParentId(),
-                newComment.getCommentText()
-        );
+                newComment.getParentId(), newComment.getCommentText());
 
         String jwtToken = auth();
         mvc.perform(MockMvcRequestBuilders
@@ -278,6 +516,7 @@ public class PostControllerTests {
         ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
                 "", getTimeZonedMillis(), getCommentEntityResponseByComment(savedComment));
         String jwtToken = auth();
+
         mvc.perform(MockMvcRequestBuilders
                 .put("/post/{id}/comments/{comment_id}", String.valueOf(savedPost.getId()),
                         String.valueOf(savedComment.getId()))
@@ -285,7 +524,15 @@ public class PostControllerTests {
                 .content(objectMapper.writeValueAsString(parentIdCommentTextRequest))
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.id").value(String.valueOf(savedComment.getId())))
+                .andExpect(jsonPath("$.data.time").value(String.valueOf(getMillis(savedComment.getTime()))))
+                .andExpect(jsonPath("$.data.parent_id").value(savedComment.getParentId()))
+                .andExpect(jsonPath("$.data.comment_text").value(savedComment.getCommentText()))
+                .andExpect(jsonPath("$.data.post_id").value(savedComment.getPost().getId()))
+                .andExpect(jsonPath("$.data.author_id").value(savedComment.getPost().getAuthor().getId()))
+                .andExpect(jsonPath("$.data.is_blocked").value("false"));
+
     }
 
     @Test
@@ -300,7 +547,9 @@ public class PostControllerTests {
                 .delete("/post/{id}/comments/{commentId}", savedPost.getId(), savedComment.getId())
                 .header(HttpHeaders.AUTHORIZATION, jwtToken))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.id").value(String.valueOf(savedComment.getId())));
+
         assertTrue(commentRepository.findById(savedComment.getId()).get().getIsDeleted());
     }
 
@@ -325,9 +574,16 @@ public class PostControllerTests {
         assertTrue(commentRepository.findById(savedComment.getId()).get().getIsDeleted());
         mvc.perform(MockMvcRequestBuilders
                 .put("/post/{id}/comments/{commentId}/recover", savedPost.getId(), savedComment.getId())
-                    .header(HttpHeaders.AUTHORIZATION, jwtToken))
+                .header(HttpHeaders.AUTHORIZATION, jwtToken))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.id").value(String.valueOf(savedComment.getId())))
+                .andExpect(jsonPath("$.data.time").value(String.valueOf(getMillis(savedComment.getTime()))))
+                .andExpect(jsonPath("$.data.parent_id").value(savedComment.getParentId()))
+                .andExpect(jsonPath("$.data.comment_text").value(savedComment.getCommentText()))
+                .andExpect(jsonPath("$.data.post_id").value(savedComment.getPost().getId()))
+                .andExpect(jsonPath("$.data.author_id").value(savedComment.getPost().getAuthor().getId()))
+                .andExpect(jsonPath("$.data.is_blocked").value("false"));
         assertFalse(commentRepository.findById(savedComment.getId()).get().getIsDeleted());
     }
 
@@ -339,9 +595,11 @@ public class PostControllerTests {
 
         mvc.perform(MockMvcRequestBuilders
                 .post("/post/{id}/report", savedPost.getId())
-                    .header(HttpHeaders.AUTHORIZATION, jwtToken))
+                .header(HttpHeaders.AUTHORIZATION, jwtToken))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message").value("ok"));
+
     }
 
     @Test
@@ -352,9 +610,11 @@ public class PostControllerTests {
 
         mvc.perform(MockMvcRequestBuilders
                 .post("/post/{id}/comments/{comment_id}/report", savedPost.getId(), savedComment.getId())
-                    .header(HttpHeaders.AUTHORIZATION, jwtToken))
+                .header(HttpHeaders.AUTHORIZATION, jwtToken))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(errorTimeDataResponse)));
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message").value("ok"));
+
     }
 
     private PostEntityResponse getPostEntityResponseByPost(Post post) {
