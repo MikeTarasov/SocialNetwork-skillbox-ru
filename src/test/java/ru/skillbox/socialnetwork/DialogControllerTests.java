@@ -12,6 +12,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import ru.skillbox.socialnetwork.api.requests.DialogRequest;
 import ru.skillbox.socialnetwork.api.requests.LinkRequest;
 import ru.skillbox.socialnetwork.api.requests.ListUserIdsRequest;
 import ru.skillbox.socialnetwork.controllers.DialogController;
@@ -26,6 +27,7 @@ import ru.skillbox.socialnetwork.services.exceptions.DialogNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
@@ -64,7 +66,6 @@ public class DialogControllerTests {
         ListUserIdsRequest request = new ListUserIdsRequest(idList);
         MvcResult result = this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -73,6 +74,7 @@ public class DialogControllerTests {
                 .andReturn();
         // somehow casting Integer to Long is not a trivial thing
         Long dialogId = Long.valueOf(JsonPath.read(result.getResponse().getContentAsString(), "$.data.id").toString());
+        System.out.println("Generated dialog: " + dialogId);
         return dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
     }
 
@@ -255,6 +257,7 @@ public class DialogControllerTests {
         Long firstId = 7L;
         Long secondId = 8L;
         Dialog dialog = generateDialogForTwo(firstId, secondId);
+        System.out.println("Generated dialog: " + dialog.getId());
         // getting invite link
         MvcResult resultGetInvite = this.mockMvc.perform(get(String.format("/dialogs/%d/users/invite", dialog.getId()))
                 .contentType(MediaType.APPLICATION_JSON))
@@ -286,21 +289,42 @@ public class DialogControllerTests {
     }
 
     @Test
-    public void getDialogs() throws Exception {
-        // all dialogs, no query/pages etc
+    public void  getDialogsEmptyRequest() throws Exception{
+        // get all dialogs, no query/pages request
         Long secondId = 8L;
-        Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
-        MvcResult result = this.mockMvc.perform((get("/dialogs/")))
+        for (int i = 0; i < 3; i++) {
+            generateDialogForTwo(currentPersonId, secondId);
+        }
+
+        this.mockMvc.perform((get("/dialogs/")))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.data").isNotEmpty())
-                .andReturn();
-        Long resultDialogId = Long.valueOf(
-                JsonPath.read(result.getResponse().getContentAsString(), "$.data[0].id").toString());
-        assertEquals(dialog.getId(), resultDialogId);
+                .andExpect(jsonPath("$.total").value("3"));
+    }
+
+    @Test
+    public void getDialogsPagedRequest() throws Exception{
+        Long secondId = 8L;
+        // generate 6 dialogs
+        for (int i = 0; i < 6; i++) {
+            generateDialogForTwo(currentPersonId, secondId);
+        }
+        Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
+        DialogRequest dialogRequest = new DialogRequest("", 2, 2);
+        this.mockMvc.perform(get("/dialogs/").contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(dialogRequest)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.total").value(7))
+                .andExpect(jsonPath("$.data[*].id", containsInAnyOrder(12,13)));
+
     }
 
     @Test

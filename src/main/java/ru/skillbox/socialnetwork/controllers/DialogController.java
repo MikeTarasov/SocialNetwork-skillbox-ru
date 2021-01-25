@@ -3,6 +3,7 @@ package ru.skillbox.socialnetwork.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.skillbox.socialnetwork.api.requests.DialogRequest;
 import ru.skillbox.socialnetwork.api.requests.LinkRequest;
 import ru.skillbox.socialnetwork.api.requests.ListUserIdsRequest;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
@@ -20,19 +21,20 @@ public class DialogController {
     }
 
     @GetMapping("")
-    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getDialogList(@RequestParam(required=false,defaultValue = "") String query,
-                                                                                     @RequestParam(required=false, defaultValue = "0") Integer offset,
-                                                                                     @RequestParam(required=false, defaultValue = "0") Integer itemPerPage)
-    {
-        return ResponseEntity.ok(dialogService.getDialogsList(query, offset, itemPerPage));
+    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getDialogList(@RequestBody(required = false) DialogRequest dialogRequest) {
+        if (dialogRequest != null) {
+            return ResponseEntity.ok(dialogService.getDialogsList(dialogRequest));
+        } else {
+            return ResponseEntity.ok(dialogService.getDialogsList());
+        }
     }
+
 
     @PostMapping("")
     public ResponseEntity<ErrorTimeDataResponse> getApiPost(@RequestBody ListUserIdsRequest listUserIdsRequest) {
 
         return ResponseEntity.ok(dialogService.createDialog(listUserIdsRequest.getUserIds()));
     }
-
 
 
     @PutMapping("/{id}/users")

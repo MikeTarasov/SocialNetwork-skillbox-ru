@@ -1,7 +1,12 @@
 package ru.skillbox.socialnetwork.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import ru.skillbox.socialnetwork.api.requests.DialogRequest;
 import ru.skillbox.socialnetwork.api.requests.LinkRequest;
 import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.Dialog;
@@ -37,16 +42,33 @@ public class DialogServiceImpl implements DialogService {
     }
 
     @Override
-    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList(String query, Integer offset, Integer itemPerPage){
+    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList(DialogRequest dialogRequest){
         Person currentUser = accountService.getCurrentUser();
         // find where the user is participant
         List<PersonToDialog> personToDialogs = personToDialogRepository.findByPerson(currentUser);
-        List<Dialog> dialogList = new ArrayList<>();
+        List<Long> dialogIdsList = new ArrayList<>();
         for (PersonToDialog personToDialog: personToDialogs){
-            dialogList.add(personToDialog.getDialog());
+            dialogIdsList.add(personToDialog.getDialog().getId());
         }
+        // getting paged response
+        int offset = dialogRequest.getOffset();
+        int itemPerPage = dialogRequest.getItemPerPage();
+        Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage, Sort.by(Sort.Direction.ASC, "id"));
+        List<Dialog> dialogResponseList = new ArrayList<>();
+        Page<Dialog> dialogPage = dialogRepository.findByIdIn(dialogIdsList, pageable);
+        dialogPage.forEach(dialogResponseList::add);
         return new ErrorTimeTotalOffsetPerPageListDataResponse(
-                "", 111, dialogList.size(), offset, itemPerPage, dialogList);
+                "",
+                System.currentTimeMillis(),
+                dialogPage.getTotalElements(),
+                offset,
+                itemPerPage,
+                dialogResponseList);
+    }
+
+    @Override
+    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList() {
+        return getDialogsList(new DialogRequest("", 20, 0));
     }
 
     @Override
