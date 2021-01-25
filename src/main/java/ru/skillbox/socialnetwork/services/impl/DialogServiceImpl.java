@@ -19,6 +19,7 @@ import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.TimeZone;
 
 @Service
 public class DialogServiceImpl implements DialogService {
@@ -136,6 +137,16 @@ public class DialogServiceImpl implements DialogService {
         }
     }
 
+    @Override
+    public ErrorTimeDataResponse getPersonStatus(Long dialogId, Long personId) {
+        dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
+        Person person = personRepository.findById(personId).orElseThrow(() -> new PersonNotFoundException(personId));
+        OnlineLastActivityResponse response = new OnlineLastActivityResponse(
+                person.getIsOnline() == 1,
+                person.getLastOnlineTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli());
+        return new ErrorTimeDataResponse("", response);
+    }
+
     private String getRandomString(int length) {
         int leftLimit = 48; // '0'
         int rightLimit = 122; // 'z'
@@ -147,4 +158,6 @@ public class DialogServiceImpl implements DialogService {
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
     }
+
+
 }

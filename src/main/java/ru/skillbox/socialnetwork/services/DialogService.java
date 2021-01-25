@@ -16,5 +16,5 @@ public interface DialogService {
     public ErrorTimeDataResponse deleteUsersFromDialog(Long dialogId, List<Long> userIds);
     public ErrorTimeDataResponse getInviteLink(Long dialogId);
     public ErrorTimeDataResponse joinByInvite(Long dialogId, LinkRequest inviteLink);
-
+    public ErrorTimeDataResponse getPersonStatus(Long dialogId, Long personId);
 }

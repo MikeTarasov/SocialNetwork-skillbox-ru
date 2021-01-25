@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WithUserDetails("shred@mail.who")
 @TestPropertySource("/application-test.properties")
 @Sql(value = {"/AddUsersForDialogs.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-@Sql(value = {"/ClearDialogsAfterTest.sql","/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+@Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 public class DialogControllerTests {
 
     private final long currentPersonId = 9L;  // shred@mail.who
@@ -251,13 +251,13 @@ public class DialogControllerTests {
     }
 
     @Test
-    public void getInviteLinkAndJoin() throws Exception{
+    public void getInviteLinkAndJoin() throws Exception {
         Long firstId = 7L;
         Long secondId = 8L;
         Dialog dialog = generateDialogForTwo(firstId, secondId);
         // getting invite link
         MvcResult resultGetInvite = this.mockMvc.perform(get(String.format("/dialogs/%d/users/invite", dialog.getId()))
-                        .contentType(MediaType.APPLICATION_JSON))
+                .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
@@ -279,15 +279,14 @@ public class DialogControllerTests {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.data.user_ids").exists())
-                .andReturn()
-                ;
+                .andReturn();
         Long idInResponse = Long.valueOf(
                 JsonPath.read(resultJoin.getResponse().getContentAsString(), "$.data.user_ids[0]").toString());
         assertEquals(currentPersonId, idInResponse);
     }
 
     @Test
-    public void  getDialogs() throws Exception{
+    public void getDialogs() throws Exception {
         // all dialogs, no query/pages etc
         Long secondId = 8L;
         Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
@@ -302,5 +301,63 @@ public class DialogControllerTests {
         Long resultDialogId = Long.valueOf(
                 JsonPath.read(result.getResponse().getContentAsString(), "$.data[0].id").toString());
         assertEquals(dialog.getId(), resultDialogId);
+    }
+
+    @Test
+    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getPersonActivityFalseTest() throws Exception {
+        this.mockMvc.perform(get("/dialogs/1/activity/8"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.online").value("false"))
+                .andExpect(jsonPath("$.data.last_activity").value("1606939887000"));
+    }
+
+    @Test
+    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getPersonActivityTrueTest() throws Exception {
+        this.mockMvc.perform(get("/dialogs/1/activity/9"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.online").value("true"))
+                .andExpect(jsonPath("$.data.last_activity").value("1606936287000"));
+    }
+
+    @Test
+    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getPersonActivityWrongPersonTest() throws Exception {
+        this.mockMvc.perform(get("/dialogs/1/activity/10"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("invalid person ID: 10"))
+                .andExpect(jsonPath("$.data.online").doesNotExist());
+
+    }
+
+    @Test
+    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getPersonActivityWrongDialogTest() throws Exception {
+        this.mockMvc.perform(get("/dialogs/2/activity/9"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("invalid dialog ID: 2"))
+                .andExpect(jsonPath("$.data.online").doesNotExist());
+
     }
 }

@@ -56,4 +56,9 @@ public class DialogController {
     public ResponseEntity<ErrorTimeDataResponse> joinByInvite(@PathVariable Long id, @RequestBody LinkRequest link) {
         return ResponseEntity.ok(dialogService.joinByInvite(id, link));
     }
+
+    @GetMapping("/{id}/activity/{user_id}")
+    public ResponseEntity<ErrorTimeDataResponse> getPersonActivity(@PathVariable Long id, @PathVariable(name = "user_id") Long PersonId) {
+        return ResponseEntity.ok(dialogService.getPersonStatus(id, PersonId));
+    }
 }
