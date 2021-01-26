@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -41,6 +42,9 @@ public class PostComment {
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "post_id")
     private Post post;
+
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL)
+    private List<CommentLike> commentLikes;
 
     public PostComment(LocalDateTime time, long parentId, String commentText, boolean isBlocked, boolean isDeleted, Person person) {
         this.time = time;

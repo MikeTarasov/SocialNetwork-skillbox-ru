@@ -46,6 +46,10 @@ public class PostService {
         this.commentRepository = commentRepository;
         this.accountService = accountService;
     }
+    //@Override
+    public Post findById(long id) {
+        return postRepository.findPostById(Math.toIntExact(id));
+    }
 
     public ResponseEntity<?> getApiPost(String text, long dateFrom, long dateTo,
                                         int offset, int itemPerPage) {
