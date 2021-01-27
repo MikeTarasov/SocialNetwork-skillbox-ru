@@ -10,7 +10,7 @@ import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDa
 import ru.skillbox.socialnetwork.services.ProfileService;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/users")
 public class ProfileController {
 
     private final ProfileService profileService;
