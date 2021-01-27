@@ -21,8 +21,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
                 HttpStatus.OK);
     }
-        @ExceptionHandler(MessageNotFoundException.class)
+    @ExceptionHandler(MessageNotFoundException.class)
     protected ResponseEntity<ErrorErrorDescriptionResponse> handleMessageNotFoundException(MessageNotFoundException ex) {
+        return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
+                HttpStatus.OK);
+    }
+    @ExceptionHandler(MessageEmptyException.class)
+    protected ResponseEntity<ErrorErrorDescriptionResponse> handleMessageEmptyException(MessageEmptyException ex) {
         return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
                 HttpStatus.OK);
     }

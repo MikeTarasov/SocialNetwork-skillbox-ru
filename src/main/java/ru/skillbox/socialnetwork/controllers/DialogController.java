@@ -84,6 +84,13 @@ public class DialogController {
         return ResponseEntity.ok(dialogService.deleteMessage(dialogId, messageId));
     }
 
+    @PutMapping("/{dialogId}/messages/{messageId}")
+    public ResponseEntity<ErrorTimeDataResponse> changeMessage(@PathVariable Long dialogId,
+                                                               @PathVariable Long messageId,
+                                                               @RequestBody MessageTextRequest messageTextRequest) {
+        return ResponseEntity.ok(dialogService.changeMessage(dialogId, messageId, messageTextRequest));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ErrorTimeDataResponse> deleteDialog(@PathVariable Long id) {
         return ResponseEntity.ok(dialogService.deleteDialog(id));

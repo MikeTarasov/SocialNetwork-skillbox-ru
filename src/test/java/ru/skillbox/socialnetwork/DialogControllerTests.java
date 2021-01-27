@@ -73,7 +73,7 @@ public class DialogControllerTests {
                 .andExpect(jsonPath("$.data.id").exists())
                 .andReturn();
         // somehow casting Integer to Long is not a trivial thing
-        Long dialogId = Long.valueOf(JsonPath.read(result.getResponse().getContentAsString(), "$.data.id").toString());
+        long dialogId = Long.parseLong(JsonPath.read(result.getResponse().getContentAsString(), "$.data.id").toString());
         System.out.println("Generated dialog: " + dialogId);
         return dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
     }
@@ -408,12 +408,14 @@ public class DialogControllerTests {
     }
 
     @Test
-    public void sendDeleteMessageSuccess() throws Exception {
+    public void messageSendChangeDeleteSuccess() throws Exception {
         Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
 
+        // send new message
         MessageTextRequest messageTextRequest = new MessageTextRequest();
-        String testMessage = "test message from ID 9L to ID 8L";
-        messageTextRequest.setMessageText(testMessage);
+        String testSendMessage = "test message from ID 9L to ID 8L";
+        String testModifiedMessage = "MODIFIED message from ID 9L to ID 8L";
+        messageTextRequest.setMessageText(testSendMessage);
 
         MvcResult resultSend = this.mockMvc.perform(post(String.format("/dialogs/%d/messages", dialog.getId()))
                 .contentType(MediaType.APPLICATION_JSON)
@@ -423,13 +425,28 @@ public class DialogControllerTests {
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value(""))
-                .andExpect(jsonPath("$.data.message_text").value(testMessage))
+                .andExpect(jsonPath("$.data.message_text").value(testSendMessage))
                 .andExpect(jsonPath("$.data.read_status").value("SENT"))
                 .andReturn();
 
         Long messageId = Long.valueOf(JsonPath.read
                 (resultSend.getResponse().getContentAsString(), "$.data.id").toString());
 
+        // modify message
+        messageTextRequest.setMessageText(testModifiedMessage);
+        MvcResult resultChange = this.mockMvc.perform(put(String.format("/dialogs/%d/messages/%d", dialog.getId(), messageId))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(messageTextRequest)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message_text").value(testModifiedMessage))
+                .andExpect(jsonPath("$.data.read_status").value("SENT"))
+                .andReturn();
+
+        // delete message
         MvcResult resultDelete = this.mockMvc.perform(delete(String.format("/dialogs/%d/messages/%d", dialog.getId(), messageId)))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -466,7 +483,7 @@ public class DialogControllerTests {
     @Test
     public void sendMessageError() throws Exception {
         Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
-        // try sending incorrect message
+        // try sending null message
         MessageTextRequest messageTextRequest = new MessageTextRequest();
         messageTextRequest.setMessageText(null);
         this.mockMvc.perform(post(String.format("/dialogs/%d/messages", dialog.getId()))
@@ -477,8 +494,22 @@ public class DialogControllerTests {
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value("invalid_request"))
-                .andExpect(jsonPath("$.error_description").value("Can't sent empty message!"))
+                .andExpect(jsonPath("$.error_description").value("Can't send empty message!"))
                 .andReturn();
+        // try sending empty message
+        messageTextRequest.setMessageText("");
+        this.mockMvc.perform(post(String.format("/dialogs/%d/messages", dialog.getId()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(messageTextRequest)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("Can't send empty message!"))
+                .andReturn();
+
+
 
         // try sending message to non-existing dialog
         this.mockMvc.perform(post(String.format("/dialogs/%d/messages", 500))
@@ -490,6 +521,53 @@ public class DialogControllerTests {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value("invalid_request"))
                 .andExpect(jsonPath("$.error_description").value("invalid dialog ID: 500"))
+                .andReturn();
+    }
+
+    @Test
+    public void changeMessageError() throws Exception{
+        Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
+
+        // send message
+        MessageTextRequest messageTextRequest = new MessageTextRequest("Correct message!");
+        MvcResult resultSend = this.mockMvc.perform(post(String.format("/dialogs/%d/messages", dialog.getId()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(messageTextRequest)))
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message_text").value("Correct message!"))
+                .andExpect(jsonPath("$.data.read_status").value("SENT"))
+                .andReturn();
+
+        Long messageId = Long.valueOf(JsonPath.read
+                (resultSend.getResponse().getContentAsString(), "$.data.id").toString());
+
+        // null message
+        messageTextRequest.setMessageText(null);
+        this.mockMvc.perform(put(String.format("/dialogs/%d/messages/%d", dialog.getId(), messageId))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(messageTextRequest)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("Can't set empty message! Message ID: " + messageId))
+                .andReturn();
+
+        // empty message
+        messageTextRequest.setMessageText("");
+        this.mockMvc.perform(put(String.format("/dialogs/%d/messages/%d", dialog.getId(), messageId))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(messageTextRequest)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("Can't set empty message! Message ID: " + messageId))
                 .andReturn();
     }
 }

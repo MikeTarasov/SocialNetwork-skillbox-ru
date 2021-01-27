@@ -21,10 +21,7 @@ import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.repository.PersonToDialogRepository;
 import ru.skillbox.socialnetwork.services.AccountService;
 import ru.skillbox.socialnetwork.services.DialogService;
-import ru.skillbox.socialnetwork.services.exceptions.CustomException;
-import ru.skillbox.socialnetwork.services.exceptions.DialogNotFoundException;
-import ru.skillbox.socialnetwork.services.exceptions.MessageNotFoundException;
-import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
+import ru.skillbox.socialnetwork.services.exceptions.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -173,17 +170,17 @@ public class DialogServiceImpl implements DialogService {
     }
 
     @Override
-    public ErrorTimeDataResponse sendMessage(Long dialogId, MessageTextRequest messageRequest) {
+    public ErrorTimeDataResponse sendMessage(Long dialogId, MessageTextRequest messageTextRequest) {
         Long recipientId = null;
         Dialog dialog = dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
-        if (messageRequest.getMessageText() == null) {
-            throw new CustomException("Can't sent empty message!");
+        if (messageTextRequest.getMessageText() == null || messageTextRequest.getMessageText().isEmpty()) {
+            throw new MessageEmptyException();
         }
         Message message = new Message();
         LocalDateTime timeMessage = LocalDateTime.ofInstant(Instant
                         .ofEpochMilli(System.currentTimeMillis()),
                 TimeZone.getDefault().toZoneId());
-        Long authorId = accountService.getCurrentUser().getId();
+        long authorId = accountService.getCurrentUser().getId();
         message.setAuthor(personRepository.findById(authorId)
                 .orElseThrow(() -> new PersonNotFoundException(authorId)));
 
@@ -198,7 +195,7 @@ public class DialogServiceImpl implements DialogService {
         Long finalRecipientId = recipientId; // lambda workaround
         message.setRecipient(personRepository.findById(recipientId).orElseThrow(() -> new PersonNotFoundException(finalRecipientId)));
         message.setDialog(dialogRepository.findById(dialogId).get());
-        message.setText(messageRequest.getMessageText());
+        message.setText(messageTextRequest.getMessageText());
         message.setTime(timeMessage);
         message.setReadStatus(ReadStatus.SENT.name());
         message.setIsDeleted(0);
@@ -233,6 +230,19 @@ public class DialogServiceImpl implements DialogService {
         message.setIsDeleted(1);
         messageRepository.save(message);
         return new ErrorTimeDataResponse("", new MessageIdResponse(messageId));
+    }
+
+    @Override
+    public ErrorTimeDataResponse changeMessage(Long dialogId, Long messageId, MessageTextRequest messageTextRequest) {
+        dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new MessageNotFoundException(messageId));
+        if (messageTextRequest.getMessageText() == null || messageTextRequest.getMessageText().isEmpty()) {
+            throw new MessageEmptyException(messageId);
+        }
+        message.setText(messageTextRequest.getMessageText());
+        messageRepository.save(message);
+        return new ErrorTimeDataResponse("", messageToResponse(message));
     }
 
     private String getRandomString(int length) {
