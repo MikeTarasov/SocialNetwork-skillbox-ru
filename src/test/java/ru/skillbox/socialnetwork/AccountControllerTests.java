@@ -99,7 +99,7 @@ public class AccountControllerTests {
 
     private void expectError(ResultActions resultActions, String description) throws Exception {
         resultActions
-                .andExpect(status().is(200))
+                .andExpect(status().is(400))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value("invalid_request"))
                 .andExpect(jsonPath("$.error_description").value(description));
@@ -350,6 +350,7 @@ public class AccountControllerTests {
         assertTrue(notificationSetting.getIsEnable());
 
         clearContext();
+        notificationSettingsRepository.delete(notificationSetting);
         delete(email, testPerson);
     }
 

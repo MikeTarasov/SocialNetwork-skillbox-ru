@@ -75,10 +75,10 @@ public class Person {
     @Column(name = "is_deleted")
     private int isDeleted;
 
-    @OneToMany(mappedBy = "personNS", orphanRemoval = true)
+    @OneToMany(mappedBy = "personNS", cascade = CascadeType.ALL)
     private List<NotificationSettings> notificationSettings;
 
-    @OneToMany(mappedBy = "personNotification")
+    @OneToMany(mappedBy = "personNotification", cascade = CascadeType.ALL)
     private List<Notification> notificationPersons;
 
     public boolean isBlocked() {
