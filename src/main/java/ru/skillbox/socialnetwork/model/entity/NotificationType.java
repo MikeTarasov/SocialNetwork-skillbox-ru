@@ -1,5 +1,6 @@
 package ru.skillbox.socialnetwork.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,5 +26,6 @@ public class NotificationType {
     private String name;
 
     @OneToMany(mappedBy = "notificationType", orphanRemoval = true)
+    @JsonBackReference
     private List<NotificationSettings> notificationSettingsList;
 }

@@ -4,14 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.skillbox.socialnetwork.api.requests.DialogRequest;
 import ru.skillbox.socialnetwork.api.requests.LinkRequest;
-import ru.skillbox.socialnetwork.api.requests.MessageRequest;
+import ru.skillbox.socialnetwork.api.requests.MessageTextRequest;
 import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.Dialog;
 import ru.skillbox.socialnetwork.model.entity.Message;
@@ -26,14 +23,12 @@ import ru.skillbox.socialnetwork.services.AccountService;
 import ru.skillbox.socialnetwork.services.DialogService;
 import ru.skillbox.socialnetwork.services.exceptions.CustomException;
 import ru.skillbox.socialnetwork.services.exceptions.DialogNotFoundException;
+import ru.skillbox.socialnetwork.services.exceptions.MessageNotFoundException;
 import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.TimeZone;
+import java.util.*;
 
 @Service
 public class DialogServiceImpl implements DialogService {
@@ -53,12 +48,12 @@ public class DialogServiceImpl implements DialogService {
     }
 
     @Override
-    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList(DialogRequest dialogRequest){
+    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList(DialogRequest dialogRequest) {
         Person currentUser = accountService.getCurrentUser();
         // find where the user is participant
         List<PersonToDialog> personToDialogs = personToDialogRepository.findByPerson(currentUser);
         List<Long> dialogIdsList = new ArrayList<>();
-        for (PersonToDialog personToDialog: personToDialogs){
+        for (PersonToDialog personToDialog : personToDialogs) {
             dialogIdsList.add(personToDialog.getDialog().getId());
         }
         // getting paged response
@@ -85,7 +80,7 @@ public class DialogServiceImpl implements DialogService {
     @Override
     public ErrorTimeDataResponse createDialog(List<Long> userIds) {
         // checking for correct IDs
-        for (long id: userIds) {
+        for (long id : userIds) {
             personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
         }
         Person owner = accountService.getCurrentUser();
@@ -95,7 +90,7 @@ public class DialogServiceImpl implements DialogService {
         dialog.setOwner(owner);
         dialog.setInviteCode(getRandomString(5));
         dialogRepository.save(dialog);
-        for (long id: userIds) {
+        for (long id : userIds) {
             PersonToDialog personToDialog = new PersonToDialog();
             personToDialog.setDialog(dialog);
             personToDialog.setPerson(personRepository.findById(id).get());
@@ -107,31 +102,31 @@ public class DialogServiceImpl implements DialogService {
     }
 
     @Override
-    public ErrorTimeDataResponse addUsersToDialog(Long dialogId, List<Long> userIds){
+    public ErrorTimeDataResponse addUsersToDialog(Long dialogId, List<Long> userIds) {
         Dialog dialog = dialogRepository.getOne(dialogId);
-        for (long id: userIds) {
+        for (long id : userIds) {
             // checking for correct IDs
             Person person = personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
             // checking if person is already in dialog
             // need to introduce to GlobalExceptionHandler
-            if (!personToDialogRepository.findByDialogAndPerson(dialog, person).isEmpty()){
+            if (!personToDialogRepository.findByDialogAndPerson(dialog, person).isEmpty()) {
                 throw new CustomException(String.format("Person ID %d is already in dialog!", id));
             }
         }
 
-            for (long id: userIds) {
-                PersonToDialog personToDialog = new PersonToDialog();
-                personToDialog.setDialog(dialog);
-                personToDialog.setPerson(personRepository.findById(id).get());
-                personToDialogRepository.save(personToDialog);
-            }
+        for (long id : userIds) {
+            PersonToDialog personToDialog = new PersonToDialog();
+            personToDialog.setDialog(dialog);
+            personToDialog.setPerson(personRepository.findById(id).get());
+            personToDialogRepository.save(personToDialog);
+        }
         return new ErrorTimeDataResponse("", new ListUserIdsResponse(userIds));
     }
 
     @Override
-    public ErrorTimeDataResponse deleteUsersFromDialog(Long dialogId, List<Long> userIds){
+    public ErrorTimeDataResponse deleteUsersFromDialog(Long dialogId, List<Long> userIds) {
         // checking for correct IDs
-        for (long id: userIds) {
+        for (long id : userIds) {
             personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
         }
 
@@ -142,8 +137,8 @@ public class DialogServiceImpl implements DialogService {
         // Possibly - reply contains only users that were removed
         List<PersonToDialog> personsToDialog = personToDialogRepository.findByDialog(dialog);
         // going through user list
-        for (PersonToDialog personToDialog: personsToDialog) {
-            if (userIds.contains(personToDialog.getPerson().getId())){
+        for (PersonToDialog personToDialog : personsToDialog) {
+            if (userIds.contains(personToDialog.getPerson().getId())) {
                 personToDialogRepository.delete(personToDialog);
             }
         }
@@ -151,7 +146,7 @@ public class DialogServiceImpl implements DialogService {
     }
 
     @Override
-    public ErrorTimeDataResponse getInviteLink(Long dialogId){
+    public ErrorTimeDataResponse getInviteLink(Long dialogId) {
         Dialog dialog = dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
         String inviteLink = dialog.getInviteCode(); // just code or full URL?
         return new ErrorTimeDataResponse("", new LinkResponse(inviteLink));
@@ -162,37 +157,54 @@ public class DialogServiceImpl implements DialogService {
         Dialog dialog = dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
         List<Long> idsList = new ArrayList<>();
         idsList.add(accountService.getCurrentUser().getId());
-        if (inviteLink.getLink().equals(dialog.getInviteCode())){
+        if (inviteLink.getLink().equals(dialog.getInviteCode())) {
             return addUsersToDialog(dialogId, idsList);
-        }
-        else {
+        } else {
             return new ErrorTimeDataResponse("", new ErrorErrorDescriptionResponse("incorrect_code"));
         }
     }
+
     @Override
-    public ErrorTimeDataResponse getMessagesById(Long id, String query, Integer offset, Integer limit){
-        Dialog dialog = dialogRepository.findById(id).orElseThrow(() -> new DialogNotFoundException(id));
+    public ErrorTimeDataResponse getMessagesByDialogId(Long dialogId, String query, Integer offset, Integer limit) {
+        Dialog dialog = dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
         Pageable pageable = PageRequest.of(offset / limit, limit);
-        Page<Message> pageMessage = messageRepository.findMessageWithQueryWithPagination(query,id,pageable);
+        Page<Message> pageMessage = messageRepository.findMessageWithQueryWithPagination(query, dialogId, pageable);
         return new ErrorTimeDataResponse("", pageMessage);
     }
+
     @Override
-    public ErrorTimeDataResponse sendMessage(Long id, MessageRequest messageRequest){
-        Dialog dialog = dialogRepository.findById(id).orElseThrow(() -> new DialogNotFoundException(id));
+    public ErrorTimeDataResponse sendMessage(Long dialogId, MessageTextRequest messageRequest) {
+        Long recipientId = null;
+        Dialog dialog = dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
+        if (messageRequest.getMessageText() == null) {
+            throw new CustomException("Can't sent empty message!");
+        }
         Message message = new Message();
         LocalDateTime timeMessage = LocalDateTime.ofInstant(Instant
-                        .ofEpochMilli(messageRequest.getTime()),
-                         TimeZone.getDefault().toZoneId());
-        message.setAuthor(personRepository.findById(messageRequest.getAuthorId()).get());
-        message.setDialog(dialogRepository.findById(id).get());
+                        .ofEpochMilli(System.currentTimeMillis()),
+                TimeZone.getDefault().toZoneId());
+        Long authorId = accountService.getCurrentUser().getId();
+        message.setAuthor(personRepository.findById(authorId)
+                .orElseThrow(() -> new PersonNotFoundException(authorId)));
+
+        // logic works for 2 persons in dialog: if person not author, then recipient
+        List<PersonToDialog> personToDialogList = personToDialogRepository.findByDialog(dialog);
+        for (PersonToDialog p2d : personToDialogList) {
+            if (p2d.getPerson().getId() != authorId) {
+                recipientId = p2d.getPerson().getId();
+            }
+        }
+
+        Long finalRecipientId = recipientId; // lambda workaround
+        message.setRecipient(personRepository.findById(recipientId).orElseThrow(() -> new PersonNotFoundException(finalRecipientId)));
+        message.setDialog(dialogRepository.findById(dialogId).get());
         message.setText(messageRequest.getMessageText());
         message.setTime(timeMessage);
         message.setReadStatus(ReadStatus.SENT.name());
         message.setIsDeleted(0);
         messageRepository.save(message);
-        MessageResponse messageResponse = new MessageResponse();
-        messageResponse.setMessage(messageRequest.getMessageText());
-        return new ErrorTimeDataResponse("", messageResponse);
+        MessageEntityResponse messageEntityResponse = messageToResponse(message);
+        return new ErrorTimeDataResponse("", messageEntityResponse);
     }
 
     @Override
@@ -213,6 +225,16 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new IdResponse(id));
     }
 
+    @Override
+    public ErrorTimeDataResponse deleteMessage(Long dialogId, Long messageId) {
+        dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new MessageNotFoundException(messageId));
+        message.setIsDeleted(1);
+        messageRepository.save(message);
+        return new ErrorTimeDataResponse("", new MessageIdResponse(messageId));
+    }
+
     private String getRandomString(int length) {
         int leftLimit = 48; // '0'
         int rightLimit = 122; // 'z'
@@ -225,5 +247,15 @@ public class DialogServiceImpl implements DialogService {
                 .toString();
     }
 
+    private MessageEntityResponse messageToResponse(Message message) {
+        return MessageEntityResponse.builder()
+                .id(message.getId())
+                .authorId(message.getAuthor().getId())
+                .recipientId(message.getRecipient().getId())
+                .messageText(message.getText())
+                .timestamp(message.getTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
+                .readStatus(message.getReadStatus())
+                .build();
+    }
 
 }

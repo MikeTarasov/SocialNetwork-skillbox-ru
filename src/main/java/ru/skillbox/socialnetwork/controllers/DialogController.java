@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.skillbox.socialnetwork.api.requests.DialogRequest;
 import ru.skillbox.socialnetwork.api.requests.LinkRequest;
 import ru.skillbox.socialnetwork.api.requests.ListUserIdsRequest;
-import ru.skillbox.socialnetwork.api.requests.MessageRequest;
+import ru.skillbox.socialnetwork.api.requests.MessageTextRequest;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
 import ru.skillbox.socialnetwork.services.DialogService;
@@ -67,15 +67,21 @@ public class DialogController {
 
     @GetMapping("/{id}/messages")
     public ResponseEntity<ErrorTimeDataResponse> getListMessages(@PathVariable Long id,
-                                                                 @RequestParam(required = false,defaultValue = "")String query,
-                                                                 @RequestParam(required=false, defaultValue = "0") Integer offset,
-                                                                 @RequestParam(required=false, defaultValue = "20") Integer limit){
-        return ResponseEntity.ok(dialogService.getMessagesById(id, query, offset, limit));
+                                                                 @RequestParam(required = false, defaultValue = "") String query,
+                                                                 @RequestParam(required = false, defaultValue = "0") Integer offset,
+                                                                 @RequestParam(required = false, defaultValue = "20") Integer limit) {
+        return ResponseEntity.ok(dialogService.getMessagesByDialogId(id, query, offset, limit));
     }
-    @PostMapping("/{id}/messages")
-    public ResponseEntity<ErrorTimeDataResponse> sendMessages(@PathVariable Long id,
-                                                              @RequestBody MessageRequest messageRequest){
-       return ResponseEntity.ok(dialogService.sendMessage(id,messageRequest));
+
+    @PostMapping("/{dialogId}/messages")
+    public ResponseEntity<ErrorTimeDataResponse> sendMessages(@PathVariable Long dialogId,
+                                                              @RequestBody MessageTextRequest messageTextRequest) {
+        return ResponseEntity.ok(dialogService.sendMessage(dialogId, messageTextRequest));
+    }
+
+    @DeleteMapping("/{dialogId}/messages/{messageId}")
+    public ResponseEntity<ErrorTimeDataResponse> deleteMessage(@PathVariable Long dialogId, @PathVariable Long messageId) {
+        return ResponseEntity.ok(dialogService.deleteMessage(dialogId, messageId));
     }
 
     @DeleteMapping("/{id}")

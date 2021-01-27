@@ -12,13 +12,12 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import ru.skillbox.socialnetwork.api.requests.DialogRequest;
-import ru.skillbox.socialnetwork.api.requests.LinkRequest;
-import ru.skillbox.socialnetwork.api.requests.ListUserIdsRequest;
+import ru.skillbox.socialnetwork.api.requests.*;
 import ru.skillbox.socialnetwork.controllers.DialogController;
 import ru.skillbox.socialnetwork.model.entity.Dialog;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.PersonToDialog;
+import ru.skillbox.socialnetwork.model.enums.ReadStatus;
 import ru.skillbox.socialnetwork.repository.DialogRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.repository.PersonToDialogRepository;
@@ -44,6 +43,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class DialogControllerTests {
 
     private final long currentPersonId = 9L;  // shred@mail.who
+    private final long secondId = 8L;
     @Autowired
     private DialogController dialogController;
     @Autowired
@@ -121,7 +121,6 @@ public class DialogControllerTests {
     public void createDialogsForTwo() throws Exception {
         List<Long> idList = new ArrayList<>();
         idList.add(currentPersonId);
-        Long secondId = 8L;
         idList.add(secondId);
         ListUserIdsRequest request = new ListUserIdsRequest(idList);
         this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
@@ -144,7 +143,6 @@ public class DialogControllerTests {
     public void createDialogsForThree() throws Exception {
         List<Long> idList = new ArrayList<>();
         idList.add(currentPersonId);
-        Long secondId = 8L;
         Long thirdId = 7L;
         idList.add(secondId);
         idList.add(thirdId);
@@ -196,8 +194,7 @@ public class DialogControllerTests {
         ListUserIdsRequest request = new ListUserIdsRequest(idList);
 
         List<Long> addRemoveList = new ArrayList<>();
-        Long secondId = 7L;
-        Long thirdId = 8L;
+        Long thirdId = 7L;
         addRemoveList.add(secondId);
         addRemoveList.add(thirdId);
         ListUserIdsRequest requestAddRemove = new ListUserIdsRequest(addRemoveList);
@@ -255,7 +252,6 @@ public class DialogControllerTests {
     @Test
     public void getInviteLinkAndJoin() throws Exception {
         Long firstId = 7L;
-        Long secondId = 8L;
         Dialog dialog = generateDialogForTwo(firstId, secondId);
         System.out.println("Generated dialog: " + dialog.getId());
         // getting invite link
@@ -289,9 +285,8 @@ public class DialogControllerTests {
     }
 
     @Test
-    public void  getDialogsEmptyRequest() throws Exception{
+    public void getDialogsEmptyRequest() throws Exception {
         // get all dialogs, no query/pages request
-        Long secondId = 8L;
         for (int i = 0; i < 3; i++) {
             generateDialogForTwo(currentPersonId, secondId);
         }
@@ -307,13 +302,11 @@ public class DialogControllerTests {
     }
 
     @Test
-    public void getDialogsPagedRequest() throws Exception{
-        Long secondId = 8L;
+    public void getDialogsPagedRequest() throws Exception {
         // generate 6 dialogs
         for (int i = 0; i < 6; i++) {
             generateDialogForTwo(currentPersonId, secondId);
         }
-        Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
         DialogRequest dialogRequest = new DialogRequest("", 2, 2);
         this.mockMvc.perform(get("/dialogs/").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dialogRequest)))
@@ -322,8 +315,8 @@ public class DialogControllerTests {
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value(""))
-                .andExpect(jsonPath("$.total").value(7))
-                .andExpect(jsonPath("$.data[*].id", containsInAnyOrder(12,13)));
+                .andExpect(jsonPath("$.total").value(6))
+                .andExpect(jsonPath("$.data[*].id", containsInAnyOrder(12, 13)));
 
     }
 
@@ -388,7 +381,7 @@ public class DialogControllerTests {
     @Test
     @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void deleteDialogTest() throws Exception{
+    public void deleteDialogTest() throws Exception {
         long dialogId = 1L;
         this.mockMvc.perform(delete("/dialogs/" + dialogId))
                 .andDo(print())
@@ -403,7 +396,7 @@ public class DialogControllerTests {
     @Test
     @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void deleteDialogWrongIdTest() throws Exception{
+    public void deleteDialogWrongIdTest() throws Exception {
         long dialogId = 2L;
         this.mockMvc.perform(delete("/dialogs/" + dialogId))
                 .andDo(print())
@@ -412,5 +405,91 @@ public class DialogControllerTests {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value("invalid_request"))
                 .andExpect(jsonPath("$.error_description").value("invalid dialog ID: " + dialogId));
+    }
+
+    @Test
+    public void sendDeleteMessageSuccess() throws Exception {
+        Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
+
+        MessageTextRequest messageTextRequest = new MessageTextRequest();
+        String testMessage = "test message from ID 9L to ID 8L";
+        messageTextRequest.setMessageText(testMessage);
+
+        MvcResult resultSend = this.mockMvc.perform(post(String.format("/dialogs/%d/messages", dialog.getId()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(messageTextRequest)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message_text").value(testMessage))
+                .andExpect(jsonPath("$.data.read_status").value("SENT"))
+                .andReturn();
+
+        Long messageId = Long.valueOf(JsonPath.read
+                (resultSend.getResponse().getContentAsString(), "$.data.id").toString());
+
+        MvcResult resultDelete = this.mockMvc.perform(delete(String.format("/dialogs/%d/messages/%d", dialog.getId(), messageId)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message_id").value(messageId))
+                .andReturn();
+    }
+
+    @Test
+    public void deleteMessageError() throws Exception {
+        // try deleting message from non-existing dialog
+        this.mockMvc.perform(delete(String.format("/dialogs/%d/messages/%d", 500, 999)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("invalid dialog ID: 500"))
+                .andReturn();
+        // try deleting non-existing message from existing dialog
+        Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
+        this.mockMvc.perform(delete(String.format("/dialogs/%d/messages/%d", dialog.getId(), 999)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("invalid message ID: 999"))
+                .andReturn();
+    }
+
+    @Test
+    public void sendMessageError() throws Exception {
+        Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
+        // try sending incorrect message
+        MessageTextRequest messageTextRequest = new MessageTextRequest();
+        messageTextRequest.setMessageText(null);
+        this.mockMvc.perform(post(String.format("/dialogs/%d/messages", dialog.getId()))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(messageTextRequest)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("Can't sent empty message!"))
+                .andReturn();
+
+        // try sending message to non-existing dialog
+        this.mockMvc.perform(post(String.format("/dialogs/%d/messages", 500))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(messageTextRequest)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("invalid dialog ID: 500"))
+                .andReturn();
     }
 }

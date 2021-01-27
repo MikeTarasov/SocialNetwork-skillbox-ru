@@ -1,5 +1,6 @@
 package ru.skillbox.socialnetwork.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ public class NotificationSettings {
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "person_id")
+    @JsonBackReference
     private Person personNS;
 
     private int enable;

@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class MessageIdResponse {
 
   @JsonProperty("message_id")
-  private int messageId;
+  private Long messageId;
 }
