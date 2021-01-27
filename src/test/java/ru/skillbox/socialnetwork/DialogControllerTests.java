@@ -384,4 +384,33 @@ public class DialogControllerTests {
                 .andExpect(jsonPath("$.data.online").doesNotExist());
 
     }
+
+    @Test
+    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void deleteDialogTest() throws Exception{
+        long dialogId = 1L;
+        this.mockMvc.perform(delete("/dialogs/" + dialogId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.id").value(dialogId));
+        assertTrue(dialogRepository.findById(dialogId).isEmpty());
+    }
+
+    @Test
+    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void deleteDialogWrongIdTest() throws Exception{
+        long dialogId = 2L;
+        this.mockMvc.perform(delete("/dialogs/" + dialogId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("invalid dialog ID: " + dialogId));
+    }
 }

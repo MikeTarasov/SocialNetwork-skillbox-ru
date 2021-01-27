@@ -205,6 +205,14 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", response);
     }
 
+    @Override
+    public ErrorTimeDataResponse deleteDialog(Long id) {
+        if (dialogRepository.findById(id).isEmpty())
+            throw new DialogNotFoundException(id);
+        dialogRepository.deleteById(id);
+        return new ErrorTimeDataResponse("", new IdResponse(id));
+    }
+
     private String getRandomString(int length) {
         int leftLimit = 48; // '0'
         int rightLimit = 122; // 'z'

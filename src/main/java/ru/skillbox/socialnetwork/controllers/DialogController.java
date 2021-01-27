@@ -77,4 +77,9 @@ public class DialogController {
                                                               @RequestBody MessageRequest messageRequest){
        return ResponseEntity.ok(dialogService.sendMessage(id,messageRequest));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ErrorTimeDataResponse> deleteDialog(@PathVariable Long id) {
+        return ResponseEntity.ok(dialogService.deleteDialog(id));
+    }
 }
