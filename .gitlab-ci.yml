@@ -1,5 +1,8 @@
 image: maven:latest
 
+services:
+  - postgres:12.2-alpine
+
 stages:
   - build
   - test
