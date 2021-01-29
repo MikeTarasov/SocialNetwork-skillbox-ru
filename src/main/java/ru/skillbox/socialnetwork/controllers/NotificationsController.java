@@ -19,7 +19,8 @@ public class NotificationsController {
     }
 
     @GetMapping("")
-    public ResponseEntity<?> getApiNotifications(@Param("offset") int offset, @Param("itemPerPage") int itemPerPage) {
+    public ResponseEntity<?> getApiNotifications(@Param("offset") Integer offset,
+                                                 @Param("itemPerPage") Integer itemPerPage) {
         return notificationsService.getApiNotifications(offset, itemPerPage);
     }
 

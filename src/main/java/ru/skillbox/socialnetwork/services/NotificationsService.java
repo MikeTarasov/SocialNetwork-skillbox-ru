@@ -4,8 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
-import ru.skillbox.socialnetwork.api.responses.NotificationBaseResponse;
+import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.*;
 import ru.skillbox.socialnetwork.repository.*;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
@@ -46,6 +45,7 @@ public class NotificationsService {
 
     private List<NotificationBaseResponse> convertToNotificationResponse(List<Notification> notifications, Person person) {
         List<NotificationBaseResponse> result = new ArrayList<>();
+
         List<Long> listTypeIdsEnableSettings = notificationSettingsRepository
                 .findByPersonNSAndEnable(person, 1)
                 .stream().map(value -> value.getNotificationType().getId()).collect(Collectors.toList());
@@ -94,6 +94,9 @@ public class NotificationsService {
                         info = "New message ".concat(message.getText()).substring(0, notificationTextLength)
                                 .concat(" from user ").concat(message.getAuthor().getFirstName());
                         break;
+                    case "FRIEND_BIRTHDAY":
+                        //TODO нет в апи, но есть во фронте!!! src/store/profile/notifications.js
+                        break;
                 }
                 result.add(new NotificationBaseResponse(id, typeId, sentTime, entityId, info));
             }
@@ -101,8 +104,24 @@ public class NotificationsService {
         return result;
     }
 
-    public ResponseEntity<?> getApiNotifications(int offset, int itemPerPage) {
+    private boolean setIsRead(long id) {
+        Optional<Notification> optionalNotification = notificationsRepository.findById(id);
+        if (optionalNotification.isEmpty()) {
+            return false;
+        }
+        Notification notification = optionalNotification.get();
+        notification.setIsRead(1);
+        notificationsRepository.save(notification);
+        return true;
+    }
+
+    public ResponseEntity<?> getApiNotifications(Integer offset, Integer itemPerPage) {
         Person person = personDetailsService.getCurrentUser();
+
+        if (offset == null || itemPerPage == null) {
+            offset = 0;
+            itemPerPage = 20;
+        }
 
         return ResponseEntity.status(200).body(new ErrorTimeTotalOffsetPerPageListDataResponse(
                 "",
@@ -118,6 +137,15 @@ public class NotificationsService {
     }
 
     public ResponseEntity<?> putApiNotifications(long id, boolean all) {
-        return ResponseEntity.status(200).body(null);
+        if (!all && !setIsRead(id)) {
+            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Notification not found"));
+
+        } else {
+            Person person = personDetailsService.getCurrentUser();
+            notificationsRepository.findByPersonNotificationAndIsRead(person, 0, null)
+                    .forEach(notification -> setIsRead(notification.getId()));
+        }
+        //TODO что должно быть в ответе??????
+        return ResponseEntity.status(200).body(new ErrorTimeDataResponse("", new MessageResponse()));
     }
 }
