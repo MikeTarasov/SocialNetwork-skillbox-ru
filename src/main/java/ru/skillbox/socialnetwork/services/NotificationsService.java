@@ -47,7 +47,7 @@ public class NotificationsService {
     private List<NotificationBaseResponse> convertToNotificationResponse(List<Notification> notifications, Person person) {
         List<NotificationBaseResponse> result = new ArrayList<>();
         List<Long> listTypeIdsEnableSettings = notificationSettingsRepository
-                .findByPersonNSAndIsEnable(person, true)
+                .findByPersonNSAndEnable(person, 1)
                 .stream().map(value -> value.getNotificationType().getId()).collect(Collectors.toList());
 
         for (Notification notification : notifications) {
