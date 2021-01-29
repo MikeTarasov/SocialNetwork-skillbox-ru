@@ -22,7 +22,7 @@ public class Message {
     private Person author;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "recipient_id ")
+    @JoinColumn(name = "recipient_id")
     private Person recipient;
 
     @Column(name = "message_text", columnDefinition = "varchar(255)")
