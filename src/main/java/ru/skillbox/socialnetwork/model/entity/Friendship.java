@@ -2,15 +2,19 @@ package ru.skillbox.socialnetwork.model.entity;
 
 import lombok.Data;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Data
 @Entity
+@Table(name = "friendship")
 public class Friendship {
     @Id
     private long id;
-    private long srcPersonId;
-    private long dstPersonId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "src_person_id")
+    private Person srcPerson;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(name = "dst_person_id")
+    private Person dstPerson;
     private String code;
 }

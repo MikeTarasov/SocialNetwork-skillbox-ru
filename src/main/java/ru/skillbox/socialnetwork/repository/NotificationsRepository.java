@@ -11,7 +11,7 @@ import java.util.List;
 @Repository
 public interface NotificationsRepository extends JpaRepository<Notification, Long> {
 
-    List<Notification> findByPersonNotification(Person person, Pageable pageable);
+    List<Notification> findByPersonNotificationAndIsRead(Person person, int isRead, Pageable pageable);
 
     long countNotificationByPersonNotification(Person person);
 }

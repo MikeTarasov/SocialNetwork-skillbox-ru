@@ -82,6 +82,14 @@ public class Person {
     @OneToMany(mappedBy = "personNotification", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notification> notificationPersons = new ArrayList<>();
 
+    @Transient
+    @OneToMany(mappedBy = "srcPerson", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Friendship> friendshipsSrc = new ArrayList<>();
+
+    @Transient
+    @OneToMany(mappedBy = "dstPerson", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Friendship> friendshipsDst = new ArrayList<>();
+
     public Person(String email, String password, String firstName, String lastName, LocalDateTime regDate) {
         this.email = email;
         this.password = password;
