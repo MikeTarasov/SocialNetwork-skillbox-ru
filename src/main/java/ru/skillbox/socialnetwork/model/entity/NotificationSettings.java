@@ -1,6 +1,7 @@
 package ru.skillbox.socialnetwork.model.entity;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +10,7 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "notification_settings")
 public class NotificationSettings {
@@ -26,12 +28,6 @@ public class NotificationSettings {
     private Person personNS;
 
     private int enable;
-
-    public NotificationSettings(NotificationType notificationType, Person personNS, boolean isEnable) {
-        this.notificationType = notificationType;
-        this.personNS = personNS;
-        setEnable(isEnable);
-    }
 
     public void setEnable(boolean isEnable) {
         this.enable = isEnable ? 1 : 0;

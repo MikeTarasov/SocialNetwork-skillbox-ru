@@ -62,6 +62,22 @@ public class AccountService {
                 .replaceAll("(^[a-zа-яё0-9-]+$)", "").equals("");
     }
 
+    public void setDefaultNotifySettings(Person per) {
+        List<NotificationType> nt = notificationTypeRepository.findAll();
+        try {
+            for (NotificationType notificationType : nt) {
+                notificationSettingsRepository
+                        .save(NotificationSettings.builder()
+                                .notificationType(notificationType)
+                                .personNS(per)
+                                .enable(1)
+                                .build());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private boolean savePerson(EmailPassPassFirstNameLastNameCodeRequest requestBody) {
         personRepository.save(new Person(
                 requestBody.getEmail(),
@@ -69,7 +85,12 @@ public class AccountService {
                 requestBody.getFirstName(),
                 requestBody.getLastName(),
                 LocalDateTime.now()));
-        return personRepository.findByEmail(requestBody.getEmail()).isPresent();
+        Optional<Person> personOptional = personRepository.findByEmail(requestBody.getEmail());
+        if (personOptional.isPresent()) {
+            setDefaultNotifySettings(personOptional.get());
+            return true;
+        }
+        return false;
     }
 
     private void changePassword(Person person, String password) {
@@ -78,10 +99,10 @@ public class AccountService {
         personRepository.save(person);
     }
 
-    private void setConfirmationCode(Person person, String code) {
-        person.setConfirmationCode(code);
-        personRepository.save(person);
-    }
+//    private void setConfirmationCode(Person person, String code) {
+//        person.setConfirmationCode(code);
+//        personRepository.save(person);
+//    }
 
     private void changeEmail(Person person, String email) {
         person.setEmail(email);
@@ -124,20 +145,28 @@ public class AccountService {
         Optional<Person> optionalPerson = findPersonByEmail(requestBody.getEmail());
 
         if (optionalPerson.isEmpty()) {
-            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("This email is not registered!"));
+            return ResponseEntity.status(400)
+                    .body(new ErrorErrorDescriptionResponse("This email is not registered!"));
         }
 
         Person person = optionalPerson.get();
-        String confirmationCode = encoder.encode(Long.toString(System.currentTimeMillis()))
+        String pass = encoder.encode(Long.toString(System.currentTimeMillis()))
                 .substring(10).replaceAll("\\W", "");
 
-        if (emailSenderService.sendEmailChangePassword(person, confirmationCode)) {
+        if (emailSenderService.sendEmailChangePassword(person, pass)) {
+            /*
+            Было принято решение вместо ссылки на страницу восстановления пароля отправлять в письме
+            уже сгенерированный пароль.
+            Поэтому это выражение пока не действительно:
             setConfirmationCode(person, confirmationCode);
+             */
+            changePassword(person, pass);
             return ResponseEntity.status(200)
                     .body(new ErrorTimeDataResponse("", new MessageResponse()));
         }
 
-        return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Error sending email"));
+        return ResponseEntity.status(400)
+                .body(new ErrorErrorDescriptionResponse("Error sending email"));
     }
 
     public ResponseEntity<?> putApiAccountPasswordSet(TokenPasswordRequest requestBody) {
@@ -181,15 +210,14 @@ public class AccountService {
                 .findByPersonNSAndNotificationTypeId(person, notificationType.get().getId());
 
         if (notificationSettingsOptional.isPresent()) {
-            NotificationSettings notificationSettings = notificationSettingsOptional.get();
-            notificationSettings.setEnable(isEnable);
-            notificationSettingsRepository.save(notificationSettings);
-        } else {
-            notificationSettingsRepository.save(new NotificationSettings(notificationType.get(), person, isEnable));
+            NotificationSettings notificationSetting = notificationSettingsOptional.get();
+            notificationSetting.setEnable(isEnable);
+            notificationSettingsRepository.save(notificationSetting);
+            return ResponseEntity.status(200)
+                    .body(new ErrorTimeDataResponse("", new MessageResponse()));
         }
 
-        return ResponseEntity.status(200)
-                .body(new ErrorTimeDataResponse("", new MessageResponse()));
+        return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Setting not found!"));
     }
 
     public ResponseEntity<?> getApiAccountNotifications() {

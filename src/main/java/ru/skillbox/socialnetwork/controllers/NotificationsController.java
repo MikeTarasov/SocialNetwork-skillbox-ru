@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.skillbox.socialnetwork.services.NotificationsService;
 
 @RestController
-@RequestMapping("/api/v1/notifications")
+@RequestMapping("/notifications")
 public class NotificationsController {
 
     private final NotificationsService notificationsService;

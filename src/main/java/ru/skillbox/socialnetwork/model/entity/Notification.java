@@ -32,5 +32,5 @@ public class Notification {
     private String contact;
 
     @Column(name = "is_read", nullable = false)
-    private byte isRead;
+    private int isRead;
 }
