@@ -162,11 +162,15 @@ public class DialogServiceImpl implements DialogService {
     }
 
     @Override
-    public ErrorTimeDataResponse getMessagesByDialogId(Long dialogId, String query, Integer offset, Integer limit) {
-        Dialog dialog = dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
+    public ErrorTimeTotalOffsetPerPageListDataResponse getMessagesByDialogId(Long dialogId, String query, Integer offset, Integer limit) {
+        dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
         Pageable pageable = PageRequest.of(offset / limit, limit);
         Page<Message> pageMessage = messageRepository.findMessageWithQueryWithPagination(query, dialogId, pageable);
-        return new ErrorTimeDataResponse("", pageMessage);
+        return new ErrorTimeTotalOffsetPerPageListDataResponse("",
+                System.currentTimeMillis(),
+                pageMessage.getTotalElements(),
+                offset, limit, pageMessage.getContent()
+                );
     }
 
     @Override

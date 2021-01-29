@@ -66,10 +66,10 @@ public class DialogController {
     }
 
     @GetMapping("/{id}/messages")
-    public ResponseEntity<ErrorTimeDataResponse> getListMessages(@PathVariable Long id,
-                                                                 @RequestParam(required = false, defaultValue = "") String query,
-                                                                 @RequestParam(required = false, defaultValue = "0") Integer offset,
-                                                                 @RequestParam(required = false, defaultValue = "20") Integer limit) {
+    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getListMessages(@PathVariable Long id,
+                                                                                       @RequestParam(required = false, defaultValue = "") String query,
+                                                                                       @RequestParam(required = false, defaultValue = "0") Integer offset,
+                                                                                       @RequestParam(required = false, defaultValue = "20") Integer limit) {
         return ResponseEntity.ok(dialogService.getMessagesByDialogId(id, query, offset, limit));
     }
 

@@ -19,7 +19,7 @@ public interface DialogService {
     public ErrorTimeDataResponse deleteUsersFromDialog(Long dialogId, List<Long> userIds);
     public ErrorTimeDataResponse getInviteLink(Long dialogId);
     public ErrorTimeDataResponse joinByInvite(Long dialogId, LinkRequest inviteLink);
-    public ErrorTimeDataResponse getMessagesByDialogId(Long id, String query, Integer offset, Integer limit);
+    public ErrorTimeTotalOffsetPerPageListDataResponse getMessagesByDialogId(Long id, String query, Integer offset, Integer limit);
     public ErrorTimeDataResponse sendMessage(Long id, MessageTextRequest messageTextRequest);
     public ErrorTimeDataResponse getPersonStatus(Long dialogId, Long personId);
     public ErrorTimeDataResponse deleteDialog(Long id);
