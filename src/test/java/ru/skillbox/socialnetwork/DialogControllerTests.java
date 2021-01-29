@@ -408,7 +408,7 @@ public class DialogControllerTests {
     }
 
     @Test
-    public void messageSendChangeDeleteSuccess() throws Exception {
+    public void messageAllSuccess() throws Exception {
         Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
 
         // send new message
@@ -434,7 +434,7 @@ public class DialogControllerTests {
 
         // modify message
         messageTextRequest.setMessageText(testModifiedMessage);
-        MvcResult resultChange = this.mockMvc.perform(put(String.format("/dialogs/%d/messages/%d", dialog.getId(), messageId))
+        this.mockMvc.perform(put(String.format("/dialogs/%d/messages/%d", dialog.getId(), messageId))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(messageTextRequest)))
                 .andDo(print())
@@ -443,18 +443,36 @@ public class DialogControllerTests {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.data.message_text").value(testModifiedMessage))
-                .andExpect(jsonPath("$.data.read_status").value("SENT"))
-                .andReturn();
+                .andExpect(jsonPath("$.data.read_status").value("SENT"));
 
-        // delete message
-        MvcResult resultDelete = this.mockMvc.perform(delete(String.format("/dialogs/%d/messages/%d", dialog.getId(), messageId)))
+        // mark read
+        this.mockMvc.perform(put(String.format("/dialogs/%d/messages/%d/read", dialog.getId(), messageId)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value(""))
-                .andExpect(jsonPath("$.data.message_id").value(messageId))
-                .andReturn();
+                .andExpect(jsonPath("$.data.message").value("ok"));
+
+        // delete message
+        this.mockMvc.perform(delete(String.format("/dialogs/%d/messages/%d", dialog.getId(), messageId)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message_id").value(messageId));
+
+        // restore message
+        this.mockMvc.perform(put(String.format("/dialogs/%d/messages/%d/recover", dialog.getId(), messageId)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.id").value(messageId))
+                .andExpect(jsonPath("$.data.message_text").value(testModifiedMessage))
+        ;
     }
 
     @Test

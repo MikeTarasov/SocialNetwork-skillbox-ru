@@ -233,6 +233,26 @@ public class DialogServiceImpl implements DialogService {
     }
 
     @Override
+    public ErrorTimeDataResponse recoverMessage(Long dialogId, Long messageId) {
+        dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new MessageNotFoundException(messageId));
+        message.setIsDeleted(0);
+        messageRepository.save(message);
+        return new ErrorTimeDataResponse("", messageToResponse(message));
+    }
+
+    @Override
+    public ErrorTimeDataResponse markReadMessage(Long dialogId, Long messageId) {
+        dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new MessageNotFoundException(messageId));
+        message.setReadStatus(ReadStatus.READ.toString());
+        messageRepository.save(message);
+        return new ErrorTimeDataResponse("", new MessageResponse());
+    }
+
+    @Override
     public ErrorTimeDataResponse changeMessage(Long dialogId, Long messageId, MessageTextRequest messageTextRequest) {
         dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
         Message message = messageRepository.findById(messageId)

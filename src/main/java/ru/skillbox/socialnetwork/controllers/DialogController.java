@@ -90,6 +90,16 @@ public class DialogController {
                                                                @RequestBody MessageTextRequest messageTextRequest) {
         return ResponseEntity.ok(dialogService.changeMessage(dialogId, messageId, messageTextRequest));
     }
+    @PutMapping("/{dialogId}/messages/{messageId}/recover")
+    public ResponseEntity<ErrorTimeDataResponse> recoverMessage(@PathVariable Long dialogId,
+                                                               @PathVariable Long messageId) {
+        return ResponseEntity.ok(dialogService.recoverMessage(dialogId, messageId));
+    }
+    @PutMapping("/{dialogId}/messages/{messageId}/read")
+    public ResponseEntity<ErrorTimeDataResponse> markReadMessage(@PathVariable Long dialogId,
+                                                               @PathVariable Long messageId) {
+        return ResponseEntity.ok(dialogService.markReadMessage(dialogId, messageId));
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ErrorTimeDataResponse> deleteDialog(@PathVariable Long id) {

@@ -24,5 +24,7 @@ public interface DialogService {
     public ErrorTimeDataResponse getPersonStatus(Long dialogId, Long personId);
     public ErrorTimeDataResponse deleteDialog(Long id);
     public ErrorTimeDataResponse deleteMessage(Long dialogId, Long messageId);
+    public ErrorTimeDataResponse recoverMessage(Long dialogId, Long messageId);
+    public ErrorTimeDataResponse markReadMessage(Long dialogId, Long messageId);
     public ErrorTimeDataResponse changeMessage(Long dialogId, Long messageId, MessageTextRequest messageTextRequest);
 }
