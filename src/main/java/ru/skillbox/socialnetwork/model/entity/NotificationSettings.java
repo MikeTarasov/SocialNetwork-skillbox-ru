@@ -12,7 +12,6 @@ import javax.persistence.*;
 @AllArgsConstructor
 @Builder
 @Entity
-@Builder
 @Table(name = "notification_settings")
 public class NotificationSettings {
 
