@@ -339,7 +339,7 @@ public class AccountControllerTests {
         Person person = personOptional.get();
         accountService.setDefaultNotifySettings(person);
 
-        NotificationTypeEnableRequest request = new NotificationTypeEnableRequest("POST", true);
+        NotificationTypeEnableRequest request = new NotificationTypeEnableRequest("POST", false);
 
         expectOK(mvc.perform(MockMvcRequestBuilders
                 .put("/account/notifications")
@@ -352,7 +352,7 @@ public class AccountControllerTests {
         assertTrue(notificationType.isPresent());
         NotificationSettings notificationSetting =
                 notificationSettingsRepository.findByPersonNSAndNotificationType(person, notificationType.get());
-        assertTrue(notificationSetting.getIsEnable());
+        assertFalse(notificationSetting.getIsEnable());
 
         clearContext();
         delete(email);
@@ -370,6 +370,29 @@ public class AccountControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, jwtToken)
                 .content(objectMapper.writeValueAsString(request))), "Wrong notification type");
+
+        clearContext();
+        delete(email);
+    }
+
+    @Test
+    void testGetApiAccountNotifications200() throws Exception {
+        save(email, testPerson);
+        String jwtToken = auth();
+        Optional<Person> personOptional = personRepository.findByEmail(email);
+        assertTrue(personOptional.isPresent());
+        Person person = personOptional.get();
+        accountService.setDefaultNotifySettings(person);
+
+        mvc.perform(MockMvcRequestBuilders
+                .get("/account/notifications")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, jwtToken))
+
+                .andExpect(status().is(200))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data").isArray());
 
         clearContext();
         delete(email);
