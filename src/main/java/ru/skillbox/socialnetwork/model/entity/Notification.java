@@ -4,6 +4,8 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 @Data
 @Entity
@@ -33,4 +35,8 @@ public class Notification {
 
     @Column(name = "is_read", nullable = false)
     private int isRead;
+
+    public long getTimeStamp() {
+        return time.toInstant(ZoneOffset.of(String.valueOf(ZoneId.systemDefault()))).toEpochMilli();
+    }
 }

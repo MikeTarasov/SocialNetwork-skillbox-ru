@@ -56,7 +56,7 @@ public class NotificationsService {
             if (listTypeIdsEnableSettings.contains(typeId)) {
 
                 long id = notification.getId();
-                long sentTime = 0L;
+                long sentTime = notification.getTimeStamp();
                 long entityId = notification.getEntityId();
                 String info = "";
 
@@ -65,7 +65,6 @@ public class NotificationsService {
                         Optional<Post> optionalPost = postRepository.findById(entityId);
                         if (optionalPost.isEmpty()) break;
                         Post post = optionalPost.get();
-                        sentTime = post.getTimestamp();
                         info = "New post ".concat(post.getTitle()).concat(" from user ")
                                 .concat(post.getAuthor().getFirstName());
                         break;
@@ -74,7 +73,6 @@ public class NotificationsService {
                         Optional<PostComment> optionalComment = postCommentRepository.findById(entityId);
                         if (optionalComment.isEmpty()) break;
                         PostComment comment = optionalComment.get();
-                        sentTime = comment.getTimestamp();
                         info = "New Comment ".concat(comment.getCommentText().substring(0, notificationTextLength))
                                 .concat(" from user ").concat(comment.getPerson().getFirstName());
                         break;
@@ -82,7 +80,6 @@ public class NotificationsService {
                         Optional<Friendship> optionalFriendship = friendshipRepository.findById(entityId);
                         if (optionalFriendship.isEmpty()) break;
                         Friendship friendship = optionalFriendship.get();
-                        sentTime = System.currentTimeMillis();
                         info = "User ".concat(friendship.getSrcPerson().getFirstName()).concat(" ")
                                 .concat(friendship.getSrcPerson().getLastName()).concat(" offers friendship");
                         break;
@@ -90,7 +87,6 @@ public class NotificationsService {
                         Optional<Message> optionalMessage = messageRepository.findById(entityId);
                         if (optionalMessage.isEmpty()) break;
                         Message message = optionalMessage.get();
-                        sentTime = message.getTimestamp();
                         info = "New message ".concat(message.getText()).substring(0, notificationTextLength)
                                 .concat(" from user ").concat(message.getAuthor().getFirstName());
                         break;
