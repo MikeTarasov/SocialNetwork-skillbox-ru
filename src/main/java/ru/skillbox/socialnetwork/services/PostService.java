@@ -17,15 +17,14 @@ import ru.skillbox.socialnetwork.model.entity.PostComment;
 import ru.skillbox.socialnetwork.repository.CommentRepository;
 import ru.skillbox.socialnetwork.repository.PostLikeRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
+import ru.skillbox.socialnetwork.security.PersonDetailsService;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.TimeZone;
 
 @Service
 @Transactional
@@ -38,15 +37,15 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
     private final CommentRepository commentRepository;
-    private final AccountService accountService;
+    private final PersonDetailsService personDetailsService;
 
     @Autowired
     public PostService(PostRepository postRepository, PostLikeRepository postLikeRepository,
-                       CommentRepository commentRepository, AccountService accountService) {
+                       CommentRepository commentRepository, PersonDetailsService personDetailsService) {
         this.postRepository = postRepository;
         this.postLikeRepository = postLikeRepository;
         this.commentRepository = commentRepository;
-        this.accountService = accountService;
+        this.personDetailsService = personDetailsService;
     }
 
     public ResponseEntity<?> getApiPost(String text, long dateFrom, long dateTo,

@@ -53,7 +53,7 @@ public class PostControllerTests {
             email, "+71234567890", encoder.encode(password), "pictures.org/photo.jpg",
             "smth about author", "Ufa", "Russian Federation", "some confirmation code",
             1, "ALL", LocalDateTime.of(2020, 5, 5, 5, 30, 00),
-            0, 0, 0, new ArrayList<>(), new ArrayList<>());
+            0, 0, 0, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
 
     private Post testPost = new Post(0, LocalDateTime.of(2021, 1, 1, 15, 30, 00),
             testPerson, "Test post title", "Test post text", 0, 0, new ArrayList<>());
