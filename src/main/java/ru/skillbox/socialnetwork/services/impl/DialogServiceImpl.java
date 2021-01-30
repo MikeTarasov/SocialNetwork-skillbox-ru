@@ -219,6 +219,15 @@ public class DialogServiceImpl implements DialogService {
     }
 
     @Override
+    public ErrorTimeDataResponse setPersonStatus(Long dialogId, Long personId) {
+        // MOCK
+        dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
+        personRepository.findById(personId).orElseThrow(() -> new PersonNotFoundException(personId));
+
+        return new ErrorTimeDataResponse("", new MessageResponse());
+    }
+
+    @Override
     public ErrorTimeDataResponse deleteDialog(Long id) {
         if (dialogRepository.findById(id).isEmpty())
             throw new DialogNotFoundException(id);
@@ -267,6 +276,16 @@ public class DialogServiceImpl implements DialogService {
         message.setText(messageTextRequest.getMessageText());
         messageRepository.save(message);
         return new ErrorTimeDataResponse("", messageToResponse(message));
+    }
+
+    @Override
+    public ErrorTimeDataResponse getNewMessagesCount() {
+        Person person = accountService.getCurrentUser();
+        Long count = person.getMessages().stream().filter(
+                    readStatus -> readStatus.getReadStatus().equals(ReadStatus.SENT.toString())
+                    ).count();
+
+        return new ErrorTimeDataResponse("", new CountResponse(count));
     }
 
     private String getRandomString(int length) {

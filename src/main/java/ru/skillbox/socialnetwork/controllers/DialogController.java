@@ -65,6 +65,11 @@ public class DialogController {
         return ResponseEntity.ok(dialogService.getPersonStatus(id, PersonId));
     }
 
+    @PostMapping("/{id}/activity/{user_id}")
+    public ResponseEntity<ErrorTimeDataResponse> setPersonActivity(@PathVariable Long id, @PathVariable(name = "user_id") Long PersonId) {
+        return ResponseEntity.ok(dialogService.setPersonStatus(id, PersonId));
+    }
+
     @GetMapping("/{id}/messages")
     public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getListMessages(@PathVariable Long id,
                                                                                        @RequestParam(required = false, defaultValue = "") String query,
@@ -104,5 +109,10 @@ public class DialogController {
     @DeleteMapping("/{id}")
     public ResponseEntity<ErrorTimeDataResponse> deleteDialog(@PathVariable Long id) {
         return ResponseEntity.ok(dialogService.deleteDialog(id));
+    }
+
+    @GetMapping("/unreaded")
+    public ResponseEntity<ErrorTimeDataResponse> getNewMessagesCount() {
+        return ResponseEntity.ok(dialogService.getNewMessagesCount());
     }
 }

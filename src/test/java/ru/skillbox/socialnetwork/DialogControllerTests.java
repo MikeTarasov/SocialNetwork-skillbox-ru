@@ -17,7 +17,6 @@ import ru.skillbox.socialnetwork.controllers.DialogController;
 import ru.skillbox.socialnetwork.model.entity.Dialog;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.PersonToDialog;
-import ru.skillbox.socialnetwork.model.enums.ReadStatus;
 import ru.skillbox.socialnetwork.repository.DialogRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.repository.PersonToDialogRepository;
@@ -381,6 +380,49 @@ public class DialogControllerTests {
     @Test
     @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void setPersonActivityTrueTest() throws Exception {
+        this.mockMvc.perform(post("/dialogs/1/activity/9"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message").value("ok"));
+    }
+
+    @Test
+    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void setPersonActivityWrongPersonTest() throws Exception {
+        this.mockMvc.perform(post("/dialogs/1/activity/10"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("invalid person ID: 10"))
+                .andExpect(jsonPath("$.data.message").doesNotExist());
+
+    }
+
+    @Test
+    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void setPersonActivityWrongDialogTest() throws Exception {
+        this.mockMvc.perform(post("/dialogs/2/activity/9"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("invalid dialog ID: 2"))
+                .andExpect(jsonPath("$.data.message").doesNotExist());
+
+    }
+
+    @Test
+    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void deleteDialogTest() throws Exception {
         long dialogId = 1L;
         this.mockMvc.perform(delete("/dialogs/" + dialogId))
@@ -588,4 +630,18 @@ public class DialogControllerTests {
                 .andExpect(jsonPath("$.error_description").value("Can't set empty message! Message ID: " + messageId))
                 .andReturn();
     }
+
+    @Test
+    @Sql(value = {"/AddUsersForDialogs.sql", "/Add3DialogsWithMessages.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getNewMessagesCount() throws Exception {
+        this.mockMvc.perform(get("/dialogs/unreaded"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.count").value("5"));
+    }
+
 }

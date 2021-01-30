@@ -81,6 +81,9 @@ public class Person {
     @OneToMany(mappedBy = "personNotification")
     private List<Notification> notificationPersons;
 
+    @OneToMany(mappedBy = "recipient", fetch = FetchType.LAZY)
+    private List<Message> messages;
+
     public boolean isBlocked() {
         return isBlocked == 1;
     }
@@ -97,4 +100,6 @@ public class Person {
         this.lastName = lastName;
         this.regDate = regDate;
     }
+
+
 }
