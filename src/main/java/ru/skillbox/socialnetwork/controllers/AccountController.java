@@ -57,4 +57,9 @@ public class AccountController {
 
         return accountService.putApiAccountNotifications(requestBody);
     }
+
+    @GetMapping("/notifications")
+    public ResponseEntity<?> getApiAccountNotifications() {
+        return accountService.getApiAccountNotifications();
+    }
 }

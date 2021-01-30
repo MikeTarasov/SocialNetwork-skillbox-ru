@@ -13,7 +13,7 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    private final int millisInMinute = 60 * 1000;
+    private final long millisInMinute = 60 * 1000;
     private final JwtConfig jwtConfig;
 
     public JwtTokenProvider(JwtConfig jwtConfig) {

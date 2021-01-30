@@ -10,8 +10,8 @@ import javax.persistence.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
 @Builder
+@Entity
 @Table(name = "notification_settings")
 public class NotificationSettings {
 
@@ -19,13 +19,21 @@ public class NotificationSettings {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "notification_type_id")
     private NotificationType notificationType;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "person_id")
     private Person personNS;
 
     private int enable;
+
+    public void setEnable(boolean isEnable) {
+        this.enable = isEnable ? 1 : 0;
+    }
+
+    public boolean getIsEnable() {
+        return enable == 1;
+    }
 }

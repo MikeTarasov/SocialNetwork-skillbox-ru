@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 @Data
 @AllArgsConstructor
@@ -66,5 +68,9 @@ public class PostComment {
 
     public void setIsDeleted(boolean isDeleted) {
         this.isDeleted = isDeleted ? 1 : 0;
+    }
+
+    public long getTimestamp() {
+        return time.toInstant(ZoneOffset.of(String.valueOf(ZoneId.systemDefault()))).toEpochMilli();
     }
 }
