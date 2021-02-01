@@ -7,5 +7,5 @@ create table message
     message_text text,
     read_status  varchar(255),
     dialog_id    bigint REFERENCES message (id),
-    is_deleted   int2
+    is_deleted int4
 );

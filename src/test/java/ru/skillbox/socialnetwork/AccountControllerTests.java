@@ -17,10 +17,16 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.skillbox.socialnetwork.api.requests.EmailPassPassFirstNameLastNameCodeRequest;
 import ru.skillbox.socialnetwork.api.requests.EmailRequest;
+import ru.skillbox.socialnetwork.api.requests.NotificationTypeEnableRequest;
 import ru.skillbox.socialnetwork.api.requests.TokenPasswordRequest;
+import ru.skillbox.socialnetwork.model.entity.NotificationSettings;
+import ru.skillbox.socialnetwork.model.entity.NotificationType;
 import ru.skillbox.socialnetwork.model.entity.Person;
+import ru.skillbox.socialnetwork.repository.NotificationSettingsRepository;
+import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.security.JwtTokenProvider;
+import ru.skillbox.socialnetwork.services.AccountService;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -46,6 +52,12 @@ public class AccountControllerTests {
     private PersonRepository personRepository;
 
     @Autowired
+    private NotificationSettingsRepository notificationSettingsRepository;
+
+    @Autowired
+    private NotificationTypeRepository notificationTypeRepository;
+
+    @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
     @Autowired
@@ -54,8 +66,12 @@ public class AccountControllerTests {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private void delete(String email, Person person) {
-        if (personRepository.findByEmail(email).isPresent()) personRepository.delete(person);
+    @Autowired
+    private AccountService accountService;
+
+    private void delete(String email) {
+        Optional<Person> optionalPerson = personRepository.findByEmail(email);
+        optionalPerson.ifPresent(person -> personRepository.delete(person));
     }
 
     private void deleteOptional(boolean isPresent) {
@@ -65,7 +81,7 @@ public class AccountControllerTests {
     }
 
     private void save(String email, Person person) {
-        delete(email, testPerson);
+        delete(email);
         if (personRepository.findByEmail(email).isEmpty()) personRepository.save(person);
     }
 
@@ -88,7 +104,7 @@ public class AccountControllerTests {
 
     private void expectError(ResultActions resultActions, String description) throws Exception {
         resultActions
-                .andExpect(status().is(200))
+                .andExpect(status().is(400))
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value("invalid_request"))
                 .andExpect(jsonPath("$.error_description").value(description));
@@ -97,7 +113,7 @@ public class AccountControllerTests {
 
     @Test
     void testPostApiAccountRegister_200() throws Exception {
-        delete(email, testPerson);
+        delete(email);
 
         EmailPassPassFirstNameLastNameCodeRequest request = new EmailPassPassFirstNameLastNameCodeRequest(
                 email, password, password, firstName, lastName, "1234");
@@ -114,7 +130,7 @@ public class AccountControllerTests {
 
     @Test
     void testPostApiAccountRegister_WrongPass() throws Exception {
-        delete(email, testPerson);
+        delete(email);
 
         EmailPassPassFirstNameLastNameCodeRequest request = new EmailPassPassFirstNameLastNameCodeRequest(
                 email, password, "password", firstName, lastName, "1234");
@@ -131,7 +147,7 @@ public class AccountControllerTests {
 
     @Test
     void testPostApiAccountRegister_WrongEmail() throws Exception {
-        delete(email, testPerson);
+        delete(email);
 
         EmailPassPassFirstNameLastNameCodeRequest request = new EmailPassPassFirstNameLastNameCodeRequest(
                 "email", password, password, firstName, lastName, "1234");
@@ -148,7 +164,7 @@ public class AccountControllerTests {
 
     @Test
     void testPostApiAccountRegister_WrongName() throws Exception {
-        delete(email, testPerson);
+        delete(email);
 
         EmailPassPassFirstNameLastNameCodeRequest request = new EmailPassPassFirstNameLastNameCodeRequest(
                 email, password, password, "firstName*/-+-/*", lastName, "1234");
@@ -191,15 +207,12 @@ public class AccountControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))));
 
-        Person person = personRepository.findByEmail(email1).orElse(new Person());
-        assertNotNull(person.getConfirmationCode());
-
-        delete(email1, test);
+        delete(email1);
     }
 
     @Test
     void testPutApiAccountPasswordRecovery_EmailNotRegistered() throws Exception {
-        delete(email, testPerson);
+        delete(email);
 
         EmailRequest request = new EmailRequest(email);
 
@@ -208,12 +221,12 @@ public class AccountControllerTests {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))), "This email is not registered!");
 
-        delete(email, testPerson);
+        delete(email);
     }
 
     @Test
     void testPutApiAccountPasswordSet_Security_OK() throws Exception {
-        delete(email, testPerson);
+        delete(email);
         testPerson.setConfirmationCode(token);
         personRepository.save(testPerson);
         String jwtToken = auth();
@@ -229,7 +242,7 @@ public class AccountControllerTests {
         assertTrue(encoder.matches((password + 1), person.getPassword()));
         assertNull(person.getConfirmationCode());
 
-        delete(email, testPerson);
+        delete(email);
         clearContext();
     }
 
@@ -261,7 +274,7 @@ public class AccountControllerTests {
         Person person = personRepository.findByEmail(email).orElse(new Person());
         assertTrue(encoder.matches(password, person.getPassword()));
 
-        delete(email, testPerson);
+        delete(email);
         clearContext();
     }
 
@@ -282,7 +295,7 @@ public class AccountControllerTests {
         assertTrue(person.isPresent());
 
         clearContext();
-        delete(1 + email, testPerson);
+        delete(1 + email);
     }
 
     @Test
@@ -314,6 +327,74 @@ public class AccountControllerTests {
         assertTrue(person.isPresent());
 
         clearContext();
-        delete(email, testPerson);
+        delete(email);
+    }
+
+    @Test
+    void testPutApiAccountNotifications200() throws Exception {
+        save(email, testPerson);
+        String jwtToken = auth();
+        Optional<Person> personOptional = personRepository.findByEmail(email);
+        assertTrue(personOptional.isPresent());
+        Person person = personOptional.get();
+        accountService.setDefaultNotifySettings(person);
+
+        NotificationTypeEnableRequest request = new NotificationTypeEnableRequest("POST", false);
+
+        expectOK(mvc.perform(MockMvcRequestBuilders
+                .put("/account/notifications")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, jwtToken)
+                .content(objectMapper.writeValueAsString(request))));
+
+        Optional<NotificationType> notificationType = notificationTypeRepository.findByName("POST");
+
+        assertTrue(notificationType.isPresent());
+        NotificationSettings notificationSetting =
+                notificationSettingsRepository.findByPersonNSAndNotificationType(person, notificationType.get());
+        assertFalse(notificationSetting.getIsEnable());
+
+        clearContext();
+        delete(email);
+    }
+
+    @Test
+    void testPutApiAccountNotifications400() throws Exception {
+        save(email, testPerson);
+        String jwtToken = auth();
+
+        NotificationTypeEnableRequest request = new NotificationTypeEnableRequest("test", true);
+
+        expectError(mvc.perform(MockMvcRequestBuilders
+                .put("/account/notifications")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, jwtToken)
+                .content(objectMapper.writeValueAsString(request))), "Wrong notification type");
+
+        clearContext();
+        delete(email);
+    }
+
+    @Test
+    void testGetApiAccountNotifications200() throws Exception {
+        save(email, testPerson);
+        String jwtToken = auth();
+        Optional<Person> personOptional = personRepository.findByEmail(email);
+        assertTrue(personOptional.isPresent());
+        Person person = personOptional.get();
+        accountService.setDefaultNotifySettings(person);
+
+        mvc.perform(MockMvcRequestBuilders
+                .get("/account/notifications")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, jwtToken))
+
+                .andExpect(status().is(200))
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data").isArray());
+
+        clearContext();
+        delete(email);
     }
 }

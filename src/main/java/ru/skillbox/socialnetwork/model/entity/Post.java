@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Data
@@ -47,4 +49,7 @@ public class Post {
             CascadeType.DETACH, CascadeType.REFRESH})
     private List<PostComment> comments;
 
+    public long getTimestamp() {
+        return time.toInstant(ZoneOffset.of(String.valueOf(ZoneId.systemDefault()))).toEpochMilli();
+    }
 }

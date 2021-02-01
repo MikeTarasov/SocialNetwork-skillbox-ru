@@ -11,10 +11,10 @@ public class NotificationBaseResponse {
 
   private long id;
   @JsonProperty("type_id")
-  private int typeId;
+  private long typeId;
   @JsonProperty("sent_time")
   private long sentTime;
   @JsonProperty("entity_id")
-  private int entityId;
+  private long entityId;
   private String info;
 }

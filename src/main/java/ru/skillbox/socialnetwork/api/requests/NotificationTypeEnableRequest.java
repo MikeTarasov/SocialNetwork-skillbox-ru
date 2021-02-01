@@ -13,9 +13,4 @@ public class NotificationTypeEnableRequest {
   @JsonProperty("notification_type")
   private String notificationType;
   private boolean enable;
-
-
-  public int isEnable(){
-    return this.enable ? 1 : 0;
-  }
 }
