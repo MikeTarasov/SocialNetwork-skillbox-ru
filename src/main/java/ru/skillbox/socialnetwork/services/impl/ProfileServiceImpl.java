@@ -14,7 +14,7 @@ import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
-import ru.skillbox.socialnetwork.services.AccountService;
+import ru.skillbox.socialnetwork.security.PersonDetailsService;
 import ru.skillbox.socialnetwork.services.ProfileService;
 import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
@@ -28,13 +28,13 @@ import java.util.TimeZone;
 public class ProfileServiceImpl implements ProfileService {
 
     private final PersonRepository personRepository;
-    private final AccountService accountService;
+    private final PersonDetailsService personDetailsService;
     private final PostRepository postRepository;
 
     @Autowired
-    public ProfileServiceImpl(PersonRepository personRepository, AccountService accountService, PostRepository postRepository) {
+    public ProfileServiceImpl(PersonRepository personRepository, PersonDetailsService personDetailsService, PostRepository postRepository) {
         this.personRepository = personRepository;
-        this.accountService = accountService;
+        this.personDetailsService = personDetailsService;
         this.postRepository = postRepository;
     }
 
@@ -48,7 +48,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     private Person getCurrentUserAsPerson() {
-        return accountService.getCurrentUser();
+        return personDetailsService.getCurrentUser();
     }
 
     public ErrorTimeDataResponse getCurrentUser() {

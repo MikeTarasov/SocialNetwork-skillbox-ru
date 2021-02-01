@@ -5,5 +5,5 @@ create table notification(
                              person_id bigint                NOT NULL REFERENCES person (id),
                              entity_id bigint,
                              contact   varchar(255),
-                             is_read int2
+                             is_read int4
 );

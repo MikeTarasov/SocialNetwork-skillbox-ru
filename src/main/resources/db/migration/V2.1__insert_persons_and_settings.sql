@@ -30,16 +30,27 @@ insert into notification_type (id, code, name)
 values (4, 4, 'FRIEND_REQUEST');
 insert into notification_type (id, code, name)
 values (5, 5, 'MESSAGE');
+insert into notification_type (id, code, name)
+values (6, 6, 'FRIEND_BIRTHDAY');
 
-insert into notification_settings (id, person_id, notification_type_id, enable) values (1, 1, 1, 1);
-insert into notification_settings (id, person_id, notification_type_id, enable) values (2, 1, 2, 1);
-insert into notification_settings (id, person_id, notification_type_id, enable) values (3, 1, 3, 0);
-insert into notification_settings (id, person_id, notification_type_id, enable) values (4, 1, 4, 1);
-insert into notification_settings (id, person_id, notification_type_id, enable) values (5, 1, 5, 0);
-insert into notification_settings (id, person_id, notification_type_id, enable) values (6, 2, 1, 1);
-insert into notification_settings (id, person_id, notification_type_id, enable) values (7, 2, 2, 1);
-insert into notification_settings (id, person_id, notification_type_id, enable) values (8, 2, 3, 1);
-insert into notification_settings (id, person_id, notification_type_id, enable) values (9, 2, 4, 1);
+insert into notification_settings (id, person_id, notification_type_id, enable)
+values (1, 1, 1, 1);
+insert into notification_settings (id, person_id, notification_type_id, enable)
+values (2, 1, 2, 1);
+insert into notification_settings (id, person_id, notification_type_id, enable)
+values (3, 1, 3, 0);
+insert into notification_settings (id, person_id, notification_type_id, enable)
+values (4, 1, 4, 1);
+insert into notification_settings (id, person_id, notification_type_id, enable)
+values (5, 1, 5, 0);
+insert into notification_settings (id, person_id, notification_type_id, enable)
+values (6, 2, 1, 1);
+insert into notification_settings (id, person_id, notification_type_id, enable)
+values (7, 2, 2, 1);
+insert into notification_settings (id, person_id, notification_type_id, enable)
+values (8, 2, 3, 1);
+insert into notification_settings (id, person_id, notification_type_id, enable)
+values (9, 2, 4, 1);
 insert into notification_settings (id, person_id, notification_type_id, enable) values (10, 2, 5, 1);
 insert into notification_settings (id, person_id, notification_type_id, enable) values (11, 3, 1, 0);
 insert into notification_settings (id, person_id, notification_type_id, enable) values (12, 3, 2, 0);
