@@ -196,9 +196,7 @@ public class PostService {
                 requestBody.getCommentText(),
                 false,
                 false,
-                personDetailsService.getCurrentUser()
-                //accountService.getCurrentUser() - пока что не работает
-                postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now()).get().getAuthor(),
+                personDetailsService.getCurrentUser(),
                 postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now()).get()
         ));
 
