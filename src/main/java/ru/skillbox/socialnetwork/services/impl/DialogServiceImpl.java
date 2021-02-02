@@ -19,34 +19,37 @@ import ru.skillbox.socialnetwork.repository.DialogRepository;
 import ru.skillbox.socialnetwork.repository.MessageRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.repository.PersonToDialogRepository;
-import ru.skillbox.socialnetwork.services.AccountService;
+import ru.skillbox.socialnetwork.security.PersonDetailsService;
 import ru.skillbox.socialnetwork.services.DialogService;
 import ru.skillbox.socialnetwork.services.exceptions.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.TimeZone;
 
 @Service
 public class DialogServiceImpl implements DialogService {
     private final PersonRepository personRepository;
     private final DialogRepository dialogRepository;
     private final PersonToDialogRepository personToDialogRepository;
-    private final AccountService accountService;
+    private final PersonDetailsService personDetailsService;
     private final MessageRepository messageRepository;
 
     @Autowired
-    public DialogServiceImpl(PersonRepository personRepository, DialogRepository dialogRepository, PersonToDialogRepository personToDialogRepository, AccountService accountService, MessageRepository messageRepository) {
+    public DialogServiceImpl(PersonRepository personRepository, DialogRepository dialogRepository, PersonToDialogRepository personToDialogRepository, PersonDetailsService personDetailsService, MessageRepository messageRepository) {
         this.personRepository = personRepository;
         this.dialogRepository = dialogRepository;
         this.personToDialogRepository = personToDialogRepository;
-        this.accountService = accountService;
+        this.personDetailsService = personDetailsService;
         this.messageRepository = messageRepository;
     }
 
     @Override
     public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList(DialogRequest dialogRequest) {
-        Person currentUser = accountService.getCurrentUser();
+        Person currentUser = personDetailsService.getCurrentUser();
         // find where the user is participant
         List<PersonToDialog> personToDialogs = personToDialogRepository.findByPerson(currentUser);
         List<Long> dialogIdsList = new ArrayList<>();
@@ -80,7 +83,7 @@ public class DialogServiceImpl implements DialogService {
         for (long id : userIds) {
             personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
         }
-        Person owner = accountService.getCurrentUser();
+        Person owner = personDetailsService.getCurrentUser();
         Dialog dialog = new Dialog();
         dialog.setIsDeleted(0);
         dialog.setUnreadCount(0);
@@ -153,7 +156,7 @@ public class DialogServiceImpl implements DialogService {
     public ErrorTimeDataResponse joinByInvite(Long dialogId, LinkRequest inviteLink) {
         Dialog dialog = dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
         List<Long> idsList = new ArrayList<>();
-        idsList.add(accountService.getCurrentUser().getId());
+        idsList.add(personDetailsService.getCurrentUser().getId());
         if (inviteLink.getLink().equals(dialog.getInviteCode())) {
             return addUsersToDialog(dialogId, idsList);
         } else {
@@ -184,7 +187,7 @@ public class DialogServiceImpl implements DialogService {
         LocalDateTime timeMessage = LocalDateTime.ofInstant(Instant
                         .ofEpochMilli(System.currentTimeMillis()),
                 TimeZone.getDefault().toZoneId());
-        long authorId = accountService.getCurrentUser().getId();
+        long authorId = personDetailsService.getCurrentUser().getId();
         message.setAuthor(personRepository.findById(authorId)
                 .orElseThrow(() -> new PersonNotFoundException(authorId)));
 
@@ -280,7 +283,7 @@ public class DialogServiceImpl implements DialogService {
 
     @Override
     public ErrorTimeDataResponse getNewMessagesCount() {
-        Person person = accountService.getCurrentUser();
+        Person person = personDetailsService.getCurrentUser();
         Long count = person.getMessages().stream().filter(
                     readStatus -> readStatus.getReadStatus().equals(ReadStatus.SENT.toString())
                     ).count();
