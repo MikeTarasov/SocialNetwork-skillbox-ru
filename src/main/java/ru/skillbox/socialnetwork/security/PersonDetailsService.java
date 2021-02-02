@@ -1,6 +1,8 @@
 package ru.skillbox.socialnetwork.security;
 
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -10,7 +12,7 @@ import ru.skillbox.socialnetwork.repository.PersonRepository;
 import java.util.Optional;
 
 @Service
-class PersonDetailsService implements UserDetailsService {
+public class PersonDetailsService implements UserDetailsService {
 
     private final PersonRepository personRepository;
 
@@ -26,5 +28,23 @@ class PersonDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException(" - User with : " + email + " not found");
         }
         return PersonDetails.fromUser(per.get());
+    }
+
+    public Person getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        if (auth == null) {
+            throw new SecurityException("Session is not authorized");
+        }
+
+        String email = auth.getName();
+
+        Optional<Person> per = personRepository.findByEmail(email);
+
+        if (per.isEmpty()) {
+            throw new UsernameNotFoundException(" - User with : " + email + " not found");
+        }
+
+        return per.get();
     }
 }

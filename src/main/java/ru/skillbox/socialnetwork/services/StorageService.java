@@ -2,11 +2,6 @@ package ru.skillbox.socialnetwork.services;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +10,13 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 import ru.skillbox.socialnetwork.api.responses.FileUploadResponse;
 import ru.skillbox.socialnetwork.model.enums.FileType;
+import ru.skillbox.socialnetwork.security.PersonDetailsService;
+
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class StorageService {
@@ -31,25 +33,24 @@ public class StorageService {
   @Value("#{'${upload.file.types}'.split(',')}")
   private List<String> uploadFileTypes;
 
-  private final AccountService accountService;
+  private final PersonDetailsService personDetailsService;
 
-  public StorageService(AccountService accountService) {
-    this.accountService = accountService;
+  public StorageService(PersonDetailsService personDetailsService) {
+    this.personDetailsService = personDetailsService;
   }
 
 
-
-  public ResponseEntity<?> getUpload(String type, MultipartFile file){
+  public ResponseEntity<?> getUpload(String type, MultipartFile file) {
     try {
       validateFile(file);
       Cloudinary cloudinary = new Cloudinary(makeConfig());
       Map res = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
 
       return ResponseEntity.status(HttpStatus.OK)
-          .body(new ErrorTimeDataResponse(
-              "",
-              System.currentTimeMillis(),
-              makeFileUploadResponse(res)));
+              .body(new ErrorTimeDataResponse(
+                      "",
+                      System.currentTimeMillis(),
+                      makeFileUploadResponse(res)));
 
     }catch (Exception e) {
       e.printStackTrace();
@@ -81,8 +82,8 @@ public class StorageService {
 
   private FileUploadResponse makeFileUploadResponse(Map<?, ?> res) {
     return FileUploadResponse.builder()
-        .id((String) res.get("public_id"))
-        .ownerId(accountService.getCurrentUser().getId())
+            .id((String) res.get("public_id"))
+            .ownerId(personDetailsService.getCurrentUser().getId())
         .fileName((String) res.get("original_filename"))
         .relativeFilePath((String) res.get("secure_url"))
         .rawFileURL((String) res.get("secure_url"))

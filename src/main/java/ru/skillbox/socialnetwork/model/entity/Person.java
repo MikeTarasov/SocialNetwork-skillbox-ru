@@ -7,6 +7,7 @@ import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -75,23 +76,22 @@ public class Person {
     @Column(name = "is_deleted")
     private int isDeleted;
 
-    @OneToMany(mappedBy = "personNS", orphanRemoval = true)
-    private List<NotificationSettings> notificationSettings;
+    @OneToMany(mappedBy = "personNS", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NotificationSettings> notificationSettings = new ArrayList<>();
 
-    @OneToMany(mappedBy = "personNotification")
-    private List<Notification> notificationPersons;
+    @OneToMany(mappedBy = "personNotification", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notificationPersons = new ArrayList<>();
 
     @OneToMany(mappedBy = "recipient", fetch = FetchType.LAZY)
     private List<Message> messages;
 
-    public boolean isBlocked() {
-        return isBlocked == 1;
-    }
+    @Transient
+    @OneToMany(mappedBy = "srcPerson", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Friendship> friendshipsSrc = new ArrayList<>();
 
-    public boolean isDeleted() {
-        return isDeleted == 1;
-    }
-
+    @Transient
+    @OneToMany(mappedBy = "dstPerson", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Friendship> friendshipsDst = new ArrayList<>();
 
     public Person(String email, String password, String firstName, String lastName, LocalDateTime regDate) {
         this.email = email;
@@ -101,5 +101,11 @@ public class Person {
         this.regDate = regDate;
     }
 
+    public boolean isBlocked() {
+        return isBlocked == 1;
+    }
 
+    public boolean isDeleted() {
+        return isDeleted == 1;
+    }
 }

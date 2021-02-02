@@ -4,12 +4,13 @@ import lombok.Data;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 @Data
 @Entity
 @Table(name = "message")
 public class Message {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -38,4 +39,7 @@ public class Message {
     @Column(name = "is_deleted")
     private int isDeleted;
 
+    public long getTimestamp() {
+        return time.toInstant(ZoneOffset.of(String.valueOf(ZoneId.systemDefault()))).toEpochMilli();
+    }
 }
