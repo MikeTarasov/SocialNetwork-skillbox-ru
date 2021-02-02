@@ -46,7 +46,7 @@ public class Post {
 
 
     @OneToMany(mappedBy = "post", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.DETACH, CascadeType.REFRESH})
+            CascadeType.DETACH, CascadeType.REFRESH, CascadeType.REMOVE})
     private List<PostComment> comments;
 
     public long getTimestamp() {
