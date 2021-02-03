@@ -19,7 +19,7 @@ public class PostController {
     this.postService = postService;
   }
 
-  @GetMapping("/")
+  @GetMapping("")
   public ResponseEntity<?> getApiPost(@RequestParam("text") String text, @RequestParam("date_from") long dateFrom,
                                       @RequestParam("date_to") long dateTo,
                                       @RequestParam("offset") int offset, @RequestParam("itemPerPage") int itemPerPage) {
