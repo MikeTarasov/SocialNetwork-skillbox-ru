@@ -19,8 +19,6 @@ import ru.skillbox.socialnetwork.model.enums.MessagesPermissions;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 
-import java.util.TimeZone;
-
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -113,7 +111,7 @@ public class ProfileControllerTest {
     public void updateCurrentUserTest() throws Exception {
         String firstName = "Donald";
         String lastName = "Trump";
-        long birthDate = 1559751301818L;
+        String birthDate = "1982-04-20";
         String phone = "0000000";
         String photo = "BLOB";
         String about = "Make America great again";
@@ -139,7 +137,7 @@ public class ProfileControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(jsonPath("$.data.id").value(currentUserId))
-                .andExpect(jsonPath("$.data.birth_date").value(birthDate));
+                .andExpect(jsonPath("$.data.birth_date").value("388094400000"));
 
         assertTrue(personRepository.findById(currentUserId).isPresent());
         Person person = personRepository.findById(currentUserId).get();
@@ -157,7 +155,7 @@ public class ProfileControllerTest {
     public void updateCurrentUserTest_null() throws Exception {
         String firstName = null;
         String lastName = null;
-        long birthDate = 0;
+        String birthDate = "1981-04-20";
         String phone = null;
         String photo = null;
         String about = null;
@@ -184,7 +182,7 @@ public class ProfileControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(jsonPath("$.data.id").value(currentUserId))
-                .andExpect(jsonPath("$.data.birth_date").value(expectedPerson.getBirthDate().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli()));
+                .andExpect(jsonPath("$.data.birth_date").value("356558400000"));
 
         assertTrue(personRepository.findById(currentUserId).isPresent());
         Person actualPerson = personRepository.findById(currentUserId).get();
