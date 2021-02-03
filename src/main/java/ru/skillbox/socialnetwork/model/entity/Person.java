@@ -82,6 +82,9 @@ public class Person {
     @OneToMany(mappedBy = "personNotification", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Notification> notificationPersons = new ArrayList<>();
 
+    @OneToMany(mappedBy = "recipient", fetch = FetchType.LAZY)
+    private List<Message> messages;
+
     @Transient
     @OneToMany(mappedBy = "srcPerson", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Friendship> friendshipsSrc = new ArrayList<>();
