@@ -4,11 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -44,10 +47,25 @@ public class Post {
     @Column(name = "is_deleted")
     private int isDeleted;
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostComment> comments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "post", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
-            CascadeType.DETACH, CascadeType.REFRESH, CascadeType.REMOVE})
-    private List<PostComment> comments;
+    @Transient
+    @OneToMany(mappedBy = "postLike", cascade = CascadeType.ALL, orphanRemoval = true)
+    @LazyCollection(value = LazyCollectionOption.EXTRA)
+    private List<PostLike> postLike = new ArrayList<>();
+
+    public Post(long id, LocalDateTime time, Person author, String title, String postText, int isBlocked,
+                int isDeleted, List<PostComment> comments) {
+        this.id = id;
+        this.time = time;
+        this.author = author;
+        this.title = title;
+        this.postText = postText;
+        this.isBlocked = isBlocked;
+        this.isDeleted = isDeleted;
+        this.comments = comments;
+    }
 
     public long getTimestamp() {
         return time.toInstant(ZoneOffset.of(String.valueOf(ZoneId.systemDefault()))).toEpochMilli();

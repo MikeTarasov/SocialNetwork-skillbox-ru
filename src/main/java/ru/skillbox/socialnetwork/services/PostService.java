@@ -1,7 +1,6 @@
 package ru.skillbox.socialnetwork.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -29,8 +28,6 @@ import java.util.Optional;
 @Service
 @Transactional
 public class PostService {
-    @Value("@{db.timezone}")
-    private String timezone;
 
     private final int isDeleted = 0;
 
@@ -68,10 +65,10 @@ public class PostService {
             errors.append("'itemPerPage' should be more than 0. ");
         }
         if (!errors.toString().equals("")) {
-            return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
+            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
         }
 
-        Pageable pageable = PageRequest.of(offset, itemPerPage);
+        Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage);
         List<Post> posts = postRepository
                 .findByPostTextContainingIgnoreCaseAndTimeBetweenAndIsDeletedOrderByIdDesc(text,
                         getMillisecondsToLocalDateTime(dateFrom), getMillisecondsToLocalDateTime(dateTo),
@@ -90,7 +87,7 @@ public class PostService {
     public ResponseEntity<?> getApiPostId(long id) {
         Optional<Post> optionalPost = postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now());
         if (optionalPost.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
         return ResponseEntity.status(HttpStatus.OK)
@@ -101,7 +98,7 @@ public class PostService {
     public ResponseEntity<?> putApiPostId(long id, long publishDate, TitlePostTextRequest requestBody) {
         Optional<Post> optionalPost = postRepository.findById(id);
         if (optionalPost.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
         Post post = optionalPost.get();
@@ -119,7 +116,7 @@ public class PostService {
     public ResponseEntity<?> deleteApiPostId(long id) {
         Optional<Post> optionalPost = postRepository.findById(id);
         if (optionalPost.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
         Post post = optionalPost.get();
@@ -133,7 +130,7 @@ public class PostService {
 
         Optional<Post> optionalPost = postRepository.findById(id);
         if (optionalPost.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
         Post post = optionalPost.get();
@@ -144,9 +141,14 @@ public class PostService {
                         getPostEntityResponseByPost(optionalPost.get())));
     }
 
-    public ResponseEntity<?> getApiPostIdComments(long id, int offset, int itemPerPage) {
+    public ResponseEntity<?> getApiPostIdComments(long id, Integer offset, Integer itemPerPage) {
 
         StringBuilder errors = new StringBuilder();
+
+        if (offset == null || itemPerPage == null) {
+            offset = 0;
+            itemPerPage = 20;
+        }
 
         if (offset < 0) {
             errors.append("'offset' should be greater than 0. ");
@@ -155,13 +157,13 @@ public class PostService {
             errors.append("'itemPerPage' should be more than 0. ");
         }
         if (!errors.toString().equals("")) {
-            return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
+            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
         }
-        Pageable pageable = PageRequest.of(offset, itemPerPage);
+        Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage);
 
         Optional<Post> optionalPost = postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now());
         if (optionalPost.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
 
@@ -177,7 +179,7 @@ public class PostService {
 
     public ResponseEntity<?> postApiPostIdComments(long id, ParentIdCommentTextRequest requestBody) {
         if (postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now()).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
 
@@ -187,7 +189,7 @@ public class PostService {
             errors.append("'commentText' should not be empty");
         }
         if (!errors.toString().equals("")) {
-            return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
+            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
         }
 
         PostComment comment = commentRepository.save(new PostComment(
@@ -211,7 +213,7 @@ public class PostService {
     public ResponseEntity<?> putApiPostIdCommentsCommentId(long id, long commentId,
                                                            ParentIdCommentTextRequest requestBody) {
         if (postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now()).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
 
@@ -219,14 +221,14 @@ public class PostService {
 
         Optional<PostComment> optionalPostComment = commentRepository.findById(commentId);
         if (optionalPostComment.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + " not found."));
         }
         if (requestBody.getCommentText().isEmpty()) {
             errors.append("'commentText' should not be empty");
         }
         if (!errors.toString().equals("")) {
-            return ResponseEntity.status(200).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
+            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
         }
 
         PostComment comment = optionalPostComment.get();
@@ -240,39 +242,39 @@ public class PostService {
 
     public ResponseEntity<?> deleteApiPostIdCommentsCommentId(long id, long commentId) {
         if (postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now()).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
 
         Optional<PostComment> optionalPostComment = commentRepository.findById(commentId);
         if (optionalPostComment.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + " not found."));
         }
         PostComment comment = optionalPostComment.get();
         if (id != comment.getPost().getId()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + "is not found for post with id = " + id + "."));
         }
         comment.setIsDeleted(true);
         commentRepository.saveAndFlush(comment);
-        return ResponseEntity.status(HttpStatus.OK)
+        return ResponseEntity.status(200)
                 .body(new ErrorTimeDataResponse("", System.currentTimeMillis(), new IdResponse(commentId)));
     }
 
     public ResponseEntity<?> putApiPostIdCommentsCommentId(long id, long commentId) {
         if (postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now()).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
         Optional<PostComment> optionalPostComment = commentRepository.findById(commentId);
         if (optionalPostComment.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + " not found."));
         }
         PostComment comment = optionalPostComment.get();
         if (id != comment.getPost().getId()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + "is not found for post with id = " + id + "."));
         }
         comment.setIsDeleted(false);
@@ -287,7 +289,7 @@ public class PostService {
         Optional<Post> optionalPost = postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now());
 
         if (optionalPost.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
 
@@ -299,17 +301,17 @@ public class PostService {
 
     public ResponseEntity<?> postApiPostIdCommentsCommentIdReport(long id, long commentId) {
         if (postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now()).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
         Optional<PostComment> optionalPostComment = commentRepository.findById(commentId);
         if (optionalPostComment.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + " not found."));
         }
         PostComment comment = optionalPostComment.get();
         if (id != comment.getPost().getId()) {
-            return ResponseEntity.status(HttpStatus.OK)
+            return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + "is not found for post with id = " + id + "."));
         }
         return ResponseEntity.status(HttpStatus.OK)
@@ -329,7 +331,7 @@ public class PostService {
         return new PostEntityResponse(
                 post.getId(),
                 java.util.Date
-                        .from(post.getTime().atZone(ZoneId.of("Europe/Moscow"))
+                        .from(post.getTime().atZone(ZoneId.systemDefault())
                                 .toInstant()).getTime(),
                 getPersonEntityResponseByPost(post),
                 post.getTitle(),
@@ -347,10 +349,10 @@ public class PostService {
                 author.getFirstName(),
                 author.getLastName(),
                 java.util.Date
-                        .from(author.getRegDate().atZone(ZoneId.of("Europe/Moscow"))
+                        .from(author.getRegDate().atZone(ZoneId.systemDefault())
                                 .toInstant()).getTime(),
-                java.util.Date
-                        .from(author.getBirthDate().atZone(ZoneId.of("Europe/Moscow"))
+                author.getBirthDate() == null ? null : java.util.Date
+                        .from(author.getBirthDate().atZone(ZoneId.systemDefault())
                                 .toInstant()).getTime(),
                 author.getEmail(),
                 author.getPhone(),
@@ -359,8 +361,8 @@ public class PostService {
                 author.getCity(),
                 author.getCountry(),
                 author.getMessagePermission(),
-                java.util.Date
-                        .from(author.getLastOnlineTime().atZone(ZoneId.of("Europe/Moscow"))
+                author.getLastOnlineTime() == null ? null : java.util.Date
+                        .from(author.getLastOnlineTime().atZone(ZoneId.systemDefault())
                                 .toInstant()).getTime(),
                 author.getIsBlocked() == 1
         );
@@ -391,7 +393,7 @@ public class PostService {
                 comment.getId(),
                 comment.getPost().getId(),
                 java.util.Date
-                        .from(comment.getTime().atZone(ZoneId.of("Europe/Moscow"))
+                        .from(comment.getTime().atZone(ZoneId.systemDefault())
                                 .toInstant()).getTime(),
                 comment.getPerson().getId(),
                 comment.getIsBlocked()
@@ -399,9 +401,7 @@ public class PostService {
     }
 
     private LocalDateTime getMillisecondsToLocalDateTime(long milliseconds) {
-        LocalDateTime localDateTime =
-                Instant.ofEpochMilli(milliseconds).atZone(ZoneId.of("Europe/Moscow")).toLocalDateTime();
-        return localDateTime;
+        return Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
 
     }
 

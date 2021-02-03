@@ -93,12 +93,44 @@ public class Person {
     @OneToMany(mappedBy = "dstPerson", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Friendship> friendshipsDst = new ArrayList<>();
 
+    @Transient
+    @OneToMany(mappedBy = "personLike", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PostLike> personLike = new ArrayList<>();
+
     public Person(String email, String password, String firstName, String lastName, LocalDateTime regDate) {
         this.email = email;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
         this.regDate = regDate;
+        isApproved = 1;
+        isBlocked = 0;
+        isDeleted = 0;
+    }
+
+    public Person(long id, String firstName, String lastName, LocalDateTime regDate, LocalDateTime birthDate,
+                  String email, String phone, String password, String photo, String about, String city,
+                  String country, String confirmationCode, int isApproved, String messagePermission,
+                  LocalDateTime lastOnlineTime, int isOnline, int isBlocked, int isDeleted) {
+        this.id = id;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.regDate = regDate;
+        this.birthDate = birthDate;
+        this.email = email;
+        this.phone = phone;
+        this.password = password;
+        this.photo = photo;
+        this.about = about;
+        this.city = city;
+        this.country = country;
+        this.confirmationCode = confirmationCode;
+        this.isApproved = isApproved;
+        this.messagePermission = messagePermission;
+        this.lastOnlineTime = lastOnlineTime;
+        this.isOnline = isOnline;
+        this.isBlocked = isBlocked;
+        this.isDeleted = isDeleted;
     }
 
     public boolean isBlocked() {

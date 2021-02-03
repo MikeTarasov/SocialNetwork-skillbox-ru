@@ -36,15 +36,16 @@ public class PostComment {
     @Column(name = "is_deleted")
     private int isDeleted;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id")
     private Person person;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
 
-    public PostComment(LocalDateTime time, Long parentId, String commentText, boolean isBlocked, boolean isDeleted, Person person, Post post) {
+    public PostComment(LocalDateTime time, Long parentId, String commentText, boolean isBlocked, boolean isDeleted,
+                       Person person, Post post) {
         this.time = time;
         this.parentId = parentId;
         this.commentText = commentText;

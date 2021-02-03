@@ -1,7 +1,6 @@
 package ru.skillbox.socialnetwork.services.exceptions;
 
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,8 +12,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(PersonNotFoundException.class)
     protected ResponseEntity<ErrorErrorDescriptionResponse> handlePersonNotFoundException(PersonNotFoundException ex) {
-        return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
-                HttpStatus.OK);
+        return ResponseEntity.status(200)
+                .body(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()));
     }
     @ExceptionHandler(DialogNotFoundException.class)
     protected ResponseEntity<ErrorErrorDescriptionResponse> handleDialogNotFoundException(DialogNotFoundException ex) {
@@ -38,4 +37,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 HttpStatus.OK);
     }
 
+    @ExceptionHandler(UnauthorizedException.class)
+    protected ResponseEntity<?> handleUnauthorizedException() {
+        return ResponseEntity.status(401).body(null);
+    }
 }
+
