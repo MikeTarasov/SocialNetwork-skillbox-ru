@@ -24,9 +24,9 @@ public class PersonEntityResponse {
     @JsonProperty("last_name")
     private String lastName;
     @JsonProperty("reg_date")
-    private long regDate;
+    private Long regDate;
     @JsonProperty("birth_date")
-    private long birthDate;
+    private Long birthDate;
     private String email;
     private String phone;
     private String photo;
@@ -36,7 +36,7 @@ public class PersonEntityResponse {
     @JsonProperty("messages_permission")
     private String messagesPermission;
     @JsonProperty("last_online_time")
-    private long lastOnlineTime;
+    private Long lastOnlineTime;
     @JsonProperty("is_blocked")
     private boolean isBlocked;
     private String token;
@@ -44,10 +44,10 @@ public class PersonEntityResponse {
 
     // Friends ->  token = null !!!
     public PersonEntityResponse(long id, String firstName, String lastName, long regDate,
-                                long birthDate,
+                                Long birthDate,
                                 String email, String phone, String photo, String about,
                                 String city, String country, String messagesPermission,
-                                long lastOnlineTime, boolean isBlocked) {
+                                Long lastOnlineTime, boolean isBlocked) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;

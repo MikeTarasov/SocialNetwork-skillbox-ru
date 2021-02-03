@@ -1,14 +1,17 @@
 package ru.skillbox.socialnetwork.api.responses;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 
+
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class LikesListUsersResponse {
 
-  private String likes;
-  private List<String> users;
+    private String likes;
+    private List<String> users;
 }
