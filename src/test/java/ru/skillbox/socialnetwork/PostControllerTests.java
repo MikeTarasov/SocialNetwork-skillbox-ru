@@ -22,7 +22,6 @@ import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
 import ru.skillbox.socialnetwork.repository.CommentRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
-import ru.skillbox.socialnetwork.repository.PostLikeRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 import ru.skillbox.socialnetwork.security.JwtTokenProvider;
 
@@ -44,49 +43,38 @@ public class PostControllerTests {
     private final String email = "test@test.gmail";
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private final String password = "testPassword";
-    private Post savedPost = null;
-    private PostComment savedComment = null;
-
-    private Person testPerson = new Person(0, "Steve", "Jobs",
+    private final Person testPerson = new Person(0, "Steve", "Jobs",
             LocalDateTime.of(2020, 1, 1, 15, 30, 00),
             LocalDateTime.of(1982, 12, 31, 21, 00, 00),
             email, "+71234567890", encoder.encode(password), "pictures.org/photo.jpg",
             "smth about author", "Ufa", "Russian Federation", "some confirmation code",
             1, "ALL", LocalDateTime.of(2020, 5, 5, 5, 30, 00),
-            0, 0, 0, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-
-    private Post testPost = new Post(0, LocalDateTime.of(2021, 1, 1, 15, 30, 00),
+            0, 0, 0);
+    private final Post testPost = new Post(0, LocalDateTime.of(2021, 1, 1, 15, 30, 00),
             testPerson, "Test post title", "Test post text", 0, 0, new ArrayList<>());
-
-    private PostComment testPostComment = new PostComment(0, LocalDateTime.of(2021, 1,
+    private final PostComment testPostComment = new PostComment(0, LocalDateTime.of(2021, 1,
             12, 20, 45, 25), 1L,
             "Good article!", 0, 0, testPerson, testPost);
+    private Post savedPost = null;
+    private PostComment savedComment = null;
 
     @Autowired
     private MockMvc mvc;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private PostRepository postRepository;
+    @Autowired
+    private CommentRepository commentRepository;
+    @Autowired
+    private PersonRepository personRepository;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private String auth() {
         return jwtTokenProvider.getAuthentication(email, password);
     }
-
-    @Autowired
-    private PostRepository postRepository;
-
-    @Autowired
-    private CommentRepository commentRepository;
-
-    @Autowired
-    private PostLikeRepository postLikeRepository;
-
-    @Autowired
-    private PersonRepository personRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
 
     @BeforeEach
     public void savePostToPostRepository() {
@@ -104,7 +92,7 @@ public class PostControllerTests {
         personRepository.delete(savedPost.getAuthor());
     }
 
-    private List<Post> setPosts (Post post) {
+    private List<Post> setPosts(Post post) {
         List<Post> list = new ArrayList<>();
         list.add(post);
         return list;
@@ -567,7 +555,7 @@ public class PostControllerTests {
                 .time(getMillis(savedComment.getTime())).build();
 
         ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
-                "", getTimeZonedMillis(),commentEntityResponse);
+                "", getTimeZonedMillis(), commentEntityResponse);
 
         savedComment.setIsDeleted(true);
         commentRepository.saveAndFlush(savedComment);
@@ -591,7 +579,7 @@ public class PostControllerTests {
     void testPostApiPostIdReport() throws Exception {
         String jwtToken = auth();
         ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
-                "", getTimeZonedMillis(),new MessageResponse());
+                "", getTimeZonedMillis(), new MessageResponse());
 
         mvc.perform(MockMvcRequestBuilders
                 .post("/post/{id}/report", savedPost.getId())
@@ -606,7 +594,7 @@ public class PostControllerTests {
     void testPostApiPostIdCommentsCommentIdReport() throws Exception {
         String jwtToken = auth();
         ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
-                "", getTimeZonedMillis(),new MessageResponse());
+                "", getTimeZonedMillis(), new MessageResponse());
 
         mvc.perform(MockMvcRequestBuilders
                 .post("/post/{id}/comments/{comment_id}/report", savedPost.getId(), savedComment.getId())

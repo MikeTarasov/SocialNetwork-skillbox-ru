@@ -19,7 +19,10 @@ import ru.skillbox.socialnetwork.services.ProfileService;
 import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
@@ -32,7 +35,9 @@ public class ProfileServiceImpl implements ProfileService {
     private final PostRepository postRepository;
 
     @Autowired
-    public ProfileServiceImpl(PersonRepository personRepository, PersonDetailsService personDetailsService, PostRepository postRepository) {
+    public ProfileServiceImpl(PersonRepository personRepository,
+                              PersonDetailsService personDetailsService,
+                              PostRepository postRepository) {
         this.personRepository = personRepository;
         this.personDetailsService = personDetailsService;
         this.postRepository = postRepository;
@@ -47,18 +52,14 @@ public class ProfileServiceImpl implements ProfileService {
         );
     }
 
-    private Person getCurrentUserAsPerson() {
-        return personDetailsService.getCurrentUser();
-    }
-
     public ErrorTimeDataResponse getCurrentUser() {
-        return new ErrorTimeDataResponse("", convertPersonToResponse(getCurrentUserAsPerson()));
+        return new ErrorTimeDataResponse("", convertPersonToResponse(personDetailsService.getCurrentUser()));
     }
 
 
     @Override
     public ErrorTimeDataResponse updateCurrentUser(PersonEditRequest personEditRequest) {
-        Person person = getCurrentUserAsPerson();
+        Person person = personDetailsService.getCurrentUser();
 
         if (personEditRequest.getFirstName() != null) {
             person.setFirstName(personEditRequest.getFirstName());
@@ -67,9 +68,10 @@ public class ProfileServiceImpl implements ProfileService {
         if (personEditRequest.getLastName() != null) {
             person.setLastName(personEditRequest.getLastName());
         }
-        if (personEditRequest.getBirthDate() != 0) { //TODO
-            person.setBirthDate(Instant.ofEpochMilli(personEditRequest.getBirthDate()).atZone(TimeZone.getDefault().toZoneId())
-                    .toLocalDateTime());
+        if (personEditRequest.getBirthDate() != null) {
+            person.setBirthDate(LocalDateTime.of(
+                    LocalDate.parse(personEditRequest.getBirthDate().substring(0, 10), DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                    LocalTime.of(0, 0, 0)));
         }
         if (personEditRequest.getPhone() != null) {
             person.setPhone(personEditRequest.getPhone());
@@ -90,12 +92,12 @@ public class ProfileServiceImpl implements ProfileService {
             person.setMessagePermission(personEditRequest.getMessagesPermission().toString());
         }
         personRepository.save(person);
-        return new ErrorTimeDataResponse("", convertPersonToResponse(getCurrentUserAsPerson()));
+        return new ErrorTimeDataResponse("", convertPersonToResponse(person));
     }
 
     @Override
     public ErrorTimeDataResponse deleteCurrentUser() {
-        Person person = getCurrentUserAsPerson();
+        Person person = personDetailsService.getCurrentUser();
         person.setIsDeleted(1);
         personRepository.save(person);
         return new ErrorTimeDataResponse("", new MessageResponse());
@@ -112,10 +114,12 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public ErrorTimeTotalOffsetPerPageListDataResponse getWallPosts(long personId, int offset, int itemPerPage) {
+
         Person person = personRepository.findById(personId).orElseThrow(() -> new PersonNotFoundException(personId));
         Pageable paging = PageRequest.of(offset / itemPerPage, itemPerPage, Sort.by(Sort.Direction.DESC, "time"));
 
-        Page<Post> posts = postRepository.findByAuthorAndTimeBeforeAndIsBlockedAndIsDeleted(person, LocalDateTime.now(), 0, 0, paging);
+        Page<Post> posts = postRepository
+                .findByAuthorAndTimeBeforeAndIsBlockedAndIsDeleted(person, LocalDateTime.now(), 0, 0, paging);
         return new ErrorTimeTotalOffsetPerPageListDataResponse(
                 "",
                 System.currentTimeMillis(),
@@ -130,26 +134,26 @@ public class ProfileServiceImpl implements ProfileService {
         LocalDateTime dateToPublish;
         if (publishDate == null) {
             dateToPublish = LocalDateTime.now();
-            publishDate = System.currentTimeMillis(); //TODO зачем это?
         } else {
             dateToPublish = Instant.ofEpochMilli(publishDate).atZone(TimeZone.getDefault().toZoneId()).toLocalDateTime();
         }
 
         Post post = Post.builder()
                 .postText(requestBody.getPostText())
-                //.author(accountService.getCurrentUser())
-                .author(personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id)))   // временная реализация, пока не работает авторизация(accountService)
+                .author(personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id)))
                 .time(dateToPublish)
                 .isBlocked(0)
                 .isDeleted(0)
                 .title(requestBody.getTitle())
+                .postLike(new ArrayList<>())
                 .build();
         postRepository.save(post);
-        return new ErrorTimeDataResponse("", convertPostToPostResponse(post));
+        return new ErrorTimeDataResponse("", convertPostToPostResponse(post, null));
     }
 
     @Override
-    public ErrorTimeTotalOffsetPerPageListDataResponse search(String firstName, String lastName, int ageFrom, int ageTo, int offset, int itemPerPage) {
+    public ErrorTimeTotalOffsetPerPageListDataResponse search(String firstName, String lastName, int ageFrom, int ageTo,
+                                                              int offset, int itemPerPage) {
         Pageable paging = PageRequest.of(offset / itemPerPage, itemPerPage);
         LocalDateTime startDate = null;
         LocalDateTime endDate = null;
@@ -174,13 +178,16 @@ public class ProfileServiceImpl implements ProfileService {
      * @return PersonEntityResponse
      */
     private PersonEntityResponse convertPersonToResponse(Person person) {
+        LocalDateTime birthDate = person.getBirthDate();
+        LocalDateTime lastOnlineTime = person.getLastOnlineTime();
 
         return PersonEntityResponse.builder()
                 .id(person.getId())
                 .firstName(person.getFirstName())
                 .lastName(person.getLastName())
                 .regDate(person.getRegDate().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
-                .birthDate(person.getBirthDate().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
+                .birthDate(birthDate == null ? null :
+                        birthDate.atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
                 .email(person.getEmail())
                 .phone(person.getPhone())
                 .photo(person.getPhoto())
@@ -188,7 +195,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .city(person.getCity())
                 .country(person.getCountry())
                 .messagesPermission(person.getMessagePermission())
-                .lastOnlineTime(person.getLastOnlineTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
+                .lastOnlineTime(lastOnlineTime == null ? null :
+                        lastOnlineTime.atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
                 .isBlocked(person.getIsBlocked() == 1)
                 .build();
     }
@@ -199,10 +207,7 @@ public class ProfileServiceImpl implements ProfileService {
      */
     private List<PostEntityResponse> convertPostPageToList(Page<Post> page) {
         List<PostEntityResponse> postResponseList = new ArrayList<>();
-        page.forEach(post -> {
-            postResponseList.add(convertPostToPostResponse(post)
-            );
-        });
+        page.forEach(post -> postResponseList.add(convertPostToPostResponse(post, "POSTED")));
         return postResponseList;
     }
 
@@ -212,10 +217,7 @@ public class ProfileServiceImpl implements ProfileService {
      */
     private List<PersonEntityResponse> convertPersonPageToList(Page<Person> page) {
         List<PersonEntityResponse> personResponseList = new ArrayList<>();
-        page.forEach(person -> {
-            personResponseList.add(convertPersonToResponse(person)
-            );
-        });
+        page.forEach(person -> personResponseList.add(convertPersonToResponse(person)));
         return personResponseList;
     }
 
@@ -224,7 +226,7 @@ public class ProfileServiceImpl implements ProfileService {
      * Converting Post to PostEntityResponse
      */
 
-    private PostEntityResponse convertPostToPostResponse(Post post) {
+    private PostEntityResponse convertPostToPostResponse(Post post, String type) {
         return PostEntityResponse.builder()
                 .id(post.getId())
                 .time(post.getTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
@@ -232,8 +234,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .author(convertPersonToResponse(post.getAuthor()))
                 .postText(post.getPostText())
                 .isBlocked(post.getIsBlocked() == 1)
-                .likes(11)       // Mock  TODO: link likes count to Post
-                .type("POSTED")     // Mock
+                .likes(post.getPostLike().size())
+                .type(type)     // Mock
                 .comments(convertCommentsToCommentResponseList(post.getComments()))
                 .build();
     }
@@ -245,19 +247,20 @@ public class ProfileServiceImpl implements ProfileService {
     private List<CommentEntityResponse> convertCommentsToCommentResponseList(List<PostComment> comments) {
         List<CommentEntityResponse> postComments = new ArrayList<>();
         if (comments != null) {
-            comments.forEach(comment -> {
-                postComments.add(
-                        CommentEntityResponse.builder()
-                                .id(comment.getId())
-                                .authorId(comment.getPerson().getId())
-                                .commentText(comment.getCommentText())
-                                .isBlocked(comment.getIsBlocked())
-                                .parentId(comment.getParentId() == null ? 0 : comment.getParentId())
-                                .postId(comment.getPost().getId())
-                                .time(comment.getTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
-                                .build()
-                );
-            });
+            comments.forEach(comment ->
+                            postComments.add(
+                                    CommentEntityResponse.builder()
+                                            .id(comment.getId())
+                                            .authorId(comment.getPerson().getId())
+                                            .commentText(comment.getCommentText())
+                                            .isBlocked(comment.getIsBlocked())
+                                            .parentId(comment.getParentId() == null ? 0 : comment.getParentId()) //TODO зачем меняем на 0???
+//                                 .parentId(comment.getParentId())
+                                            .postId(comment.getPost().getId())
+                                            .time(comment.getTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
+                                            .build()
+                            )
+            );
         }
         return postComments;
     }

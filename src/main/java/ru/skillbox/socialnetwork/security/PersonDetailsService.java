@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
+import ru.skillbox.socialnetwork.services.exceptions.UnauthorizedException;
 
 import java.util.Optional;
 
@@ -25,7 +26,7 @@ public class PersonDetailsService implements UserDetailsService {
 
         Optional<Person> per = personRepository.findByEmail(email);
         if (per.isEmpty()) {
-            throw new UsernameNotFoundException(" - User with : " + email + " not found");
+            throw new UnauthorizedException(email);
         }
         return PersonDetails.fromUser(per.get());
     }
@@ -42,7 +43,7 @@ public class PersonDetailsService implements UserDetailsService {
         Optional<Person> per = personRepository.findByEmail(email);
 
         if (per.isEmpty()) {
-            throw new UsernameNotFoundException(" - User with : " + email + " not found");
+            throw new UnauthorizedException(email);
         }
 
         return per.get();
