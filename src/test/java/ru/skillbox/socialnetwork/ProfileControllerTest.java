@@ -182,7 +182,7 @@ public class ProfileControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(jsonPath("$.data.id").value(currentUserId))
-                .andExpect(jsonPath("$.data.birth_date").value("356558400000"));
+                .andExpect(jsonPath("$.data.birth_date").value("46299600000"));
 
         assertTrue(personRepository.findById(currentUserId).isPresent());
         Person actualPerson = personRepository.findById(currentUserId).get();
