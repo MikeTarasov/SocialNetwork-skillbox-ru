@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @WithUserDetails("shred@mail.who")
 @TestPropertySource("/application-test.properties")
-@Sql(value = {"/AddTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(value = {"/Add2Users.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(value = {"/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 public class ProfileControllerTest {
 
@@ -155,7 +155,7 @@ public class ProfileControllerTest {
     public void updateCurrentUserTest_null() throws Exception {
         String firstName = null;
         String lastName = null;
-        String birthDate = "1981-04-20";
+        String birthDate = null;
         String phone = null;
         String photo = null;
         String about = null;
@@ -246,7 +246,7 @@ public class ProfileControllerTest {
                 .andExpect(jsonPath("$.data[*].id", containsInAnyOrder(8)));
     }
 
-    @Sql(value = {"/AddTestUsers.sql", "/AddPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @Test
     public void getNotesOnUserWallTest() throws Exception {
@@ -262,7 +262,7 @@ public class ProfileControllerTest {
                 .andExpect(jsonPath("$.total").value("2"));
     }
 
-    @Sql(value = {"/AddTestUsers.sql", "/RemovePosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Add2Users.sql", "/RemovePosts.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     @Test
     public void postNoteOnUserWallTest() throws Exception {
