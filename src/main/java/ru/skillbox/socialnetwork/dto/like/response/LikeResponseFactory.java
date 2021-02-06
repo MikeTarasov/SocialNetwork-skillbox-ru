@@ -12,7 +12,7 @@ public class LikeResponseFactory {
         return ResponseFactory.getBaseResponse(
                 new LikeResponseDto(post.getLikes().size(),
                         post.getLikes().stream()
-                                .map(PostLike::getPerson).map(Person::getId).collect(Collectors.toList()))
+                                .map(PostLike::getPersonPL).map(Person::getId).collect(Collectors.toList()))
         );
     }
 

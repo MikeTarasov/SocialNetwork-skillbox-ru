@@ -6,6 +6,6 @@ import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
 
 public interface CommentLikeRepository extends JpaRepository<CommentLike, Integer> {
-    CommentLike findCommentLikeById(Integer id);
-    CommentLike findCommentLikeByCommentAndPerson(PostComment comment, Person person);
+//    CommentLike findCommentLikeById(long id);
+    CommentLike findCommentLikeByCommentCLAndPersonCL(PostComment comment, Person person);
 }

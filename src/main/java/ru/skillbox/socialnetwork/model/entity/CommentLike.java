@@ -10,22 +10,22 @@ import java.time.LocalDateTime;
 
 @Entity
 @Data
-@Table(name = "comment_likes")
+@Table(name = "comment_like")
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CommentLike {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private long id;
 
     private LocalDateTime time;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "person_id")
-    private Person person;
+    private Person personCL;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comment_id")
-    private PostComment comment;
+    private PostComment commentCL;
 }

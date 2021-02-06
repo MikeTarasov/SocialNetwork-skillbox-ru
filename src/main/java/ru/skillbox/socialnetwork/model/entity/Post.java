@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -46,5 +47,8 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = {CascadeType.PERSIST, CascadeType.MERGE,
             CascadeType.DETACH, CascadeType.REFRESH})
     private List<PostComment> comments;
+
+    @OneToMany(mappedBy = "postPL", cascade = CascadeType.ALL)
+    private List<PostLike> likes = new ArrayList<>();
 
 }

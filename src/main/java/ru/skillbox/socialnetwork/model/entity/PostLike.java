@@ -26,17 +26,17 @@ public class PostLike {
     @Column(name = "time", columnDefinition = "timestamp", nullable = false)
     private LocalDateTime time;
 
-    @Column(name = "person_id")
-    private long personId;
+//    @Column(name = "person_id")
+//    private long personId;
+//
+//    @Column(name = "post_id")
+//    private long postId;
 
-    @Column(name = "post_id")
-    private long postId;
-
-    @ManyToOne//удалить если что
+    @ManyToOne(fetch = FetchType.LAZY)//удалить если что
     @JoinColumn(name = "person_id")
-    private Person person;
+    private Person personPL;
 
-    @ManyToOne//удалить если что
+    @ManyToOne(fetch = FetchType.LAZY)//удалить если что
     @JoinColumn(name = "post_id")
-    private Post post;
+    private Post postPL;
 }

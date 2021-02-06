@@ -42,7 +42,7 @@ public class PostLikeService {
 
     public boolean isUserHasLiked(Post post, Person person){//компилится
 
-        return post.getLikes().stream().map(PostLike::getPerson).collect(Collectors.toList()).contains(person);
+        return post.getLikes().stream().map(PostLike::getPersonPL).collect(Collectors.toList()).contains(person);
         //return true;
         //возвращает true если  поставлен  лайк или false если нет
         //нужны пост и человек написавший пост
@@ -55,12 +55,12 @@ public class PostLikeService {
         {
             case "Post":
                 Post post = postRepository.findPostById(id);
-                PostLike postLike = postLikeRepository.findPostLikeByPostAndPerson(post, person);
+                PostLike postLike = postLikeRepository.findPostLikeByPostPLAndPersonPL(post, person);
                 postLikeRepository.delete(postLike);
                 return new LikeResponseDto(post.getLikes().size(), new ArrayList<>());
             case "Comment":
-                PostComment comment = commentRepository.findPostCommentById(id);
-                CommentLike commentLike = commentLikeRepository.findCommentLikeByCommentAndPerson(comment, person);
+                PostComment comment = commentRepository.findPostCommentPCById(id);
+                CommentLike commentLike = commentLikeRepository.findCommentLikeByCommentCLAndPersonCL(comment, person);
                 commentLikeRepository.delete(commentLike);
                 return new LikeResponseDto(comment.getCommentLikes().size(), new ArrayList<>());
         }
@@ -78,13 +78,13 @@ public class PostLikeService {
 
 
     public Dto  save(PostLike like) {
-        if (!isUserHasLiked(like.getPost(), like.getPerson()))
+        if (!isUserHasLiked(like.getPostPL(), like.getPersonPL()))
         {
             postLikeRepository.save(like);
         }
 
-        return new LikeResponseDto(like.getPost().getLikes().size(), like.getPost().getLikes().stream()
-                .map(PostLike::getPerson).map(Person::getId).collect(Collectors.toList()));
+        return new LikeResponseDto(like.getPostPL().getLikes().size(), like.getPostPL().getLikes().stream()
+                .map(PostLike::getPersonPL).map(Person::getId).collect(Collectors.toList()));
         //сохраняет лайк к посту или комменту
         //уведомление о поставке лайка
     }
@@ -97,8 +97,8 @@ public class PostLikeService {
                 Post post = postService.findById(request.getId());
                 postLikeRepository.save(
                         PostLike.builder()
-                                .person(person)
-                                .post(post)
+                                .personPL(person)
+                                .postPL(post)
                                 .time(LocalDateTime.ofInstant(Instant.ofEpochMilli(publishDate.orElseGet(System::currentTimeMillis)),
                                         TimeZone.getDefault().toZoneId()))
                                 .build());
@@ -107,8 +107,8 @@ public class PostLikeService {
                 Optional<PostComment> comment = commentRepository.findById(request.getId());
                 commentLikeRepository.save(
                         CommentLike.builder()
-                                .person(person)
-                                .comment(comment.get())
+                                .personCL(person)
+                                .commentCL(comment.get())
                                 .time(LocalDateTime.ofInstant(Instant.ofEpochMilli(publishDate.orElseGet(System::currentTimeMillis)),
                                         TimeZone.getDefault().toZoneId()))
                                 .build());

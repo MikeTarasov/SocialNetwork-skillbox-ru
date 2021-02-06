@@ -25,35 +25,35 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findByAuthorAndTimeBeforeAndIsBlockedAndIsDeleted(Person person, LocalDateTime timeBefore, int isBlocked, int isDeleted, Pageable paging);
 
     Post findPostById(Integer id);
-
-    @Query(value = "select p from Post p where " +
-            "p.isBlocked = false and p.author not in ?1 and p.author.status<>'DELETED' order by p.time desc")
-    List<Post> getFeedsWithBlocked(Set<Person> blockedUsers, Pageable pageable);
-
-    @Query(value = "select p from Post p where " +
-            "p.isBlocked = false and p.author.status<>'DELETED' order by p.time desc")
-    List<Post> getFeeds(Pageable pageable);
-
-    @Query(value = "select count(p) from Post p where " +
-            "p.isBlocked = false and p.author.status<>'DELETED' order by p.time desc")
-    int countPosts();
-
-    @Query(value = "select count(p) from Post p where " +
-            "p.isBlocked = false and p.author not in ?1 and p.author.status<>'DELETED' order by p.time desc")
-    int countPostsWithBlockedUsers(Set<Person> users);
-
-    @Query(value = "select p from Post p join p.tags t where p.author.status<>'DELETED' and " +
-            "(p.postText like %?1% or p.title like %?1%) and " +
-            "(p.time between ?2 and ?3) and " +
-            "(p.author.firstName like %?4% or p.author.lastName like %?4%) and " +
-            "p.isBlocked = false and t.tag in ?5 group by p order by p.time desc")
-    List<Post> searchPostsWithTags(String text, Date dateFrom, Date dateTo, String author, List<String> tags);
-
-    @Query(value = "select p from Post p where p.author.status<>'DELETED' and " +
-            "(p.postText like %?1% or p.title like %?1%) and " +
-            "(p.time between ?2 and ?3) and " +
-            "(p.author.firstName like %?4% or p.author.lastName like %?4%) and " +
-            "p.isBlocked = false order by p.time desc")
-    List<Post> searchPosts(String text, Date dateFrom, Date dateTo, String author);
+//
+//    @Query(value = "select p from Post p where " +
+//            "p.isBlocked = 0 and p.author not in ?1 and p.author.status<>'DELETED' order by p.time desc")
+//    List<Post> getFeedsWithBlocked(Set<Person> blockedUsers, Pageable pageable);
+//
+//    @Query(value = "select p from Post p where " +
+//            "p.isBlocked = 0 and p.author.status<>'DELETED' order by p.time desc")
+//    List<Post> getFeeds(Pageable pageable);
+//
+//    @Query(value = "select count(p) from Post p where " +
+//            "p.isBlocked = 0 and p.author.status<>'DELETED' order by p.time desc")
+//    int countPosts();
+//
+//    @Query(value = "select count(p) from Post p where " +
+//            "p.isBlocked = 0 and p.author not in ?1 and p.author.status<>'DELETED' order by p.time desc")
+//    int countPostsWithBlockedUsers(Set<Person> users);
+//
+//    @Query(value = "select p from Post p join p.tags t where p.author.status<>'DELETED' and " +
+//            "(p.postText like %?1% or p.title like %?1%) and " +
+//            "(p.time between ?2 and ?3) and " +
+//            "(p.author.firstName like %?4% or p.author.lastName like %?4%) and " +
+//            "p.isBlocked = 0 and t.tag in ?5 group by p order by p.time desc")
+//    List<Post> searchPostsWithTags(String text, Date dateFrom, Date dateTo, String author, List<String> tags);
+//
+//    @Query(value = "select p from Post p where p.author.status<>'DELETED' and " +
+//            "(p.postText like %?1% or p.title like %?1%) and " +
+//            "(p.time between ?2 and ?3) and " +
+//            "(p.author.firstName like %?4% or p.author.lastName like %?4%) and " +
+//            "p.isBlocked = 0 order by p.time desc")
+//    List<Post> searchPosts(String text, Date dateFrom, Date dateTo, String author);
 
 }

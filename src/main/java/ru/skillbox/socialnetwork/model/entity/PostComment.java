@@ -43,7 +43,7 @@ public class PostComment {
     @JoinColumn(name = "post_id")
     private Post post;
 
-    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "commentCL", cascade = CascadeType.ALL)
     private List<CommentLike> commentLikes;
 
     public PostComment(LocalDateTime time, long parentId, String commentText, boolean isBlocked, boolean isDeleted, Person person) {
