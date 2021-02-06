@@ -33,17 +33,17 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
-    public ErrorTimeTotalOffsetPerPageListDataResponse getFriends(String name, Integer offset, Integer itemPerPage) {
+    public ErrorTimeTotalOffsetPerPageListDataResponse getFriends(String name, Integer offset, Integer itemPerPage, FriendStatus friendStatus) {
         Person currentPerson = personDetailsService.getCurrentUser();
         Pageable paging = PageRequest.of(offset / itemPerPage,
                 itemPerPage,
-                Sort.by(Sort.Direction.ASC, "dstPerson.lastName"));
+                Sort.by(Sort.Direction.ASC, "srcPerson.lastName"));
 
         Page<Friendship> friendPage;
         if (name == null || name.isEmpty())
-            friendPage = friendshipRepository.findBySrcPersonAndCode(currentPerson, FriendStatus.FRIEND.name(), paging);
+            friendPage = friendshipRepository.findByDstPersonAndCode(currentPerson, friendStatus.name(), paging);
         else
-            friendPage = friendshipRepository.findBySrcPersonAndCodeAndDstPersonName(currentPerson, name, paging);
+            friendPage = friendshipRepository.findByDstPersonAndDstPersonNameAndCode(currentPerson, name, friendStatus.name(), paging);
 
         return new ErrorTimeTotalOffsetPerPageListDataResponse(
                 friendPage.getTotalElements(),
@@ -52,16 +52,13 @@ public class FriendServiceImpl implements FriendService {
                 convertFriendshipPageToPersonList(friendPage));
     }
 
-
-
-
     /**
      * Helper
      * Converting Page<Friendship> to List<PersonEntityResponse>
      */
     private List<PersonEntityResponse> convertFriendshipPageToPersonList(Page<Friendship> friendships) {
         List<PersonEntityResponse> personResponseList = new ArrayList<>();
-        friendships.forEach(friendship -> personResponseList.add(convertPersonToResponse(friendship.getDstPerson())));
+        friendships.forEach(friendship -> personResponseList.add(convertPersonToResponse(friendship.getSrcPerson())));
         return personResponseList;
     }
     /**

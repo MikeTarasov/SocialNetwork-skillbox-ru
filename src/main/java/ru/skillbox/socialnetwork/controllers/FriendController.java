@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
+import ru.skillbox.socialnetwork.model.enums.FriendStatus;
 import ru.skillbox.socialnetwork.services.FriendService;
 
 import java.util.List;
@@ -19,12 +20,12 @@ public class FriendController {
     }
 
     @GetMapping("/friends/request")
-    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getFriends(
+    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getRequests(
             @RequestParam(required = false) String name,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
             @RequestParam(required = false, defaultValue = "20") Integer itemPerPage){
 
-        return ResponseEntity.ok(friendService.getFriends(name, offset, itemPerPage));
+        return ResponseEntity.ok(friendService.getFriends(name, offset, itemPerPage, FriendStatus.REQUEST));
     }
 
     @GetMapping("/friends/recommendations")
@@ -37,8 +38,12 @@ public class FriendController {
     }
 
     @GetMapping("/friends")
-    public List list(){
-        return null;
+    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getFriends(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            @RequestParam(required = false, defaultValue = "20") Integer itemPerPage) {
+
+        return ResponseEntity.ok(friendService.getFriends(name, offset, itemPerPage, FriendStatus.FRIEND));
     }
 
     @PostMapping("/friends")

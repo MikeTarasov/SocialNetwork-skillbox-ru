@@ -33,7 +33,7 @@ public class FriendControllerTest {
     @Sql(value = {"/Add3Users.sql", "/AddFriendshipFor3.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getAllFriends1Test() throws Exception {
-        this.mockMvc.perform(get("/friends/request")
+        this.mockMvc.perform(get("/friends")
                 .queryParam("offset", "0")
                 .queryParam("itemPerPage","10"))
                 .andDo(print())
@@ -80,7 +80,7 @@ public class FriendControllerTest {
     @Sql(value = {"/Add3Users.sql", "/AddFriendshipFor3.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getAllFriends2Test() throws Exception {
-        this.mockMvc.perform(get("/friends/request")
+        this.mockMvc.perform(get("/friends")
                 .queryParam("offset", "0"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -99,7 +99,7 @@ public class FriendControllerTest {
     @Sql(value = {"/Add3Users.sql", "/AddFriendshipFor3.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getAllFriendsPagesTest() throws Exception {
-        this.mockMvc.perform(get("/friends/request")
+        this.mockMvc.perform(get("/friends")
                 .queryParam("offset", "0")
                 .queryParam("itemPerPage", "1"))
                 .andDo(print())
@@ -119,7 +119,7 @@ public class FriendControllerTest {
     @Sql(value = {"/Add3Users.sql", "/AddFriendshipFor3.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getFriendsQueryTest() throws Exception {
-        this.mockMvc.perform(get("/friends/request")
+        this.mockMvc.perform(get("/friends")
                 .queryParam("name", "дед")
                 .queryParam("offset", "0")
                 .queryParam("itemPerPage", "10"))
@@ -133,5 +133,47 @@ public class FriendControllerTest {
                 .andExpect(jsonPath("$.perPage").value("10"))
                 .andExpect(jsonPath("$.data", hasSize(1)))
                 .andExpect(jsonPath("$.data[0].id").value("8"));
+    }
+
+    @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add4UsersForRequestTest.sql", "/AddFriendshipRequestsFor4.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getAllRequestsTest() throws Exception {
+        this.mockMvc.perform(get("/friends/request")
+                .queryParam("offset", "0")
+                .queryParam("itemPerPage", "10"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.total").value("2"))
+                .andExpect(jsonPath("$.offset").value("0"))
+                .andExpect(jsonPath("$.perPage").value("10"))
+                .andExpect(jsonPath("$.data", hasSize(2)))
+                .andExpect(jsonPath("$.data[0].id").value("6"))
+                .andExpect(jsonPath("$.data[1].id").value("8"));
+    }
+
+    @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add4UsersForRequestTest.sql", "/AddFriendshipRequestsFor4.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getRequestsQueryTest() throws Exception {
+        this.mockMvc.perform(get("/friends/request")
+                .queryParam("name", "ELON")
+                .queryParam("offset", "0")
+                .queryParam("itemPerPage", "10"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.total").value("1"))
+                .andExpect(jsonPath("$.offset").value("0"))
+                .andExpect(jsonPath("$.perPage").value("10"))
+                .andExpect(jsonPath("$.data", hasSize(1)))
+                .andExpect(jsonPath("$.data[0].id").value("6"));
     }
 }

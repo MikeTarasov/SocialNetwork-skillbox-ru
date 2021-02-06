@@ -11,8 +11,8 @@ import ru.skillbox.socialnetwork.model.entity.Person;
 @Repository
 public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
 
-    Page<Friendship> findBySrcPersonAndCode(Person srcPerson, String code, Pageable paging);
+    Page<Friendship> findByDstPersonAndCode(Person dstPerson, String code, Pageable paging);
 
-    @Query(value = "select F from #{#entityName} F where F.srcPerson = :srcPerson and F.code = 'FRIEND' and upper(F.dstPerson.firstName) like concat('%',upper(:query),'%') ")
-    Page<Friendship> findBySrcPersonAndCodeAndDstPersonName(Person srcPerson, String query, Pageable paging);
+    @Query(value = "select F from #{#entityName} F where F.dstPerson = :dstPerson and F.code = :code and upper(F.srcPerson.firstName) like concat('%',upper(:name),'%') ")
+    Page<Friendship> findByDstPersonAndDstPersonNameAndCode(Person dstPerson, String name, String code, Pageable paging);
 }
