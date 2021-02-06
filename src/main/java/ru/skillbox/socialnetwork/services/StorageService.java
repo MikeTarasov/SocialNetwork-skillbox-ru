@@ -2,6 +2,7 @@ package ru.skillbox.socialnetwork.services;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +10,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 import ru.skillbox.socialnetwork.api.responses.FileUploadResponse;
+import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.enums.FileType;
+import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 
 import java.time.ZoneId;
@@ -34,50 +37,66 @@ public class StorageService {
   private List<String> uploadFileTypes;
 
   private final PersonDetailsService personDetailsService;
+  private final PersonRepository personRepository;
 
-  public StorageService(PersonDetailsService personDetailsService) {
+  @Autowired
+  public StorageService(PersonDetailsService personDetailsService, PersonRepository personRepository) {
     this.personDetailsService = personDetailsService;
+    this.personRepository = personRepository;
   }
 
 
   public ResponseEntity<?> getUpload(String type, MultipartFile file) {
-    try {
-      validateFile(file);
-      Cloudinary cloudinary = new Cloudinary(makeConfig());
-      Map res = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
+    if (file != null) {
+      try {
+        validateFile(file);
+        Cloudinary cloudinary = new Cloudinary(makeConfig());
+        Map res = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
 
+        String image = res.get("secure_url").toString();
+        Person person = personDetailsService.getCurrentUser();
+        person.setPhoto(image);
+        personRepository.save(person);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ErrorTimeDataResponse(
+                        "",
+                        System.currentTimeMillis(),
+                        makeFileUploadResponse(res)));
+
+      } catch (Exception e) {
+        e.printStackTrace();
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ErrorTimeDataResponse(
+                        e.getMessage(),
+                        System.currentTimeMillis(),
+                        null));
+      }
+    } else {
       return ResponseEntity.status(HttpStatus.OK)
               .body(new ErrorTimeDataResponse(
                       "",
                       System.currentTimeMillis(),
-                      makeFileUploadResponse(res)));
-
-    }catch (Exception e) {
-      e.printStackTrace();
-
-      return ResponseEntity.status(HttpStatus.OK)
-          .body(new ErrorTimeDataResponse(
-              e.getMessage(),
-              System.currentTimeMillis(),
-              null));
+                      null));
     }
   }
 
 
-  public void validateFile(MultipartFile file) throws Exception{
-    String contType = file.getContentType();
+  private void validateFile(MultipartFile file) throws Exception{
 
-    if(file.isEmpty()){
-      throw new IllegalArgumentException("File can not be empty");
-    }
-    if(contType == null){
-      throw new IllegalArgumentException("Content type is null");
-    }
+      String contType = file.getContentType();
 
-    if(uploadFileTypes.stream().noneMatch(contType::contains)){
-      throw new IllegalArgumentException("Unknown file type");
-    }
+      if (file.isEmpty()) {
+        throw new IllegalArgumentException("File can not be empty");
+      }
+      if (contType == null) {
+        throw new IllegalArgumentException("Content type is null");
+      }
 
+      if (uploadFileTypes.stream().noneMatch(contType::contains)) {
+        throw new IllegalArgumentException("Unknown file type");
+      }
   }
 
   private FileUploadResponse makeFileUploadResponse(Map<?, ?> res) {
@@ -88,7 +107,7 @@ public class StorageService {
         .relativeFilePath((String) res.get("secure_url"))
         .rawFileURL((String) res.get("secure_url"))
         .fileFormat((String) res.get("format"))
-        .bytes((int) (res.get("bytes")))
+        .bytes(Integer.parseInt(res.get("bytes").toString()))
         .fileType(FileType.IMAGE)
         .createdAt(getTimestamp((String) res.get("created_at")))
         .build();
