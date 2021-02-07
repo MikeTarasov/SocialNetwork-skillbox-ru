@@ -72,17 +72,17 @@ public class ProfileController {
     public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> userSearch(
             @RequestParam(name = "first_name", required = false) String firstName,
             @RequestParam(name = "last_name", required = false) String lastName,
-            @RequestParam(name = "age_from", required = false, defaultValue = "0") int ageFrom,
-            @RequestParam(name = "age_to", required = false, defaultValue = "0") int ageTo,
+            @RequestParam(name = "age_from", required = false, defaultValue = "0") Integer ageFrom,
+            @RequestParam(name = "age_to", required = false, defaultValue = "0") Integer ageTo,
             //@RequestParam(name = "country_id", required = false) int countryId,
             //@RequestParam(name = "city_id", required = false) int cityId,
-            @RequestParam(name = "offset", required = false, defaultValue = "0") int offset,
-            @RequestParam(name = "itemPerPage", required = false, defaultValue = "20") int itemPerPage) {
+            @RequestParam(name = "offset", required = false, defaultValue = "0") Integer offset,
+            @RequestParam(name = "itemPerPage", required = false, defaultValue = "20") Integer itemPerPage) {
 
         return ResponseEntity.ok(profileService.search(
                 firstName, lastName, ageFrom, ageTo,
                 offset, itemPerPage
-                ));
+        ));
     }
 
 

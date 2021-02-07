@@ -152,15 +152,25 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public ErrorTimeTotalOffsetPerPageListDataResponse search(String firstName, String lastName, int ageFrom, int ageTo,
-                                                              int offset, int itemPerPage) {
-        Pageable paging = PageRequest.of(offset / itemPerPage, itemPerPage);
+    public ErrorTimeTotalOffsetPerPageListDataResponse search(String firstName, String lastName, Integer ageFrom,
+                                                              Integer ageTo, Integer offset, Integer itemPerPage) {
+        if (offset == null || itemPerPage == null) {
+            offset = 0;
+            itemPerPage = 20;
+        }
+        if (lastName == null) lastName = "";
+        else lastName = "%".concat(lastName).concat("%");
+        if (firstName == null) firstName = "";
+        else firstName = "%".concat(firstName).concat("%");
+
         LocalDateTime startDate = null;
         LocalDateTime endDate = null;
         if (ageTo > 0)
             startDate = LocalDateTime.now().minusYears(ageTo);
         if (ageFrom > 0)
             endDate = LocalDateTime.now().minusYears(ageFrom);
+
+        Pageable paging = PageRequest.of(offset / itemPerPage, itemPerPage);
         Page<Person> personPage = personRepository.findPersons(firstName, lastName, startDate, endDate, paging);
         return new ErrorTimeTotalOffsetPerPageListDataResponse(
                 "",
