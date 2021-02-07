@@ -10,13 +10,19 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.skillbox.socialnetwork.controllers.FriendController;
+import ru.skillbox.socialnetwork.model.entity.Person;
+import ru.skillbox.socialnetwork.model.enums.FriendStatus;
+import ru.skillbox.socialnetwork.repository.FriendshipRepository;
+import ru.skillbox.socialnetwork.repository.PersonRepository;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -27,6 +33,10 @@ public class FriendControllerTest {
     private FriendController friendController;
     @Autowired
     private MockMvc mockMvc;
+    @Autowired
+    private FriendshipRepository friendshipRepository;
+    @Autowired
+    private PersonRepository personRepository;
 
     @Test
     @WithUserDetails("shred@mail.who")
@@ -175,5 +185,50 @@ public class FriendControllerTest {
                 .andExpect(jsonPath("$.perPage").value("10"))
                 .andExpect(jsonPath("$.data", hasSize(1)))
                 .andExpect(jsonPath("$.data[0].id").value("6"));
+    }
+
+    @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add3Users.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void addFriend1Test() throws Exception {
+        Long dstPersonId = 7L;
+        this.mockMvc.perform(post("/friends/" + dstPersonId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message").value("ok"));
+
+        Person currentPerson = personRepository.findByEmail("shred@mail.who").get();
+        Person dstPerson = personRepository.findById(dstPersonId).get();
+        assertTrue(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).isPresent());
+        assertEquals(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).get()
+                .getCode(), FriendStatus.REQUEST.name());
+    }
+
+    @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add4UsersForRequestTest.sql", "/AddFriendshipRequestsFor4.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void addFriend2Test() throws Exception {
+        Long dstPersonId = 8L;
+        this.mockMvc.perform(post("/friends/" + dstPersonId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message").value("ok"));
+
+        Person currentPerson = personRepository.findByEmail("shred@mail.who").get();
+        Person dstPerson = personRepository.findById(dstPersonId).get();
+        assertTrue(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).isPresent());
+        assertTrue(friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).isPresent());
+        assertEquals(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).get()
+                .getCode(), FriendStatus.FRIEND.name());
+        assertEquals(friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).get()
+                .getCode(), FriendStatus.FRIEND.name());
     }
 }

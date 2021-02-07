@@ -3,7 +3,9 @@ package ru.skillbox.socialnetwork.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
+import ru.skillbox.socialnetwork.api.responses.MessageResponse;
 import ru.skillbox.socialnetwork.model.enums.FriendStatus;
 import ru.skillbox.socialnetwork.services.FriendService;
 
@@ -46,9 +48,10 @@ public class FriendController {
         return ResponseEntity.ok(friendService.getFriends(name, offset, itemPerPage, FriendStatus.FRIEND));
     }
 
-    @PostMapping("/friends")
-    public long add(){
-        return 0L;
+    @PostMapping("/friends/{id}")
+    public ResponseEntity<ErrorTimeDataResponse> add(@PathVariable Long id){
+        friendService.addFriend(id);
+        return ResponseEntity.ok(new ErrorTimeDataResponse("",new MessageResponse()));
     }
 
     @DeleteMapping("/friends")

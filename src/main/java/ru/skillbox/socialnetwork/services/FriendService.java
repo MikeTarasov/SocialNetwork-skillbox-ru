@@ -8,5 +8,7 @@ import ru.skillbox.socialnetwork.model.enums.FriendStatus;
 public interface FriendService {
 
     public ErrorTimeTotalOffsetPerPageListDataResponse getFriends(String name, Integer offset, Integer itemPerPage, FriendStatus friendStatus);
+
+    public void addFriend(Long dstPersonId);
 }
 

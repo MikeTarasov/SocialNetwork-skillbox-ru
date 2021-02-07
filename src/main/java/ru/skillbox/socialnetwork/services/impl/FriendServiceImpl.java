@@ -12,8 +12,10 @@ import ru.skillbox.socialnetwork.model.entity.Friendship;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.enums.FriendStatus;
 import ru.skillbox.socialnetwork.repository.FriendshipRepository;
+import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 import ru.skillbox.socialnetwork.services.FriendService;
+import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -24,11 +26,13 @@ import java.util.TimeZone;
 public class FriendServiceImpl implements FriendService {
 
     private final FriendshipRepository friendshipRepository;
+    private final PersonRepository personRepository;
     private final PersonDetailsService personDetailsService;
 
     @Autowired
-    public FriendServiceImpl(FriendshipRepository friendshipRepository, PersonDetailsService personDetailsService) {
+    public FriendServiceImpl(FriendshipRepository friendshipRepository, PersonRepository personRepository, PersonDetailsService personDetailsService) {
         this.friendshipRepository = friendshipRepository;
+        this.personRepository = personRepository;
         this.personDetailsService = personDetailsService;
     }
 
@@ -43,13 +47,31 @@ public class FriendServiceImpl implements FriendService {
         if (name == null || name.isEmpty())
             friendPage = friendshipRepository.findByDstPersonAndCode(currentPerson, friendStatus.name(), paging);
         else
-            friendPage = friendshipRepository.findByDstPersonAndDstPersonNameAndCode(currentPerson, name, friendStatus.name(), paging);
+            friendPage = friendshipRepository.findByDstPersonAndSrcNameAndCode(currentPerson, name, friendStatus.name(), paging);
 
         return new ErrorTimeTotalOffsetPerPageListDataResponse(
                 friendPage.getTotalElements(),
                 offset,
                 itemPerPage,
                 convertFriendshipPageToPersonList(friendPage));
+    }
+
+    @Override
+    public void addFriend(Long dstPersonId) {
+        Person currentPerson = personDetailsService.getCurrentUser();
+        Person dstPerson = personRepository.findById(dstPersonId).orElseThrow(() -> new PersonNotFoundException(dstPersonId));
+        Friendship friendshipOut = new Friendship();
+        friendshipOut.setDstPerson(dstPerson);
+        friendshipOut.setSrcPerson(currentPerson);
+        if (friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).isEmpty()) {
+            friendshipOut.setCode(FriendStatus.REQUEST.name());
+        } else {
+            Friendship friendshipIn = friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).get();
+            friendshipIn.setCode(FriendStatus.FRIEND.name());
+            friendshipOut.setCode(FriendStatus.FRIEND.name());
+            friendshipRepository.save(friendshipIn);
+        }
+        friendshipRepository.save(friendshipOut);
     }
 
     /**
