@@ -76,9 +76,6 @@ public class ProfileServiceImpl implements ProfileService {
         if (personEditRequest.getPhone() != null) {
             person.setPhone(personEditRequest.getPhone());
         }
-        if (personEditRequest.getPhotoId() != null) {
-            person.setPhoto(personEditRequest.getPhotoId());
-        }
         if (personEditRequest.getAbout() != null) {
             person.setAbout(personEditRequest.getAbout());
         }
