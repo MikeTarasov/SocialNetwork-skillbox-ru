@@ -19,8 +19,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -187,6 +186,9 @@ public class FriendControllerTest {
                 .andExpect(jsonPath("$.data[0].id").value("6"));
     }
 
+    /**
+     * create friend request
+     */
     @Test
     @WithUserDetails("shred@mail.who")
     @Sql(value = {"/Add3Users.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
@@ -208,6 +210,9 @@ public class FriendControllerTest {
                 .getCode(), FriendStatus.REQUEST.name());
     }
 
+    /**
+     * allow friend request
+     */
     @Test
     @WithUserDetails("shred@mail.who")
     @Sql(value = {"/Add4UsersForRequestTest.sql", "/AddFriendshipRequestsFor4.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
@@ -230,5 +235,126 @@ public class FriendControllerTest {
                 .getCode(), FriendStatus.FRIEND.name());
         assertEquals(friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).get()
                 .getCode(), FriendStatus.FRIEND.name());
+    }
+
+    /**
+     * in case you were already declined
+     */
+    @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add3Users.sql", "/AddFriendshipDeclinedAndBlocked.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void addFriend3Test() throws Exception {
+        Long dstPersonId = 7L;
+        this.mockMvc.perform(post("/friends/" + dstPersonId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message").value("ok"));
+
+        Person currentPerson = personRepository.findByEmail("shred@mail.who").get();
+        Person dstPerson = personRepository.findById(dstPersonId).get();
+        assertTrue(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).isPresent());
+        assertTrue(friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).isPresent());
+        assertEquals(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).get()
+                .getCode(), FriendStatus.SUBSCRIBED.name());
+        assertEquals(friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).get()
+                .getCode(), FriendStatus.DECLINED.name());
+    }
+
+    /**
+     * in case you were blocked
+     */
+    @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add3Users.sql", "/AddFriendshipDeclinedAndBlocked.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void addFriend4Test() throws Exception {
+        Long dstPersonId = 8L;
+        this.mockMvc.perform(post("/friends/" + dstPersonId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message").value("ok"));
+
+        Person currentPerson = personRepository.findByEmail("shred@mail.who").get();
+        Person dstPerson = personRepository.findById(dstPersonId).get();
+        assertTrue(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).isEmpty());
+        assertTrue(friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).isPresent());
+        assertEquals(friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).get()
+                .getCode(), FriendStatus.BLOCKED.name());
+    }
+
+    /**
+     * delete friend request
+     */
+    @Test
+    @WithUserDetails("dedm@mail.who")
+    @Sql(value = {"/Add4UsersForRequestTest.sql", "/AddFriendshipRequestsFor4.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void deleteFriendRequestTest() throws Exception {
+        Long dstPersonId = 9L;
+        this.mockMvc.perform(delete("/friends/" + dstPersonId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message").value("ok"));
+
+        Person currentPerson = personRepository.findByEmail("dedm@mail.who").get();
+        Person dstPerson = personRepository.findById(dstPersonId).get();
+        assertTrue(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).isEmpty());
+        assertTrue(friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).isEmpty());
+    }
+
+    /**
+     * broke friendship
+     */
+    @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add4UsersForRequestTest.sql", "/AddFriendshipRequestsFor4.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void deleteFriendTest() throws Exception {
+        Long dstPersonId = 7L;
+        this.mockMvc.perform(delete("/friends/" + dstPersonId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message").value("ok"));
+
+        Person currentPerson = personRepository.findByEmail("shred@mail.who").get();
+        Person dstPerson = personRepository.findById(dstPersonId).get();
+        assertTrue(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).isPresent());
+        assertTrue(friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).isPresent());
+        assertEquals(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).get()
+                .getCode(), FriendStatus.DECLINED.name());
+        assertEquals(friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).get()
+                .getCode(), FriendStatus.SUBSCRIBED.name());
+    }
+
+    /**
+     * wrong id
+     */
+    @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add4UsersForRequestTest.sql", "/AddFriendshipRequestsFor4.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void deleteFriendErrorTest() throws Exception {
+        Long dstPersonId = 5L;
+        this.mockMvc.perform(delete("/friends/" + dstPersonId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").isNotEmpty());
+
     }
 }

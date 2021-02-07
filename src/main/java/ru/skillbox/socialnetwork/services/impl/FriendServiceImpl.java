@@ -67,11 +67,38 @@ public class FriendServiceImpl implements FriendService {
             friendshipOut.setCode(FriendStatus.REQUEST.name());
         } else {
             Friendship friendshipIn = friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).get();
-            friendshipIn.setCode(FriendStatus.FRIEND.name());
-            friendshipOut.setCode(FriendStatus.FRIEND.name());
-            friendshipRepository.save(friendshipIn);
+            if (friendshipIn.getCode().equals(FriendStatus.REQUEST.name())) {
+                friendshipIn.setCode(FriendStatus.FRIEND.name());
+                friendshipOut.setCode(FriendStatus.FRIEND.name());
+                friendshipRepository.save(friendshipIn);
+            } else if (friendshipIn.getCode().equals(FriendStatus.DECLINED.name())) {
+                friendshipOut.setCode(FriendStatus.SUBSCRIBED.name());
+            } else if (friendshipIn.getCode().equals(FriendStatus.BLOCKED.name())) {
+                return;
+            }
         }
         friendshipRepository.save(friendshipOut);
+    }
+
+    @Override
+    public void deleteFriend(Long dstPersonId) {
+        Person currentPerson = personDetailsService.getCurrentUser();
+        Person dstPerson = personRepository.findById(dstPersonId).orElseThrow(() -> new PersonNotFoundException(dstPersonId));
+        if (friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).isEmpty())
+            return;
+        Friendship friendshipOut = friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).get();
+
+        if (friendshipOut.getCode().equals(FriendStatus.REQUEST.name()) || friendshipOut.getCode().equals(FriendStatus.SUBSCRIBED.name())) {
+            friendshipRepository.delete(friendshipOut);
+        } else if (friendshipOut.getCode().equals(FriendStatus.FRIEND.name())) {
+            friendshipOut.setCode(FriendStatus.DECLINED.name());
+            friendshipRepository.save(friendshipOut);
+            if (friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).isPresent()) {
+                Friendship friendshipIn = friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).get();
+                friendshipIn.setCode(FriendStatus.SUBSCRIBED.name());
+                friendshipRepository.save(friendshipIn);
+            }
+        }
     }
 
     /**

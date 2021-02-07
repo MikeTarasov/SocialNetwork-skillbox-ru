@@ -54,9 +54,10 @@ public class FriendController {
         return ResponseEntity.ok(new ErrorTimeDataResponse("",new MessageResponse()));
     }
 
-    @DeleteMapping("/friends")
-    public long delete(){
-        return 0L;
+    @DeleteMapping("/friends/{id}")
+    public ResponseEntity<ErrorTimeDataResponse> delete(@PathVariable Long id){
+        friendService.deleteFriend(id);
+        return ResponseEntity.ok(new ErrorTimeDataResponse("",new MessageResponse()));
     }
 
     @GetMapping("/friends/{id}")

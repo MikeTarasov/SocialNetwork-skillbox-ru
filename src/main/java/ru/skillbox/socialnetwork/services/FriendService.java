@@ -10,5 +10,7 @@ public interface FriendService {
     public ErrorTimeTotalOffsetPerPageListDataResponse getFriends(String name, Integer offset, Integer itemPerPage, FriendStatus friendStatus);
 
     public void addFriend(Long dstPersonId);
+
+    public void  deleteFriend(Long dstPersonId);
 }
 
