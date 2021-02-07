@@ -101,7 +101,7 @@ public class StorageService {
 
   private FileUploadResponse makeFileUploadResponse(Map<?, ?> res) {
     return FileUploadResponse.builder()
-            .id((String) res.get("public_id"))
+            .id((String) res.get("secure_url"))
             .ownerId(personDetailsService.getCurrentUser().getId())
         .fileName((String) res.get("original_filename"))
         .relativeFilePath((String) res.get("secure_url"))
