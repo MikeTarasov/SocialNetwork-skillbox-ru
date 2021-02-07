@@ -14,7 +14,7 @@ import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
 import ru.skillbox.socialnetwork.repository.CommentRepository;
-import ru.skillbox.socialnetwork.repository.PostLikeRepository;
+import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 
@@ -29,50 +29,53 @@ import java.util.Optional;
 @Transactional
 public class PostService {
 
-    private final int isDeleted = 0;
-
     private final PostRepository postRepository;
-    private final PostLikeRepository postLikeRepository;
+    private final PersonRepository personRepository;
     private final CommentRepository commentRepository;
     private final PersonDetailsService personDetailsService;
 
     @Autowired
-    public PostService(PostRepository postRepository, PostLikeRepository postLikeRepository,
-                       CommentRepository commentRepository, PersonDetailsService personDetailsService) {
+    public PostService(PostRepository postRepository,
+                       PersonRepository personRepository,
+                       CommentRepository commentRepository,
+                       PersonDetailsService personDetailsService) {
         this.postRepository = postRepository;
-        this.postLikeRepository = postLikeRepository;
+        this.personRepository = personRepository;
         this.commentRepository = commentRepository;
         this.personDetailsService = personDetailsService;
     }
 
-    public ResponseEntity<?> getApiPost(String text, long dateFrom, long dateTo,
-                                        int offset, int itemPerPage) {
-        StringBuilder errors = new StringBuilder();
+    public ResponseEntity<?> getApiPost(String text, Long dateFrom, Long dateTo, String authorName,
+                                        Integer offset, Integer itemPerPage) {
 
-        if (dateFrom > dateTo) {
-            errors.append("'dateFrom' should be less or equal to 'dateTo'. ");
+        if (offset == null || itemPerPage == null) {
+            offset = 0;
+            itemPerPage = 20;
         }
-        if (dateFrom > System.currentTimeMillis()) {
-            errors.append("'dateFrom' should be less than current time. ");
-        }
-        if (dateFrom > dateTo) {
-            errors.append("'dateFrom' should be less than or equal to 'dateTo'. ");
-        }
-        if (offset < 0) {
-            errors.append("'offset' should be greater than 0. ");
-        }
-        if (itemPerPage <= 0) {
-            errors.append("'itemPerPage' should be more than 0. ");
-        }
-        if (!errors.toString().equals("")) {
-            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
-        }
-
         Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage);
-        List<Post> posts = postRepository
-                .findByPostTextContainingIgnoreCaseAndTimeBetweenAndIsDeletedOrderByIdDesc(text,
-                        getMillisecondsToLocalDateTime(dateFrom), getMillisecondsToLocalDateTime(dateTo),
-                        isDeleted, pageable);
+        List<Post> posts = new ArrayList<>();
+
+        if (dateFrom == null && authorName == null) { //общий поиск из поля search
+            posts = postRepository.findByTitleContainsIgnoreCaseOrPostTextContainsIgnoreCaseAndTimeBeforeAndIsBlockedAndIsDeleted(
+                    text, text, LocalDateTime.now(), 0, 0, pageable);
+
+        } else if (authorName == null) { //поиск в новости - без автора
+            posts = postRepository.findByTitleContainsIgnoreCaseOrPostTextContainsIgnoreCaseAndTimeAfterAndTimeBeforeAndIsBlockedAndIsDeleted(
+                    text, text, getMillisecondsToLocalDateTime(dateFrom), getMillisecondsToLocalDateTime(dateTo),
+                    0, 0, pageable);
+
+        } else { //поиск в новости - с автором
+            Optional<Person> optionalPerson = personRepository
+                    .findByFirstNameContainsIgnoreCaseOrLastNameContainsIgnoreCase(authorName, authorName);
+
+            if (optionalPerson.isPresent() && dateFrom != null && dateTo != null) {
+                posts = postRepository
+                        .findByTitleContainsIgnoreCaseOrPostTextContainsIgnoreCaseAndAuthorAndTimeAfterAndTimeBeforeAndIsBlockedAndIsDeleted(
+                                text, text, optionalPerson.get(), getMillisecondsToLocalDateTime(dateFrom),
+                                getMillisecondsToLocalDateTime(dateTo), 0, 0, pageable
+                        );
+            }
+        }
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeTotalOffsetPerPageListDataResponse(

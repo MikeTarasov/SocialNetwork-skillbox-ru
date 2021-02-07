@@ -20,10 +20,13 @@ public class PostController {
   }
 
   @GetMapping("")
-  public ResponseEntity<?> getApiPost(@RequestParam("text") String text, @RequestParam("date_from") long dateFrom,
-                                      @RequestParam("date_to") long dateTo,
-                                      @RequestParam("offset") int offset, @RequestParam("itemPerPage") int itemPerPage) {
-    return postService.getApiPost(text, dateFrom, dateTo, offset, itemPerPage);
+  public ResponseEntity<?> getApiPost(@RequestParam(name = "text") String text,
+                                      @RequestParam(name = "date_from", required = false) Long dateFrom,
+                                      @RequestParam(name = "date_to", required = false) Long dateTo,
+                                      @RequestParam(name = "author", required = false) String authorName,
+                                      @RequestParam(name = "offset", required = false) Integer offset,
+                                      @RequestParam(name = "itemPerPage", required = false) Integer itemPerPage) {
+    return postService.getApiPost(text, dateFrom, dateTo, authorName, offset, itemPerPage);
   }
 
   @GetMapping("/{id}")

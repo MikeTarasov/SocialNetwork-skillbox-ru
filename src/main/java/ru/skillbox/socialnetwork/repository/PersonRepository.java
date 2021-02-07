@@ -16,11 +16,13 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
     Optional<Person> findByEmail(String email);
 
     @Query(value = "select p from Person p where " +
-            "(:firstName is null or p.firstName = :firstName) AND " +
-            "(:lastName is null or p.lastName = :lastName) AND " +
+            "(:firstName = '' or lower(p.firstName) like lower(:firstName) or lower(p.lastName) like lower(:firstName)) AND " +
+            "(:lastName = '' or lower(p.lastName) like lower(:lastName)) AND " +
             "(cast(:startDate as timestamp) is null or p.birthDate >= :startDate) AND " +
             "(cast(:endDate as timestamp) is null or p.birthDate <= :endDate)" +
             "order by p.lastName"
     )
     Page<Person> findPersons(String firstName, String lastName, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
+
+    Optional<Person> findByFirstNameContainsIgnoreCaseOrLastNameContainsIgnoreCase(String nameF, String nameL);
 }

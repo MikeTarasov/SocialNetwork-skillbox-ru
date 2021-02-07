@@ -8,7 +8,6 @@ import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 
 import java.time.LocalDateTime;
-import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,7 +16,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     List<Post> findByPostTextContainingIgnoreCaseAndTimeBetweenAndIsDeletedOrderByIdDesc(String postText, LocalDateTime timeFrom,
                                                                                          LocalDateTime timeTo, int isDeleted,
-                                                                                    Pageable pageable);
+                                                                                         Pageable pageable);
 
     Optional<Post> findByIdAndTimeIsBefore(long id, LocalDateTime time);
 
@@ -26,5 +25,16 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Optional<Post> findByTitle(String title);
 
     List<Post> findByPostTextContainingAndTimeBetweenAndIsDeletedOrderByIdDesc(String postText,
-                    LocalDateTime dateStart, LocalDateTime dateEnd, int isDeleted);
+                                                                               LocalDateTime dateStart, LocalDateTime dateEnd, int isDeleted);
+
+    List<Post> findByTitleContainsIgnoreCaseOrPostTextContainsIgnoreCaseAndTimeBeforeAndIsBlockedAndIsDeleted(
+            String titleText, String postText, LocalDateTime time, int isBlocked, int isDeleted, Pageable pageable);
+
+    List<Post> findByTitleContainsIgnoreCaseOrPostTextContainsIgnoreCaseAndTimeAfterAndTimeBeforeAndIsBlockedAndIsDeleted(
+            String titleText, String postText, LocalDateTime from, LocalDateTime to, int isBlocked, int isDeleted,
+            Pageable pageable);
+
+    List<Post> findByTitleContainsIgnoreCaseOrPostTextContainsIgnoreCaseAndAuthorAndTimeAfterAndTimeBeforeAndIsBlockedAndIsDeleted(
+            String titleText, String postText, Person author, LocalDateTime from, LocalDateTime to,
+            int isBlocked, int isDeleted, Pageable pageable);
 }
