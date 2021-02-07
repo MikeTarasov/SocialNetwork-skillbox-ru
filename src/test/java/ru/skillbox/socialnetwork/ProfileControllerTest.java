@@ -113,7 +113,7 @@ public class ProfileControllerTest {
         String lastName = "Trump";
         String birthDate = "1982-04-20";
         String phone = "0000000";
-        // String photo = "BLOB";
+        String photo = "BLOB";
         String about = "Make America great again";
         String city = "Balashikha";
         String country = "Russia";
