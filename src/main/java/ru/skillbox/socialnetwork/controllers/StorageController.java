@@ -18,7 +18,7 @@ public class StorageController {
 
   @PostMapping("/storage")
   public ResponseEntity<?> uploadFile(@RequestParam("type") String type,
-      @RequestParam("file") MultipartFile file) {
+                                      @RequestParam("file") MultipartFile file) {
     return storageService.getUpload(type, file);
   }
 
