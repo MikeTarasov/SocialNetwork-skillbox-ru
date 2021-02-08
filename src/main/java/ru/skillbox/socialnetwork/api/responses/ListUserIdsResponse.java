@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ListUserIdsResponse {
 
-  @JsonProperty("user_ids")
+  @JsonProperty("users_ids")
   private List<Long> userIds;
 }
