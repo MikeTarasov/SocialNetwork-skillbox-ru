@@ -11,7 +11,7 @@ import ru.skillbox.socialnetwork.model.entity.Message;
 public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query(value = "SELECT * " +
             "FROM message ms " +
-            "WHERE ms.dialog_id = :dialog_id AND ms.is_deleted = 0 AND ms.text LIKE CONCAT ('%',:query,'%') ORDER BY `time` DESC",
+            "WHERE ms.dialog_id = :dialog_id AND ms.is_deleted = 0 AND ms.message_text LIKE CONCAT ('%',:query,'%') ORDER BY ms.time DESC",
             nativeQuery = true)
     Page<Message> findMessageWithQueryWithPagination(@Param("query") String query,
                                                      @Param("dialog_id") Long dialogId,

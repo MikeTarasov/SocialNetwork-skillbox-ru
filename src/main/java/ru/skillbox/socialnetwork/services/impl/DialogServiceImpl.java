@@ -84,6 +84,7 @@ public class DialogServiceImpl implements DialogService {
             personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
         }
         Person owner = personDetailsService.getCurrentUser();
+        userIds.add(owner.getId());
         Dialog dialog = new Dialog();
         dialog.setIsDeleted(0);
         dialog.setUnreadCount(0);
