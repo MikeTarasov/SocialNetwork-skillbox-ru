@@ -21,9 +21,9 @@ public class PersonEditRequest {
   @JsonProperty("photo_id")
   private String photoId;
   private String about;
-  @JsonProperty("town_id")
+  @JsonProperty("city")
   private String townId;
-  @JsonProperty("country_id")
+  @JsonProperty("country")
   private String countryId;
   @JsonProperty("messages_permission")
   private MessagesPermissions messagesPermission;
