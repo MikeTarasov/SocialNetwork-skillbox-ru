@@ -8,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
 import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
+import ru.skillbox.socialnetwork.api.responses.UserIdStatusResponse;
 import ru.skillbox.socialnetwork.model.entity.Friendship;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.enums.FriendStatus;
@@ -101,6 +102,45 @@ public class FriendServiceImpl implements FriendService {
         }
     }
 
+    @Override
+    public List<UserIdStatusResponse> isFriend(List<Long> userIds) {
+        Person currentPerson = personDetailsService.getCurrentUser();
+        List<UserIdStatusResponse> response = new ArrayList<>();
+        for (Long id : userIds) {
+            if (personRepository.findById(id).isEmpty())
+                continue;
+            Person dstPerson = personRepository.findById(id).get();
+            if (friendshipRepository.findByDstPersonAndSrcPerson(personRepository.findById(id).get(), currentPerson).isEmpty())
+                continue;
+            UserIdStatusResponse status = new UserIdStatusResponse();
+            status.setUserId(id);
+            status.setStatus(FriendStatus.valueOf(
+                    friendshipRepository.findByDstPersonAndSrcPerson(personRepository.findById(id).get(), currentPerson)
+                            .get().getCode()));
+            response.add(status);
+        }
+        return response;
+    }
+
+    @Override
+    public ErrorTimeTotalOffsetPerPageListDataResponse getRecommendations(Integer offset, Integer itemPerPage) {
+        Person currentPerson = personDetailsService.getCurrentUser();
+        Pageable paging = PageRequest.of(offset / itemPerPage,
+                itemPerPage,
+                Sort.by(Sort.Direction.ASC, "dstPerson.lastName"));
+
+        List<Person> friends = friendshipRepository.findBySrcPersonAndCode(currentPerson, FriendStatus.FRIEND.name());
+        List<Person> known = friendshipRepository.findBySrcPerson(currentPerson);
+        known.add(currentPerson);
+        Page<Person> connections = friendshipRepository.findNewConnections(friends, known, paging);
+
+        return new ErrorTimeTotalOffsetPerPageListDataResponse(
+                connections.getTotalElements(),
+                offset,
+                itemPerPage,
+                convertPersonPageToList(connections));
+    }
+
     /**
      * Helper
      * Converting Page<Friendship> to List<PersonEntityResponse>
@@ -110,6 +150,17 @@ public class FriendServiceImpl implements FriendService {
         friendships.forEach(friendship -> personResponseList.add(convertPersonToResponse(friendship.getSrcPerson())));
         return personResponseList;
     }
+
+    /**
+     * Helper
+     * Converting Page<Person> to List<PersonEntityResponse>
+     */
+    private List<PersonEntityResponse> convertPersonPageToList(Page<Person> page) {
+        List<PersonEntityResponse> personResponseList = new ArrayList<>();
+        page.forEach(person -> personResponseList.add(convertPersonToResponse(person)));
+        return personResponseList;
+    }
+
     /**
      * Helper for converting Person entity to API response
      *

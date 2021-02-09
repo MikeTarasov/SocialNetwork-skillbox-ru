@@ -3,8 +3,10 @@ package ru.skillbox.socialnetwork.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.skillbox.socialnetwork.api.requests.ListUserIdsRequest;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
+import ru.skillbox.socialnetwork.api.responses.ListDataResponse;
 import ru.skillbox.socialnetwork.api.responses.MessageResponse;
 import ru.skillbox.socialnetwork.model.enums.FriendStatus;
 import ru.skillbox.socialnetwork.services.FriendService;
@@ -31,12 +33,17 @@ public class FriendController {
     }
 
     @GetMapping("/friends/recommendations")
-    public List recommendations(){
-        return null;
+    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> recommendations(
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            @RequestParam(required = false, defaultValue = "20") Integer itemPerPage){
+
+        return ResponseEntity.ok(friendService.getRecommendations(offset, itemPerPage));
     }
-    @GetMapping("/is/friends")
-    public boolean isExist(){
-        return false;
+
+    @PostMapping("/is/friends")
+    public ResponseEntity<ListDataResponse> isFriend(@RequestBody ListUserIdsRequest userIds){
+        return ResponseEntity.ok(new ListDataResponse(
+                friendService.isFriend(userIds.getUserIds())));
     }
 
     @GetMapping("/friends")

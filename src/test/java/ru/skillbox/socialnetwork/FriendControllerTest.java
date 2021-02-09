@@ -1,5 +1,6 @@
 package ru.skillbox.socialnetwork;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -9,11 +10,15 @@ import org.springframework.security.test.context.support.WithUserDetails;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.skillbox.socialnetwork.api.requests.ListUserIdsRequest;
 import ru.skillbox.socialnetwork.controllers.FriendController;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.enums.FriendStatus;
 import ru.skillbox.socialnetwork.repository.FriendshipRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,6 +41,8 @@ public class FriendControllerTest {
     private FriendshipRepository friendshipRepository;
     @Autowired
     private PersonRepository personRepository;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     @WithUserDetails("shred@mail.who")
@@ -356,5 +363,51 @@ public class FriendControllerTest {
                 .andExpect(jsonPath("$.error").value("invalid_request"))
                 .andExpect(jsonPath("$.error_description").isNotEmpty());
 
+    }
+
+    @Test
+    @WithUserDetails("dedm@mail.who")
+    @Sql(value = {"/Add3Users.sql", "/AddFriendshipFor3.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void isFriendTest() throws Exception {
+        List<Long> list = new ArrayList<Long>();
+        list.add(7L);
+        list.add(8L);
+        list.add(9L);
+        list.add(10L);
+        ListUserIdsRequest request = new ListUserIdsRequest(list);
+
+        this.mockMvc.perform(post("/is/friends").contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.data", hasSize(2)))
+                .andExpect(jsonPath("$.data[0].user_id").value("7"))
+                .andExpect(jsonPath("$.data[0].status").value("DECLINED"))
+                .andExpect(jsonPath("$.data[1].user_id").value("9"))
+                .andExpect(jsonPath("$.data[1].status").value("FRIEND"));
+
+    }
+
+    @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add7Users.sql", "/AddFriendshipFor7.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getRecommendationsTest() throws Exception {
+        this.mockMvc.perform(get("/friends/recommendations")
+                .queryParam("offset", "0"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.total").value("2"))
+                .andExpect(jsonPath("$.offset").value("0"))
+                .andExpect(jsonPath("$.perPage").value("20"))
+                .andExpect(jsonPath("$.data", hasSize(2)))
+                .andExpect(jsonPath("$.data[0].id").value("5"))
+                .andExpect(jsonPath("$.data[1].id").value("4"));
     }
 }
