@@ -67,4 +67,13 @@ public class ErrorTimeTotalOffsetPerPageListDataResponse {
   public void setData(List<?> data) {
     this.data = data;
   }
+
+  public ErrorTimeTotalOffsetPerPageListDataResponse(long total, int offset, int perPage, List<?> data) {
+    this.error = "";
+    timestamp = System.currentTimeMillis();;
+    this.total = total;
+    this.offset = offset;
+    this.perPage = perPage;
+    this.data = data;
+  }
 }
