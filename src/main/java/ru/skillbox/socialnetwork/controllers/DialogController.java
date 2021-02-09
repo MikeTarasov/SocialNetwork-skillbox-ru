@@ -22,7 +22,8 @@ public class DialogController {
     }
 
     @GetMapping("")
-    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getDialogList(@RequestBody(required = false) DialogRequest dialogRequest) {
+    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getDialogList(
+            @RequestBody(required = false) DialogRequest dialogRequest) {
         if (dialogRequest != null) {
             return ResponseEntity.ok(dialogService.getDialogsList(dialogRequest));
         } else {

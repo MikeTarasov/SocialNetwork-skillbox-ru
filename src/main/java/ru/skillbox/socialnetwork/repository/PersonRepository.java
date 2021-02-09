@@ -18,11 +18,13 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
     @Query(value = "select p from Person p where " +
             "(:firstName = '' or lower(p.firstName) like lower(:firstName) or lower(p.lastName) like lower(:firstName)) AND " +
             "(:lastName = '' or lower(p.lastName) like lower(:lastName)) AND " +
+            "(:city = '' or lower(p.city) like lower(:city)) AND " +
+            "(:country = '' or lower(p.country) like lower(:country)) AND " +
             "(cast(:startDate as timestamp) is null or p.birthDate >= :startDate) AND " +
-            "(cast(:endDate as timestamp) is null or p.birthDate <= :endDate)" +
+            "(cast(:endDate as timestamp) is null or p.birthDate <= :endDate) AND " +
+            "p.isBlocked = 0 AND p.isDeleted = 0 and p.id <> :userId " +
             "order by p.lastName"
     )
-    Page<Person> findPersons(String firstName, String lastName, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
-
-    Optional<Person> findByFirstNameContainsIgnoreCaseOrLastNameContainsIgnoreCase(String nameF, String nameL);
+    Page<Person> findPersons(String firstName, String lastName, String city, String country,
+                             LocalDateTime startDate, LocalDateTime endDate, long userId, Pageable pageable);
 }
