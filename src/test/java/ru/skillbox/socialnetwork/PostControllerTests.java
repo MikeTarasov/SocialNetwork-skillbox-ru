@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class PostControllerTests {
 
-    private final String email = "test@test.gmail";
+    private final String email = "testtest@test.gmail";
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private final String password = "testPassword";
     private final Person testPerson = new Person(0, "Steve", "Jobs",
@@ -527,8 +527,6 @@ public class PostControllerTests {
     void testDeleteApiPostIdCommentsCommentId() throws Exception {
         String jwtToken = auth();
 
-        ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
-                "", getTimeZonedMillis(), new IdResponse(savedComment.getId()));
         assertFalse(commentRepository.findById(savedComment.getId()).get().getIsDeleted());
 
         mvc.perform(MockMvcRequestBuilders
