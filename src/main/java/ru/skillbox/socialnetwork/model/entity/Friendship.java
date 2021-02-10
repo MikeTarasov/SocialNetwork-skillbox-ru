@@ -9,7 +9,7 @@ import javax.persistence.*;
 @Table(name = "friendship")
 public class Friendship {
     @Id
-    private long id;
+    private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_person_id")
     private Person srcPerson;
