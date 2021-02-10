@@ -21,5 +21,4 @@ public class StorageController {
                                       @RequestParam(name = "file", required = false) MultipartFile file) {
     return storageService.getUpload(type, file);
   }
-
 }

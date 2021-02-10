@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 import ru.skillbox.socialnetwork.model.entity.Dialog;
 import ru.skillbox.socialnetwork.model.entity.Person;
 
-
 import java.util.List;
 import java.util.Optional;
 
@@ -15,5 +14,6 @@ import java.util.Optional;
 public interface DialogRepository extends JpaRepository<Dialog, Long> {
 
     Optional<Dialog> findByOwner(Person person);
+
     Page<Dialog> findByIdIn(List<Long> dialogIdList, Pageable pageable);
 }
