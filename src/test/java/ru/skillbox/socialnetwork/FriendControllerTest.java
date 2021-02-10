@@ -410,4 +410,27 @@ public class FriendControllerTest {
                 .andExpect(jsonPath("$.data[0].id").value("5"))
                 .andExpect(jsonPath("$.data[1].id").value("4"));
     }
+
+    @Test
+    @WithUserDetails("kvakru@mail.who")
+    @Sql(value = {"/Add7Users.sql", "/AddFriendshipFor7.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void getRecommendationsNoFriendsTest() throws Exception {
+        this.mockMvc.perform(get("/friends/recommendations")
+                .queryParam("offset", "0"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.total").value("5"))
+                .andExpect(jsonPath("$.offset").value("0"))
+                .andExpect(jsonPath("$.perPage").value("20"))
+                .andExpect(jsonPath("$.data", hasSize(5)))
+                .andExpect(jsonPath("$.data[0].id").value("6"))
+                .andExpect(jsonPath("$.data[1].id").value("5"))
+                .andExpect(jsonPath("$.data[2].id").value("4"))
+                .andExpect(jsonPath("$.data[3].id").value("8"))
+                .andExpect(jsonPath("$.data[4].id").value("9"));
+    }
 }

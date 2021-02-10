@@ -132,13 +132,22 @@ public class FriendServiceImpl implements FriendService {
         List<Person> friends = friendshipRepository.findBySrcPersonAndCode(currentPerson, FriendStatus.FRIEND.name());
         List<Person> known = friendshipRepository.findBySrcPerson(currentPerson);
         known.add(currentPerson);
-        Page<Person> connections = friendshipRepository.findNewConnections(friends, known, paging);
+        Page<Person> recommendedPersons = null;
+        if (!friends.isEmpty()) {
+            recommendedPersons = friendshipRepository.findNewRecs(friends, known, paging);
+        }
+        if (recommendedPersons == null || recommendedPersons.isEmpty()) {
+            paging = PageRequest.of(offset / itemPerPage,
+                    itemPerPage,
+                    Sort.by(Sort.Direction.ASC, "lastName"));
+            recommendedPersons = personRepository.findRandomRecs(known, paging);
+        }
 
         return new ErrorTimeTotalOffsetPerPageListDataResponse(
-                connections.getTotalElements(),
+                recommendedPersons.getTotalElements(),
                 offset,
                 itemPerPage,
-                convertPersonPageToList(connections));
+                convertPersonPageToList(recommendedPersons));
     }
 
     /**
