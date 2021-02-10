@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 import ru.skillbox.socialnetwork.model.entity.Person;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -27,4 +28,7 @@ public interface PersonRepository extends JpaRepository<Person, Long> {
     )
     Page<Person> findPersons(String firstName, String lastName, String city, String country,
                              LocalDateTime startDate, LocalDateTime endDate, long userId, Pageable pageable);
+
+    @Query(value = "select P from #{#entityName} P where P not in :known")
+    Page<Person> findRandomRecs(List<Person> known, Pageable paging);
 }
