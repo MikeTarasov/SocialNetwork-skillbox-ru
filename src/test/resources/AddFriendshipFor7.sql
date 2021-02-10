@@ -24,3 +24,4 @@ insert into friendship (id, src_person_id, dst_person_id, code) values (17, 6, 8
 insert into friendship (id, src_person_id, dst_person_id, code) values (19, 8, 4, 'FRIEND');
 insert into friendship (id, src_person_id, dst_person_id, code) values (20, 4, 8, 'FRIEND');
 -- expected rec: 4 (from 7) and 5 (from 8)
+alter sequence friendship_id_seq restart with 30;
