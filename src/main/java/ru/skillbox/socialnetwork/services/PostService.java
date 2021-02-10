@@ -13,7 +13,7 @@ import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
-import ru.skillbox.socialnetwork.repository.CommentRepository;
+import ru.skillbox.socialnetwork.repository.PostCommentRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 
@@ -29,16 +29,21 @@ import java.util.Optional;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final CommentRepository commentRepository;
+    private final PostCommentRepository commentRepository;
     private final PersonDetailsService personDetailsService;
 
     @Autowired
     public PostService(PostRepository postRepository,
-                       CommentRepository commentRepository,
+                       PostCommentRepository commentRepository,
                        PersonDetailsService personDetailsService) {
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.personDetailsService = personDetailsService;
+    }
+
+    //@Override
+    public Post findById(long id) {
+        return postRepository.findPostById(Math.toIntExact(id));
     }
 
     public ResponseEntity<?> getApiPost(String text, Long dateFrom, Long dateTo, String authorName,

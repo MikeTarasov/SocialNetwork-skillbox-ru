@@ -4,14 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
-
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class LikesListUsersResponse {
+@AllArgsConstructor
+public class LikesCountResponse {
 
-    private long likes;
-    private List<Long> users;
+    private int likes;
 }

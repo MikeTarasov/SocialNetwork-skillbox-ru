@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.LazyCollection;
-import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -50,10 +48,9 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostComment> comments = new ArrayList<>();
 
-    @Transient
-    @OneToMany(mappedBy = "postLike", cascade = CascadeType.ALL, orphanRemoval = true)
-    @LazyCollection(value = LazyCollectionOption.EXTRA)
-    private List<PostLike> postLike = new ArrayList<>();
+    @OneToMany(mappedBy = "postLike", cascade = CascadeType.ALL)
+    private List<PostLike> likes = new ArrayList<>();
+
 
     public Post(long id, LocalDateTime time, Person author, String title, String postText, int isBlocked,
                 int isDeleted, List<PostComment> comments) {
