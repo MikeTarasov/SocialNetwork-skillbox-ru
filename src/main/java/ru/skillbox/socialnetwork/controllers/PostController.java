@@ -92,13 +92,4 @@ public class PostController {
                                                                 @PathVariable("comment_id") long commentId) {
     return postService.postApiPostIdCommentsCommentIdReport(id, commentId);
   }
-
-  //for testing
-  @GetMapping("/search")
-  public ResponseEntity<?> getPostBySearching(@RequestParam("postText") String postText,
-                                              @RequestParam("dateStart") long dateStart,
-                                              @RequestParam("dateEnd") long dateEnd,
-                                              @RequestParam("isDeleted") int isDeleted) {
-    return postService.getPostBySearching(postText, dateStart, dateEnd, isDeleted);
-  }
 }

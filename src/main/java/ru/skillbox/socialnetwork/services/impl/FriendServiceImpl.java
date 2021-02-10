@@ -18,10 +18,8 @@ import ru.skillbox.socialnetwork.security.PersonDetailsService;
 import ru.skillbox.socialnetwork.services.FriendService;
 import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimeZone;
 
 @Service
 public class FriendServiceImpl implements FriendService {
@@ -29,16 +27,22 @@ public class FriendServiceImpl implements FriendService {
     private final FriendshipRepository friendshipRepository;
     private final PersonRepository personRepository;
     private final PersonDetailsService personDetailsService;
+    private final ProfileServiceImpl profileService;
 
     @Autowired
-    public FriendServiceImpl(FriendshipRepository friendshipRepository, PersonRepository personRepository, PersonDetailsService personDetailsService) {
+    public FriendServiceImpl(FriendshipRepository friendshipRepository,
+                             PersonRepository personRepository,
+                             PersonDetailsService personDetailsService,
+                             ProfileServiceImpl profileService) {
         this.friendshipRepository = friendshipRepository;
         this.personRepository = personRepository;
         this.personDetailsService = personDetailsService;
+        this.profileService = profileService;
     }
 
     @Override
-    public ErrorTimeTotalOffsetPerPageListDataResponse getFriends(String name, Integer offset, Integer itemPerPage, FriendStatus friendStatus) {
+    public ErrorTimeTotalOffsetPerPageListDataResponse getFriends(String name, Integer offset, Integer itemPerPage,
+                                                                  FriendStatus friendStatus) {
         Person currentPerson = personDetailsService.getCurrentUser();
         Pageable paging = PageRequest.of(offset / itemPerPage,
                 itemPerPage,
@@ -48,7 +52,8 @@ public class FriendServiceImpl implements FriendService {
         if (name == null || name.isEmpty())
             friendPage = friendshipRepository.findByDstPersonAndCode(currentPerson, friendStatus.name(), paging);
         else
-            friendPage = friendshipRepository.findByDstPersonAndSrcNameAndCode(currentPerson, name, friendStatus.name(), paging);
+            friendPage = friendshipRepository
+                    .findByDstPersonAndSrcNameAndCode(currentPerson, name, friendStatus.name(), paging);
 
         return new ErrorTimeTotalOffsetPerPageListDataResponse(
                 friendPage.getTotalElements(),
@@ -178,26 +183,6 @@ public class FriendServiceImpl implements FriendService {
      */
 
     private PersonEntityResponse convertPersonToResponse(Person person) {
-        LocalDateTime birthDate = person.getBirthDate();
-        LocalDateTime lastOnlineTime = person.getLastOnlineTime();
-
-        return PersonEntityResponse.builder()
-                .id(person.getId())
-                .firstName(person.getFirstName())
-                .lastName(person.getLastName())
-                .regDate(person.getRegDate().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
-                .birthDate(birthDate == null ? null :
-                        birthDate.atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
-                .email(person.getEmail())
-                .phone(person.getPhone())
-                .photo(person.getPhoto())
-                .about(person.getAbout())
-                .city(person.getCity())
-                .country(person.getCountry())
-                .messagesPermission(person.getMessagePermission())
-                .lastOnlineTime(lastOnlineTime == null ? null :
-                        lastOnlineTime.atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
-                .isBlocked(person.getIsBlocked() == 1)
-                .build();
+        return profileService.convertPersonToResponse(person);
     }
 }

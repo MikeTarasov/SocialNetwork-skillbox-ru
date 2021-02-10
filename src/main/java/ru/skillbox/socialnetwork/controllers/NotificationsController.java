@@ -2,10 +2,7 @@ package ru.skillbox.socialnetwork.controllers;
 
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.skillbox.socialnetwork.services.NotificationsService;
 
 @RestController
@@ -25,7 +22,8 @@ public class NotificationsController {
     }
 
     @PutMapping("")
-    public ResponseEntity<?> putApiNotifications(@Param("id") long id, @Param("all") boolean all) {
+    public ResponseEntity<?> putApiNotifications(@RequestParam(value = "id", required = false) Long id,
+                                                 @RequestParam(value = "all", required = false) Boolean all) {
         return notificationsService.putApiNotifications(id, all);
     }
 }
