@@ -32,4 +32,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "pers.id <> :userId order by post.time desc")
     List<Post> searchPostsByParametersNotBlockedAndNotDeleted(
             String text, String author, LocalDateTime from, LocalDateTime to, long userId, Pageable pageable);
+
+    Post findPostById(long id);
 }

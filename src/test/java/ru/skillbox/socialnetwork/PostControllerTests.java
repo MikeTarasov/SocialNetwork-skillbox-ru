@@ -20,8 +20,8 @@ import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
-import ru.skillbox.socialnetwork.repository.CommentRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
+import ru.skillbox.socialnetwork.repository.PostCommentRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 import ru.skillbox.socialnetwork.security.JwtTokenProvider;
 
@@ -66,7 +66,7 @@ public class PostControllerTests {
     @Autowired
     private PostRepository postRepository;
     @Autowired
-    private CommentRepository commentRepository;
+    private PostCommentRepository commentRepository;
     @Autowired
     private PersonRepository personRepository;
     @Autowired

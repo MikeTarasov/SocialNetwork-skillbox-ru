@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ItemIdTypeRequest {
 
-  @JsonProperty("item_id")
-  private int itemId;
-  private String type; //TODO type = enum [ Post, Comment ]
+    @JsonProperty("item_id")
+    private long id;
+    private String type; //TODO type = enum [ Post, Comment ]
 }

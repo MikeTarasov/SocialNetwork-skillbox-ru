@@ -150,7 +150,7 @@ public class ProfileServiceImpl implements ProfileService {
                 .isBlocked(0)
                 .isDeleted(0)
                 .title(requestBody.getTitle())
-                .postLike(new ArrayList<>())
+                .likes(new ArrayList<>())
                 .build();
         postRepository.save(post);
         return new ErrorTimeDataResponse("", convertPostToPostResponse(post, null));
@@ -259,7 +259,7 @@ public class ProfileServiceImpl implements ProfileService {
                 .author(convertPersonToResponse(post.getAuthor()))
                 .postText(post.getPostText())
                 .isBlocked(post.getIsBlocked() == 1)
-                .likes(post.getPostLike().size())
+                .likes(post.getLikes().size())
                 .type(type)     // Mock
                 .comments(convertCommentsToCommentResponseList(post.getComments()))
                 .build();
