@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class MessageEntityResponse {
 
   private long id;
+  @JsonProperty("time")
   private long timestamp;
   @JsonProperty("author_id")
   private long authorId;

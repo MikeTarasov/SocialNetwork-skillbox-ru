@@ -25,10 +25,7 @@ import ru.skillbox.socialnetwork.services.exceptions.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import java.util.TimeZone;
+import java.util.*;
 
 @Service
 public class DialogServiceImpl implements DialogService {
@@ -45,6 +42,66 @@ public class DialogServiceImpl implements DialogService {
         this.personToDialogRepository = personToDialogRepository;
         this.personDetailsService = personDetailsService;
         this.messageRepository = messageRepository;
+    }
+
+    @Override
+    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsLastMessages(DialogRequest dialogRequest) {
+        Person currentUser = personDetailsService.getCurrentUser();
+        // find where the user is participant
+        List<PersonToDialog> personToDialogs = personToDialogRepository.findByPerson(currentUser);
+        List<Long> dialogIdsList = new ArrayList<>();
+        for (PersonToDialog personToDialog : personToDialogs) {
+            dialogIdsList.add(personToDialog.getDialog().getId());
+        }
+
+        // if no dialogs
+        if (dialogIdsList.isEmpty()) {
+            return null; // TODO
+        }
+
+        List<IdUnreadCountLastMessageResponse> unreadDialogsList = new ArrayList<>();
+
+        // getting paged dialogs response
+        int offset = dialogRequest.getOffset();
+        int itemPerPage = dialogRequest.getItemPerPage();
+        Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage, Sort.by(Sort.Direction.ASC, "id"));
+        List<Long> dialogResponseIdList = new ArrayList<>();
+        Page<Dialog> dialogPage = dialogRepository.findByIdIn(dialogIdsList, pageable);
+        dialogPage.forEach(d -> dialogResponseIdList.add(d.getId()));
+
+        for (Long dialogId : dialogResponseIdList) {
+//            // placeholder message
+//            LocalDateTime timeMessage = LocalDateTime.ofInstant(Instant
+//                            .ofEpochMilli(System.currentTimeMillis()),
+//                    TimeZone.getDefault().toZoneId());
+//            Message placeholderMessage = new Message();
+//            placeholderMessage.setId(1L);
+//            placeholderMessage.setReadStatus(ReadStatus.SENT.name());
+//            placeholderMessage.setText("this is a placeholder");
+//            placeholderMessage.setAuthor(currentUser);
+//            placeholderMessage.setDialog(dialogRepository.getOne(dialogId));
+//            placeholderMessage.setIsDeleted(0);
+//            placeholderMessage.setTime(timeMessage);
+//            placeholderMessage.setRecipient(personRepository.findById(10L).get());
+            Optional<Message> messageOptional = messageRepository.findTopByDialogIdOrderByTimeDesc(dialogId);
+            if (messageOptional.isPresent()) {
+                unreadDialogsList.add(new IdUnreadCountLastMessageResponse(dialogId,
+                        dialogRepository.findById(dialogId).get().getUnreadCount(),
+                        messageToResponse(messageOptional.get())));
+            } else {
+                unreadDialogsList.add(new IdUnreadCountLastMessageResponse(dialogId, 0, null));
+            }
+        }
+
+        return new ErrorTimeTotalOffsetPerPageListDataResponse("", System.currentTimeMillis(), 1,
+                dialogRequest.getOffset(),
+                dialogRequest.getItemPerPage(),
+                unreadDialogsList);
+    }
+
+    @Override
+    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsLastMessages() {
+        return getDialogsLastMessages(new DialogRequest("", 20, 0));
     }
 
     @Override
@@ -176,7 +233,7 @@ public class DialogServiceImpl implements DialogService {
                 System.currentTimeMillis(),
                 pageMessage.getTotalElements(),
                 offset, limit, pageMessage.getContent()
-                );
+        );
     }
 
     @Override
@@ -288,8 +345,8 @@ public class DialogServiceImpl implements DialogService {
     public ErrorTimeDataResponse getNewMessagesCount() {
         Person person = personDetailsService.getCurrentUser();
         Long count = person.getMessages().stream().filter(
-                    readStatus -> readStatus.getReadStatus().equals(ReadStatus.SENT.toString())
-                    ).count();
+                readStatus -> readStatus.getReadStatus().equals(ReadStatus.SENT.toString())
+        ).count();
 
         return new ErrorTimeDataResponse("", new CountResponse(count));
     }

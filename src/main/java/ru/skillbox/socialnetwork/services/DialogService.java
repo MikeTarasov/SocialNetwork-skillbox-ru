@@ -15,6 +15,8 @@ public interface DialogService {
     public ErrorTimeDataResponse createDialog(List<Long> userIds);
     public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList(DialogRequest dialogRequest);
     public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList();
+    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsLastMessages();
+    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsLastMessages(DialogRequest dialogRequest);
     public ErrorTimeDataResponse addUsersToDialog(Long dialogId, List<Long> userIds);
     public ErrorTimeDataResponse deleteUsersFromDialog(Long dialogId, List<Long> userIds);
     public ErrorTimeDataResponse getInviteLink(Long dialogId);

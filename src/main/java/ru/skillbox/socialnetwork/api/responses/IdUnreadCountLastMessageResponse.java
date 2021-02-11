@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class IdUnreadCountLastMessageResponse {
-
-  private int id;
+  @JsonProperty("id")
+  private long id;
   @JsonProperty("unread_count")
   private int unreadCount;
   @JsonProperty("last_message")

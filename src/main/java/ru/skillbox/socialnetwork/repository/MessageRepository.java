@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.skillbox.socialnetwork.model.entity.Message;
 
+import java.util.Optional;
+
 public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query(value = "SELECT * " +
             "FROM message ms " +
@@ -16,4 +18,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Page<Message> findMessageWithQueryWithPagination(@Param("query") String query,
                                                      @Param("dialog_id") Long dialogId,
                                                      Pageable pageable);
+
+    Optional<Message> findTopByDialogIdOrderByTimeDesc(@Param("dialog_id") Long dialogId);
 }
