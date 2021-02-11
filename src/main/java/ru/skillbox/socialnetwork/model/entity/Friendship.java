@@ -10,8 +10,8 @@ import javax.persistence.*;
 public class Friendship {
 
     @Id
-    private long id;
-
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "src_person_id")
     private Person srcPerson;
