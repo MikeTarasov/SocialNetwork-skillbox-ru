@@ -202,7 +202,7 @@ public class ProfileServiceImpl implements ProfileService {
      * @param person
      * @return PersonEntityResponse
      */
-    private PersonEntityResponse convertPersonToResponse(Person person) {
+    PersonEntityResponse convertPersonToResponse(Person person) {
         LocalDateTime birthDate = person.getBirthDate();
         LocalDateTime lastOnlineTime = person.getLastOnlineTime();
 
