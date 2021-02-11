@@ -68,6 +68,10 @@ public class Post {
     }
 
     public long getTimestamp() {
-        return time.toInstant(ZoneOffset.of(String.valueOf(ZoneId.systemDefault()))).toEpochMilli();
+        return time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    }
+
+    public boolean isBlocked(){
+        return this.isBlocked == 1;
     }
 }

@@ -72,6 +72,6 @@ public class PostComment {
     }
 
     public long getTimestamp() {
-        return time.toInstant(ZoneOffset.of(String.valueOf(ZoneId.systemDefault()))).toEpochMilli();
+        return time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 }
