@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @WithUserDetails("shred@mail.who")
-@TestPropertySource("/application-test.properties")
+//@TestPropertySource("/application-test.properties")
 @Sql(value = {"/Add3Users.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 public class DialogControllerTests {
@@ -541,7 +541,7 @@ public class DialogControllerTests {
     }
 
     @Test
-    public void sendMessageError() throws Exception {
+    void sendMessageError() throws Exception {
         Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
         // try sending null message
         MessageTextRequest messageTextRequest = new MessageTextRequest();
@@ -585,7 +585,7 @@ public class DialogControllerTests {
     }
 
     @Test
-    public void changeMessageError() throws Exception{
+    void changeMessageError() throws Exception{
         Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
 
         // send message
@@ -634,7 +634,7 @@ public class DialogControllerTests {
     @Test
     @Sql(value = {"/Add3Users.sql", "/Add3DialogsWithMessages.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    public void getNewMessagesCount() throws Exception {
+    void getNewMessagesCount() throws Exception {
         this.mockMvc.perform(get("/dialogs/unreaded"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -643,5 +643,4 @@ public class DialogControllerTests {
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.data.count").value("5"));
     }
-
 }

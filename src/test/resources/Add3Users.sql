@@ -1,3 +1,6 @@
+delete from notification;
+delete from message;
+delete from person2dialog;
 delete from person;
 insert into person (id, first_name, last_name, reg_date, birth_date, e_mail, phone, city, country, is_approved,
                     is_blocked, is_deleted, is_online, messages_permission, last_online_time, about, photo, password)

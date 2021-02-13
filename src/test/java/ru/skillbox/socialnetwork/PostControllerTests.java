@@ -20,6 +20,7 @@ import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
+import ru.skillbox.socialnetwork.repository.NotificationsRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.repository.PostCommentRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
@@ -53,7 +54,7 @@ public class PostControllerTests {
     private final Post testPost = new Post(0, LocalDateTime.of(2021, 1, 1, 15, 30, 00),
             testPerson, "Test post title", "Test post text", 0, 0, new ArrayList<>());
     private final PostComment testPostComment = new PostComment(0, LocalDateTime.of(2021, 1,
-            12, 20, 45, 25), 1L,
+            12, 20, 45, 25), null,
             "Good article!", 0, 0, testPerson, testPost);
     private Post savedPost = null;
     private PostComment savedComment = null;
@@ -63,6 +64,8 @@ public class PostControllerTests {
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private NotificationsRepository notificationsRepository;
     @Autowired
     private PostRepository postRepository;
     @Autowired
@@ -87,6 +90,7 @@ public class PostControllerTests {
 
     @AfterEach
     public void restoreDb() {
+        notificationsRepository.deleteAll();
         commentRepository.delete(savedComment);
         postRepository.delete(savedPost);
         personRepository.delete(savedPost.getAuthor());
@@ -99,7 +103,7 @@ public class PostControllerTests {
     }
 
     @Test
-    public void started() {
+    void started() {
     }
 
 
@@ -241,8 +245,8 @@ public class PostControllerTests {
                         .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
                 .andExpect(jsonPath("$.data.comments[:1].time")
                         .value(getMillis(savedComment.getTime())))
-                .andExpect(jsonPath("$.data.comments[:1].parent_id")
-                        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
+                //.andExpect(jsonPath("$.data.comments[:1].parent_id")
+                //        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
                 .andExpect(jsonPath("$.data.comments[:1].comment_text")
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data.comments[:1].post_id")
@@ -318,8 +322,8 @@ public class PostControllerTests {
                         .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
                 .andExpect(jsonPath("$.data.comments[:1].time")
                         .value(getMillis(savedComment.getTime())))
-                .andExpect(jsonPath("$.data.comments[:1].parent_id")
-                        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
+                //.andExpect(jsonPath("$.data.comments[:1].parent_id")
+                //        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
                 .andExpect(jsonPath("$.data.comments[:1].comment_text")
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data.comments[:1].post_id")
@@ -405,8 +409,8 @@ public class PostControllerTests {
                         .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
                 .andExpect(jsonPath("$.data.comments[:1].time")
                         .value(getMillis(savedComment.getTime())))
-                .andExpect(jsonPath("$.data.comments[:1].parent_id")
-                        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
+               // .andExpect(jsonPath("$.data.comments[:1].parent_id")
+               //         .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
                 .andExpect(jsonPath("$.data.comments[:1].comment_text")
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data.comments[:1].post_id")
@@ -452,8 +456,8 @@ public class PostControllerTests {
                         .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
                 .andExpect(jsonPath("$.data[:1].time")
                         .value(getMillis(savedComment.getTime())))
-                .andExpect(jsonPath("$.data[:1].parent_id")
-                        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
+                //.andExpect(jsonPath("$.data[:1].parent_id")
+                //        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
                 .andExpect(jsonPath("$.data[:1].comment_text")
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data[:1].post_id")
@@ -483,7 +487,7 @@ public class PostControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.data.id").value(String.valueOf(newComment.getId())))
-                .andExpect(jsonPath("$.data.parent_id").value(newComment.getParentId()))
+                //.andExpect(jsonPath("$.data.parent_id").value(newComment.getParentId()))
                 .andExpect(jsonPath("$.data.comment_text").value(newComment.getCommentText()))
                 .andExpect(jsonPath("$.data.post_id").value(newComment.getPost().getId()))
                 .andExpect(jsonPath("$.data.author_id").value(newComment.getPost().getAuthor().getId()))
@@ -515,7 +519,7 @@ public class PostControllerTests {
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.data.id").value(String.valueOf(savedComment.getId())))
                 .andExpect(jsonPath("$.data.time").value(String.valueOf(getMillis(savedComment.getTime()))))
-                .andExpect(jsonPath("$.data.parent_id").value(savedComment.getParentId()))
+                //.andExpect(jsonPath("$.data.parent_id").value(savedComment.getParentId()))
                 .andExpect(jsonPath("$.data.comment_text").value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data.post_id").value(savedComment.getPost().getId()))
                 .andExpect(jsonPath("$.data.author_id").value(savedComment.getPost().getAuthor().getId()))
@@ -565,7 +569,7 @@ public class PostControllerTests {
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.data.id").value(String.valueOf(savedComment.getId())))
                 .andExpect(jsonPath("$.data.time").value(String.valueOf(getMillis(savedComment.getTime()))))
-                .andExpect(jsonPath("$.data.parent_id").value(savedComment.getParentId()))
+                //.andExpect(jsonPath("$.data.parent_id").value(savedComment.getParentId()))
                 .andExpect(jsonPath("$.data.comment_text").value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data.post_id").value(savedComment.getPost().getId()))
                 .andExpect(jsonPath("$.data.author_id").value(savedComment.getPost().getAuthor().getId()))

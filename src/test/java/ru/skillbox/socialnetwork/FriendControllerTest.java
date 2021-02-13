@@ -15,6 +15,7 @@ import ru.skillbox.socialnetwork.controllers.FriendController;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.enums.FriendStatus;
 import ru.skillbox.socialnetwork.repository.FriendshipRepository;
+import ru.skillbox.socialnetwork.repository.NotificationsRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 
 import java.util.ArrayList;
@@ -39,6 +40,8 @@ public class FriendControllerTest {
     private MockMvc mockMvc;
     @Autowired
     private FriendshipRepository friendshipRepository;
+    @Autowired
+    private NotificationsRepository notificationsRepository;
     @Autowired
     private PersonRepository personRepository;
     @Autowired
@@ -198,8 +201,8 @@ public class FriendControllerTest {
      */
     @Test
     @WithUserDetails("shred@mail.who")
-    @Sql(value = {"/Add3Users.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    @Sql(value = {"/Add3Users.sql", "/AddNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql", "/RemoveNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void addFriend1Test() throws Exception {
         Long dstPersonId = 7L;
         this.mockMvc.perform(post("/friends/" + dstPersonId))
@@ -215,6 +218,8 @@ public class FriendControllerTest {
         assertTrue(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).isPresent());
         assertEquals(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).get()
                 .getCode(), FriendStatus.REQUEST.name());
+        notificationsRepository.deleteAll();
+
     }
 
     /**
@@ -222,8 +227,8 @@ public class FriendControllerTest {
      */
     @Test
     @WithUserDetails("shred@mail.who")
-    @Sql(value = {"/Add4UsersForRequestTest.sql", "/AddFriendshipRequestsFor4.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    @Sql(value = {"/Add4UsersForRequestTest.sql", "/AddFriendshipRequestsFor4.sql", "/AddNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql", "/RemoveNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void addFriend2Test() throws Exception {
         Long dstPersonId = 8L;
         this.mockMvc.perform(post("/friends/" + dstPersonId))
@@ -249,8 +254,8 @@ public class FriendControllerTest {
      */
     @Test
     @WithUserDetails("shred@mail.who")
-    @Sql(value = {"/Add3Users.sql", "/AddFriendshipDeclinedAndBlocked.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    @Sql(value = {"/Add3Users.sql", "/AddFriendshipDeclinedAndBlocked.sql", "/AddNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql", "/RemoveNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void addFriend3Test() throws Exception {
         Long dstPersonId = 7L;
         this.mockMvc.perform(post("/friends/" + dstPersonId))

@@ -35,6 +35,8 @@ public class DialogServiceImpl implements DialogService {
     private final NotificationsRepository notificationsRepository;
     private final NotificationTypeRepository notificationTypeRepository;
 
+    private Long notType = 5L;
+
     @Autowired
     public DialogServiceImpl(PersonRepository personRepository, DialogRepository dialogRepository,
                              PersonToDialogRepository personToDialogRepository, PersonDetailsService personDetailsService,
@@ -212,7 +214,7 @@ public class DialogServiceImpl implements DialogService {
         MessageEntityResponse messageEntityResponse = messageToResponse(message);
 
         notificationsRepository.save(new Notification(
-           notificationTypeRepository.findById(5L).get(),
+           notificationTypeRepository.findByName("MESSAGE").get(),
            getMillisecondsToLocalDateTime(System.currentTimeMillis()),
            personRepository.findById(recipientId).get(),
            savedMessage.getId(),
