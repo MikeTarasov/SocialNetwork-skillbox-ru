@@ -10,9 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.skillbox.socialnetwork.api.requests.ParentIdCommentTextRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
 import ru.skillbox.socialnetwork.api.responses.*;
-import ru.skillbox.socialnetwork.model.entity.Person;
-import ru.skillbox.socialnetwork.model.entity.Post;
-import ru.skillbox.socialnetwork.model.entity.PostComment;
+import ru.skillbox.socialnetwork.model.entity.*;
+import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
+import ru.skillbox.socialnetwork.repository.NotificationsRepository;
 import ru.skillbox.socialnetwork.repository.PostCommentRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
@@ -31,14 +31,18 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostCommentRepository commentRepository;
     private final PersonDetailsService personDetailsService;
+    private final NotificationsRepository notificationsRepository;
+    private final NotificationTypeRepository notificationTypeRepository;
 
     @Autowired
     public PostService(PostRepository postRepository,
                        PostCommentRepository commentRepository,
-                       PersonDetailsService personDetailsService) {
+                       PersonDetailsService personDetailsService, NotificationsRepository notificationsRepository, NotificationTypeRepository notificationTypeRepository) {
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
         this.personDetailsService = personDetailsService;
+        this.notificationsRepository = notificationsRepository;
+        this.notificationTypeRepository = notificationTypeRepository;
     }
 
     //@Override
@@ -180,6 +184,26 @@ public class PostService {
         }
         if (!errors.toString().equals("")) {
             return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
+        }
+
+        if (requestBody.getParentId() == null) {
+            notificationsRepository.save(new Notification(
+                    notificationTypeRepository.findById(2L).get(),
+                    getMillisecondsToLocalDateTime(System.currentTimeMillis()),
+                    postRepository.findById(id).get().getAuthor(),
+                    id,
+                    postRepository.findById(id).get().getAuthor().getEmail(),
+                    0
+            ));
+        } else {
+            notificationsRepository.save(new Notification(
+                    notificationTypeRepository.findById(3L).get(),
+                    getMillisecondsToLocalDateTime(System.currentTimeMillis()),
+                    commentRepository.findById(requestBody.getParentId()).get().getPerson(),
+                    requestBody.getParentId(),
+                    commentRepository.findById(requestBody.getParentId()).get().getPerson().getEmail(),
+                    0
+            ));
         }
 
         PostComment comment = commentRepository.save(new PostComment(

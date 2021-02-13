@@ -7,9 +7,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.skillbox.socialnetwork.model.entity.Person;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Date;
 
 @Data
 @Builder
@@ -84,4 +86,30 @@ public class PersonEntityResponse {
         this.isBlocked = isBlocked;
         this.token = token;
     }
+    public static PersonEntityResponse getResponseEntity(Person person){
+        return new PersonEntityResponse(
+                person.getId(),
+                person.getFirstName(),
+                person.getLastName(),
+                Date
+                        .from(person.getRegDate().atZone(ZoneId.systemDefault())
+                                .toInstant()).getTime(),
+                person.getBirthDate() == null ? null : Date
+                        .from(person.getBirthDate().atZone(ZoneId.systemDefault())
+                                .toInstant()).getTime(),
+                person.getEmail(),
+                person.getPhone(),
+                person.getPhoto(),
+                person.getAbout(),
+                person.getCity(),
+                person.getCountry(),
+                person.getMessagePermission(),
+                person.getLastOnlineTime() == null ? null : Date
+                        .from(person.getLastOnlineTime().atZone(ZoneId.systemDefault())
+                                .toInstant()).getTime(),
+                person.getIsBlocked() == 1
+        );
+
+    }
+
 }

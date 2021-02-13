@@ -10,15 +10,20 @@ import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDa
 import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
 import ru.skillbox.socialnetwork.api.responses.UserIdStatusResponse;
 import ru.skillbox.socialnetwork.model.entity.Friendship;
+import ru.skillbox.socialnetwork.model.entity.Notification;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.enums.FriendStatus;
 import ru.skillbox.socialnetwork.repository.FriendshipRepository;
+import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
+import ru.skillbox.socialnetwork.repository.NotificationsRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 import ru.skillbox.socialnetwork.services.FriendService;
 import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
@@ -29,12 +34,16 @@ public class FriendServiceImpl implements FriendService {
     private final FriendshipRepository friendshipRepository;
     private final PersonRepository personRepository;
     private final PersonDetailsService personDetailsService;
+    private final NotificationsRepository notificationsRepository;
+    private final NotificationTypeRepository notificationTypeRepository;
 
     @Autowired
-    public FriendServiceImpl(FriendshipRepository friendshipRepository, PersonRepository personRepository, PersonDetailsService personDetailsService) {
+    public FriendServiceImpl(FriendshipRepository friendshipRepository, PersonRepository personRepository, PersonDetailsService personDetailsService, NotificationsRepository notificationsRepository, NotificationTypeRepository notificationTypeRepository) {
         this.friendshipRepository = friendshipRepository;
         this.personRepository = personRepository;
         this.personDetailsService = personDetailsService;
+        this.notificationsRepository = notificationsRepository;
+        this.notificationTypeRepository = notificationTypeRepository;
     }
 
     @Override
@@ -79,6 +88,14 @@ public class FriendServiceImpl implements FriendService {
             }
         }
         friendshipRepository.save(friendshipOut);
+        notificationsRepository.save(new Notification(
+           notificationTypeRepository.findById(4L).get(),
+           getMillisecondsToLocalDateTime(System.currentTimeMillis()),
+           dstPerson,
+           dstPersonId,
+           dstPerson.getEmail(),
+           0
+        ));
     }
 
     @Override
@@ -199,5 +216,10 @@ public class FriendServiceImpl implements FriendService {
                         lastOnlineTime.atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
                 .isBlocked(person.getIsBlocked() == 1)
                 .build();
+    }
+
+    private LocalDateTime getMillisecondsToLocalDateTime(long milliseconds) {
+        return Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
+
     }
 }

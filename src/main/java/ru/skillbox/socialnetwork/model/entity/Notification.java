@@ -1,6 +1,7 @@
 package ru.skillbox.socialnetwork.model.entity;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -8,6 +9,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 
 @Data
+@NoArgsConstructor
 @Entity
 @Table(name = "notification")
 public class Notification {
@@ -38,5 +40,14 @@ public class Notification {
 
     public long getTimeStamp() {
         return time.toInstant(ZoneOffset.of(String.valueOf(ZoneId.systemDefault()))).toEpochMilli();
+    }
+
+    public Notification(NotificationType type, LocalDateTime time, Person personNotification, Long entityId, String contact, int isRead) {
+        this.type = type;
+        this.time = time;
+        this.personNotification = personNotification;
+        this.entityId = entityId;
+        this.contact = contact;
+        this.isRead = isRead;
     }
 }

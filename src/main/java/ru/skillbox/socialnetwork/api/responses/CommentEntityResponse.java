@@ -5,6 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.skillbox.socialnetwork.model.entity.PostComment;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -24,4 +28,19 @@ public class CommentEntityResponse {
     private long authorId;
     @JsonProperty("is_blocked")
     private boolean isBlocked;
+
+    public static List<CommentEntityResponse> getCommentEntityResponseList(
+            List<PostComment> listComments) {
+        return listComments.stream().map(lc -> CommentEntityResponse.builder()
+                .parentId(lc.getParentId())
+                .commentText(lc.getCommentText())
+                .id(lc.getId())
+                .postId(lc.getPost().getId())
+                .time(lc.getTimestamp())
+                .authorId(lc.getPerson().getId())
+                .isBlocked(lc.getIsBlocked())
+                .build())
+                .collect(Collectors.toList());
+    }
+
 }
