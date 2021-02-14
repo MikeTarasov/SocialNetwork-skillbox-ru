@@ -132,11 +132,11 @@ public class NotificationsService {
         ));
     }
 
-    public ResponseEntity<?> putApiNotifications(long id, boolean all) {
-        if (!all && !setIsRead(id)) {
+    public ResponseEntity<?> putApiNotifications(Long id, Boolean all) {
+        if (id != null && all != null && !all && !setIsRead(id)) {
             return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Notification not found"));
 
-        } else {
+        } else if (all != null && all) {
             Person person = personDetailsService.getCurrentUser();
             notificationsRepository.findByPersonNotificationAndIsRead(person, 0, null)
                     .forEach(notification -> setIsRead(notification.getId()));

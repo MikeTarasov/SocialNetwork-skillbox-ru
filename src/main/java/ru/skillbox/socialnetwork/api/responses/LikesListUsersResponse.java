@@ -12,6 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 public class LikesListUsersResponse {
 
-    private String likes;
-    private List<String> users;
+    private long likes;
+    private List<Long> users;
 }

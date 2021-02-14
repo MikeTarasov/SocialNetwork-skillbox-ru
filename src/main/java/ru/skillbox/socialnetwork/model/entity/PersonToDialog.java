@@ -20,5 +20,4 @@ public class PersonToDialog {
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "dialog_id")
     private Dialog dialog;
-
 }

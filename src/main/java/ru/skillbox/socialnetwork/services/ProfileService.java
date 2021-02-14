@@ -23,6 +23,7 @@ public interface ProfileService {
 
     ErrorTimeDataResponse putPostOnWall(long id, Long publishDate, TitlePostTextRequest requestBody);
 
-    ErrorTimeTotalOffsetPerPageListDataResponse search(String firstName, String lastName, Integer ageFrom,
-                                                       Integer ageTo, Integer offset, Integer itemPerPage);
+    ErrorTimeTotalOffsetPerPageListDataResponse search(
+            String firstName, String lastName, String city, String country, Integer ageFrom, Integer ageTo,
+            Integer offset, Integer itemPerPage);
 }

@@ -373,5 +373,4 @@ public class DialogServiceImpl implements DialogService {
                 .readStatus(message.getReadStatus())
                 .build();
     }
-
 }

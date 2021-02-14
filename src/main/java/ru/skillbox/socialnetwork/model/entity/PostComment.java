@@ -8,6 +8,7 @@ import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -43,6 +44,22 @@ public class PostComment {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
+
+    @OneToMany(mappedBy = "commentCL", cascade = CascadeType.ALL)
+    private List<CommentLike> commentLikes;
+
+    public PostComment(long id, LocalDateTime time, Long parentId, String commentText, int isBlocked, int isDeleted,
+                       Person person, Post post) {
+        this.id = id;
+        this.time = time;
+        this.parentId = parentId;
+        this.commentText = commentText;
+        this.isBlocked = isBlocked;
+        this.isDeleted = isDeleted;
+        this.person = person;
+        this.post = post;
+    }
+
 
     public PostComment(LocalDateTime time, Long parentId, String commentText, boolean isBlocked, boolean isDeleted,
                        Person person, Post post) {

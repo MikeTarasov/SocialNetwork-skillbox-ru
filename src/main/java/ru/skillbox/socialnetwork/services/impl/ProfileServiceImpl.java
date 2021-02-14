@@ -95,17 +95,25 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public ErrorTimeDataResponse deleteCurrentUser() {
         Person person = personDetailsService.getCurrentUser();
+
+        //на фронте криво работает удаление - временно удаляем юзера целиком
         person.setIsDeleted(1);
         personRepository.save(person);
+        //может вызвать SQL-error -> следить за работоспособностью каскадного удаления!!!!!
+//        personRepository.delete(person);
+
         return new ErrorTimeDataResponse("", new MessageResponse());
     }
 
 
     @Override
     public ErrorTimeDataResponse setBlockUserById(long id, int block) {
-        Person person = personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
-        person.setIsBlocked(block);
-        personRepository.save(person);
+//        Person person = personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
+//        person.setIsBlocked(block);
+//        personRepository.save(person);
+
+        //пока блокировку юзеров отключаем, до момента адекватной реализации данного функционала
+
         return new ErrorTimeDataResponse("", new MessageResponse());
     }
 
@@ -142,23 +150,26 @@ public class ProfileServiceImpl implements ProfileService {
                 .isBlocked(0)
                 .isDeleted(0)
                 .title(requestBody.getTitle())
-                .postLike(new ArrayList<>())
+                .likes(new ArrayList<>())
                 .build();
         postRepository.save(post);
         return new ErrorTimeDataResponse("", convertPostToPostResponse(post, null));
     }
 
     @Override
-    public ErrorTimeTotalOffsetPerPageListDataResponse search(String firstName, String lastName, Integer ageFrom,
-                                                              Integer ageTo, Integer offset, Integer itemPerPage) {
+    public ErrorTimeTotalOffsetPerPageListDataResponse search(
+            String firstName, String lastName, String city, String country, Integer ageFrom, Integer ageTo,
+            Integer offset, Integer itemPerPage) {
+
         if (offset == null || itemPerPage == null) {
             offset = 0;
             itemPerPage = 20;
         }
-        if (lastName == null) lastName = "";
-        else lastName = "%".concat(lastName).concat("%");
-        if (firstName == null) firstName = "";
-        else firstName = "%".concat(firstName).concat("%");
+
+        firstName = convertNullString(firstName);
+        lastName = convertNullString(lastName);
+        city = convertNullString(city);
+        country = convertNullString(country);
 
         LocalDateTime startDate = null;
         LocalDateTime endDate = null;
@@ -168,7 +179,9 @@ public class ProfileServiceImpl implements ProfileService {
             endDate = LocalDateTime.now().minusYears(ageFrom);
 
         Pageable paging = PageRequest.of(offset / itemPerPage, itemPerPage);
-        Page<Person> personPage = personRepository.findPersons(firstName, lastName, startDate, endDate, paging);
+        Page<Person> personPage = personRepository.findPersons(firstName, lastName, city, country, startDate, endDate,
+                personDetailsService.getCurrentUser().getId(), paging);
+
         return new ErrorTimeTotalOffsetPerPageListDataResponse(
                 "",
                 System.currentTimeMillis(),
@@ -178,13 +191,18 @@ public class ProfileServiceImpl implements ProfileService {
                 convertPersonPageToList(personPage));
     }
 
+    private String convertNullString(String s) {
+        if (s == null) return "";
+        return "%".concat(s).concat("%");
+    }
+
     /**
      * Helper for converting Person entity to API response
      *
      * @param person
      * @return PersonEntityResponse
      */
-    private PersonEntityResponse convertPersonToResponse(Person person) {
+    PersonEntityResponse convertPersonToResponse(Person person) {
         LocalDateTime birthDate = person.getBirthDate();
         LocalDateTime lastOnlineTime = person.getLastOnlineTime();
 
@@ -241,7 +259,7 @@ public class ProfileServiceImpl implements ProfileService {
                 .author(convertPersonToResponse(post.getAuthor()))
                 .postText(post.getPostText())
                 .isBlocked(post.getIsBlocked() == 1)
-                .likes(post.getPostLike().size())
+                .likes(post.getLikes().size())
                 .type(type)     // Mock
                 .comments(convertCommentsToCommentResponseList(post.getComments()))
                 .build();
@@ -261,8 +279,8 @@ public class ProfileServiceImpl implements ProfileService {
                                             .authorId(comment.getPerson().getId())
                                             .commentText(comment.getCommentText())
                                             .isBlocked(comment.getIsBlocked())
-                                            .parentId(comment.getParentId() == null ? 0 : comment.getParentId()) //TODO зачем меняем на 0???
-//                                 .parentId(comment.getParentId())
+//                                            .parentId(comment.getParentId() == null ? 0 : comment.getParentId()) //TODO зачем меняем на 0???
+                                            .parentId(comment.getParentId())
                                             .postId(comment.getPost().getId())
                                             .time(comment.getTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
                                             .build()

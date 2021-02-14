@@ -13,8 +13,8 @@ import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
-import ru.skillbox.socialnetwork.repository.CommentRepository;
-import ru.skillbox.socialnetwork.repository.PersonRepository;
+import ru.skillbox.socialnetwork.repository.PostCommentRepository;
+import ru.skillbox.socialnetwork.repository.PostLikeRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 
@@ -30,20 +30,21 @@ import java.util.Optional;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final PersonRepository personRepository;
-    private final CommentRepository commentRepository;
+    private final PostCommentRepository commentRepository;
+    private final PostLikeRepository postLikeRepository;
     private final PersonDetailsService personDetailsService;
 
     @Autowired
     public PostService(PostRepository postRepository,
-                       PersonRepository personRepository,
-                       CommentRepository commentRepository,
+                       PostCommentRepository commentRepository,
+                       PostLikeRepository postLikeRepository,
                        PersonDetailsService personDetailsService) {
         this.postRepository = postRepository;
-        this.personRepository = personRepository;
         this.commentRepository = commentRepository;
+        this.postLikeRepository = postLikeRepository;
         this.personDetailsService = personDetailsService;
     }
+
 
     public ResponseEntity<?> getApiPost(String text, Long dateFrom, Long dateTo, String authorName,
                                         Integer offset, Integer itemPerPage) {
@@ -52,30 +53,16 @@ public class PostService {
             offset = 0;
             itemPerPage = 20;
         }
+        if (dateFrom == null) dateFrom = 0L;
+        if (dateTo == null) dateTo = System.currentTimeMillis();
+        text = convertNullString(text);
+        authorName = convertNullString(authorName);
+
         Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage);
-        List<Post> posts = new ArrayList<>();
 
-        if (dateFrom == null && authorName == null) { //общий поиск из поля search
-            posts = postRepository.findByTitleContainsIgnoreCaseOrPostTextContainsIgnoreCaseAndTimeBeforeAndIsBlockedAndIsDeleted(
-                    text, text, LocalDateTime.now(), 0, 0, pageable);
-
-        } else if (authorName == null) { //поиск в новости - без автора
-            posts = postRepository.findByTitleContainsIgnoreCaseOrPostTextContainsIgnoreCaseAndTimeAfterAndTimeBeforeAndIsBlockedAndIsDeleted(
-                    text, text, getMillisecondsToLocalDateTime(dateFrom), getMillisecondsToLocalDateTime(dateTo),
-                    0, 0, pageable);
-
-        } else { //поиск в новости - с автором
-            Optional<Person> optionalPerson = personRepository
-                    .findByFirstNameContainsIgnoreCaseOrLastNameContainsIgnoreCase(authorName, authorName);
-
-            if (optionalPerson.isPresent() && dateFrom != null && dateTo != null) {
-                posts = postRepository
-                        .findByTitleContainsIgnoreCaseOrPostTextContainsIgnoreCaseAndAuthorAndTimeAfterAndTimeBeforeAndIsBlockedAndIsDeleted(
-                                text, text, optionalPerson.get(), getMillisecondsToLocalDateTime(dateFrom),
-                                getMillisecondsToLocalDateTime(dateTo), 0, 0, pageable
-                        );
-            }
-        }
+        List<Post> posts = postRepository.searchPostsByParametersNotBlockedAndNotDeleted(
+                text, authorName, getMillisecondsToLocalDateTime(dateFrom), getMillisecondsToLocalDateTime(dateTo),
+                personDetailsService.getCurrentUser().getId(), pageable);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
@@ -340,7 +327,8 @@ public class PostService {
                 post.getTitle(),
                 post.getPostText(),
                 post.getIsBlocked() == 1,
-                1,
+                postLikeRepository
+                        .countPostLikesByPostIdAndPersonId(post.getId(), personDetailsService.getCurrentUser().getId()),
                 getCommentEntityResponseListByPost(post)
         );
     }
@@ -408,19 +396,8 @@ public class PostService {
 
     }
 
-    //for testing
-    public ResponseEntity<?> getPostBySearching(String text, long dateStart, long dateEnd, int isDeleted) {
-        List<Post> posts = postRepository.findByPostTextContainingAndTimeBetweenAndIsDeletedOrderByIdDesc(text,
-                getMillisecondsToLocalDateTime(dateStart), getMillisecondsToLocalDateTime(dateEnd),
-                isDeleted);
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
-                        "",
-                        System.currentTimeMillis(),
-                        posts.size(),
-                        0,
-                        5,
-                        getPostEntityResponseListByPosts(posts)));
+    private String convertNullString(String s) {
+        if (s == null) return "";
+        return "%".concat(s).concat("%");
     }
 }

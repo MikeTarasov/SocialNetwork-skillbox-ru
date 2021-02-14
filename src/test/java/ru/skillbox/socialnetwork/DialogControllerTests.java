@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @WithUserDetails("shred@mail.who")
 @TestPropertySource("/application-test.properties")
-@Sql(value = {"/AddUsersForDialogs.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(value = {"/Add3Users.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 public class DialogControllerTests {
 
@@ -333,7 +333,7 @@ public class DialogControllerTests {
     }
 
     @Test
-    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Add3Users.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getPersonActivityFalseTest() throws Exception {
         this.mockMvc.perform(get("/dialogs/1/activity/8"))
@@ -347,7 +347,7 @@ public class DialogControllerTests {
     }
 
     @Test
-    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Add3Users.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getPersonActivityTrueTest() throws Exception {
         this.mockMvc.perform(get("/dialogs/1/activity/9"))
@@ -361,7 +361,7 @@ public class DialogControllerTests {
     }
 
     @Test
-    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Add3Users.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getPersonActivityWrongPersonTest() throws Exception {
         this.mockMvc.perform(get("/dialogs/1/activity/10"))
@@ -376,7 +376,7 @@ public class DialogControllerTests {
     }
 
     @Test
-    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Add3Users.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getPersonActivityWrongDialogTest() throws Exception {
         this.mockMvc.perform(get("/dialogs/2/activity/9"))
@@ -391,7 +391,7 @@ public class DialogControllerTests {
     }
 
     @Test
-    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Add3Users.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void setPersonActivityTrueTest() throws Exception {
         this.mockMvc.perform(post("/dialogs/1/activity/9"))
@@ -404,7 +404,7 @@ public class DialogControllerTests {
     }
 
     @Test
-    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Add3Users.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void setPersonActivityWrongPersonTest() throws Exception {
         this.mockMvc.perform(post("/dialogs/1/activity/10"))
@@ -419,7 +419,7 @@ public class DialogControllerTests {
     }
 
     @Test
-    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Add3Users.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void setPersonActivityWrongDialogTest() throws Exception {
         this.mockMvc.perform(post("/dialogs/2/activity/9"))
@@ -434,7 +434,7 @@ public class DialogControllerTests {
     }
 
     @Test
-    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Add3Users.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void deleteDialogTest() throws Exception {
         long dialogId = 1L;
@@ -449,7 +449,7 @@ public class DialogControllerTests {
     }
 
     @Test
-    @Sql(value = {"/AddUsersForDialogs.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Add3Users.sql", "/AddDialog.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void deleteDialogWrongIdTest() throws Exception {
         long dialogId = 2L;
@@ -645,7 +645,7 @@ public class DialogControllerTests {
     }
 
     @Test
-    @Sql(value = {"/AddUsersForDialogs.sql", "/Add3DialogsWithMessages.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/Add3Users.sql", "/Add3DialogsWithMessages.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getNewMessagesCount() throws Exception {
         this.mockMvc.perform(get("/dialogs/unreaded"))
