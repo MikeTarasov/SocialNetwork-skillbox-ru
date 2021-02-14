@@ -18,6 +18,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     Page<Message> findMessageWithQueryWithPagination(@Param("query") String query,
                                                      @Param("dialog_id") Long dialogId,
                                                      Pageable pageable);
-
+    // latest message in dialog
     Optional<Message> findTopByDialogIdOrderByTimeDesc(@Param("dialog_id") Long dialogId);
 }

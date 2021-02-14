@@ -93,7 +93,7 @@ public class DialogServiceImpl implements DialogService {
             }
         }
 
-        return new ErrorTimeTotalOffsetPerPageListDataResponse("", System.currentTimeMillis(), 1,
+        return new ErrorTimeTotalOffsetPerPageListDataResponse("", System.currentTimeMillis(), dialogPage.getTotalElements(),
                 dialogRequest.getOffset(),
                 dialogRequest.getItemPerPage(),
                 unreadDialogsList);
