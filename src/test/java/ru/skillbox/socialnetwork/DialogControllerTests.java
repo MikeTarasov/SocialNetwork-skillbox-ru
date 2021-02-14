@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @WithUserDetails("shred@mail.who")
-//@TestPropertySource("/application-test.properties")
+@TestPropertySource("/application-test.properties")
 @Sql(value = {"/Add3Users.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 public class DialogControllerTests {
@@ -450,6 +450,8 @@ public class DialogControllerTests {
     }
 
     @Test
+    @Sql(value = {"/Add3Users.sql", "/AddNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql", "/RemoveNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void messageAllSuccess() throws Exception {
         Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
 
@@ -585,6 +587,8 @@ public class DialogControllerTests {
     }
 
     @Test
+    @Sql(value = {"/Add3Users.sql", "/AddNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql", "/RemoveNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void changeMessageError() throws Exception{
         Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
 
