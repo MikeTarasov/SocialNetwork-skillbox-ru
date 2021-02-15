@@ -86,11 +86,11 @@ public class PostLikeService {
             switch (request.getType().toLowerCase()) {
                 case "post":
                     postLikeRepository
-                            .save(new PostLike(person, postRepository.findPostById(request.getId())));
+                            .saveAndFlush(new PostLike(person, postRepository.findPostById(request.getId())));
                     break;
                 case "comment":
                     commentLikeRepository
-                            .save(new CommentLike(person, commentRepository.findPostCommentById(request.getId())));
+                            .saveAndFlush(new CommentLike(person, commentRepository.findPostCommentById(request.getId())));
                     break;
             }
             return ResponseEntity.status(200)

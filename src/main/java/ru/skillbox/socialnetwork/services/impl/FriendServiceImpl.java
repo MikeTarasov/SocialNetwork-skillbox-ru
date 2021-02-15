@@ -11,9 +11,12 @@ import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
 import ru.skillbox.socialnetwork.api.responses.UserIdStatusResponse;
 import ru.skillbox.socialnetwork.model.entity.Friendship;
 import ru.skillbox.socialnetwork.model.entity.Notification;
+import ru.skillbox.socialnetwork.model.entity.Notification;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.enums.FriendStatus;
 import ru.skillbox.socialnetwork.repository.FriendshipRepository;
+import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
+import ru.skillbox.socialnetwork.repository.NotificationsRepository;
 import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
 import ru.skillbox.socialnetwork.repository.NotificationsRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
@@ -36,18 +39,26 @@ public class FriendServiceImpl implements FriendService {
     private final PersonDetailsService personDetailsService;
     private final NotificationsRepository notificationsRepository;
     private final NotificationTypeRepository notificationTypeRepository;
+    private final ProfileServiceImpl profileService;
 
     @Autowired
-    public FriendServiceImpl(FriendshipRepository friendshipRepository, PersonRepository personRepository, PersonDetailsService personDetailsService, NotificationsRepository notificationsRepository, NotificationTypeRepository notificationTypeRepository) {
+    public FriendServiceImpl(FriendshipRepository friendshipRepository,
+                             PersonRepository personRepository,
+                             PersonDetailsService personDetailsService,
+                             NotificationsRepository notificationsRepository,
+                             NotificationTypeRepository notificationTypeRepository,
+                             ProfileServiceImpl profileService) {
         this.friendshipRepository = friendshipRepository;
         this.personRepository = personRepository;
         this.personDetailsService = personDetailsService;
         this.notificationsRepository = notificationsRepository;
         this.notificationTypeRepository = notificationTypeRepository;
+        this.profileService = profileService;
     }
 
     @Override
-    public ErrorTimeTotalOffsetPerPageListDataResponse getFriends(String name, Integer offset, Integer itemPerPage, FriendStatus friendStatus) {
+    public ErrorTimeTotalOffsetPerPageListDataResponse getFriends(String name, Integer offset, Integer itemPerPage,
+                                                                  FriendStatus friendStatus) {
         Person currentPerson = personDetailsService.getCurrentUser();
         Pageable paging = PageRequest.of(offset / itemPerPage,
                 itemPerPage,
@@ -57,7 +68,8 @@ public class FriendServiceImpl implements FriendService {
         if (name == null || name.isEmpty())
             friendPage = friendshipRepository.findByDstPersonAndCode(currentPerson, friendStatus.name(), paging);
         else
-            friendPage = friendshipRepository.findByDstPersonAndSrcNameAndCode(currentPerson, name, friendStatus.name(), paging);
+            friendPage = friendshipRepository
+                    .findByDstPersonAndSrcNameAndCode(currentPerson, name, friendStatus.name(), paging);
 
         return new ErrorTimeTotalOffsetPerPageListDataResponse(
                 friendPage.getTotalElements(),

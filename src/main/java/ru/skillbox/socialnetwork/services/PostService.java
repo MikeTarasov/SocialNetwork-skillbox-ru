@@ -11,11 +11,9 @@ import ru.skillbox.socialnetwork.api.requests.ParentIdCommentTextRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
 import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.*;
-import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
-import ru.skillbox.socialnetwork.repository.NotificationsRepository;
-import ru.skillbox.socialnetwork.repository.PostCommentRepository;
-import ru.skillbox.socialnetwork.repository.PostRepository;
+import ru.skillbox.socialnetwork.repository.*;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
+import ru.skillbox.socialnetwork.repository.PostLikeRepository;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -30,6 +28,7 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final PostCommentRepository commentRepository;
+    private final PostLikeRepository postLikeRepository;
     private final PersonDetailsService personDetailsService;
     private final NotificationsRepository notificationsRepository;
     private final NotificationTypeRepository notificationTypeRepository;
@@ -37,9 +36,14 @@ public class PostService {
     @Autowired
     public PostService(PostRepository postRepository,
                        PostCommentRepository commentRepository,
-                       PersonDetailsService personDetailsService, NotificationsRepository notificationsRepository, NotificationTypeRepository notificationTypeRepository) {
+                       PersonDetailsService personDetailsService,
+                       NotificationsRepository notificationsRepository,
+                       NotificationTypeRepository notificationTypeRepository,
+                       PostLikeRepository postLikeRepository) {
+
         this.postRepository = postRepository;
         this.commentRepository = commentRepository;
+        this.postLikeRepository = postLikeRepository;
         this.personDetailsService = personDetailsService;
         this.notificationsRepository = notificationsRepository;
         this.notificationTypeRepository = notificationTypeRepository;
@@ -351,7 +355,8 @@ public class PostService {
                 post.getTitle(),
                 post.getPostText(),
                 post.getIsBlocked() == 1,
-                1,
+                postLikeRepository
+                        .countPostLikesByPostIdAndPersonId(post.getId(), personDetailsService.getCurrentUser().getId()),
                 getCommentEntityResponseListByPost(post)
         );
     }
@@ -422,21 +427,5 @@ public class PostService {
     private String convertNullString(String s) {
         if (s == null) return "";
         return "%".concat(s).concat("%");
-    }
-
-    //for testing
-    public ResponseEntity<?> getPostBySearching(String text, long dateStart, long dateEnd, int isDeleted) {
-        List<Post> posts = postRepository.findByPostTextContainingAndTimeBetweenAndIsDeletedOrderByIdDesc(text,
-                getMillisecondsToLocalDateTime(dateStart), getMillisecondsToLocalDateTime(dateEnd),
-                isDeleted);
-
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
-                        "",
-                        System.currentTimeMillis(),
-                        posts.size(),
-                        0,
-                        5,
-                        getPostEntityResponseListByPosts(posts)));
     }
 }
