@@ -220,7 +220,7 @@ public class DialogControllerTests {
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value(""))
-                .andExpect(jsonPath("$.data.user_ids").exists());
+                .andExpect(jsonPath("$.data.users_ids").exists());
         assertEquals(3, personToDialogRepository.findByDialog(dialog).size());
 
         // try to add user already in dialog
@@ -243,7 +243,7 @@ public class DialogControllerTests {
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value(""))
-                .andExpect(jsonPath("$.data.user_ids").exists());
+                .andExpect(jsonPath("$.data.users_ids").exists());
         assertEquals(1, personToDialogRepository.findByDialog(dialog).size());
         assertEquals(currentPersonId, personToDialogRepository.findByDialog(dialog).get(0).getPerson().getId());
     }
@@ -267,6 +267,19 @@ public class DialogControllerTests {
         String link = JsonPath.read(resultGetInvite.getResponse().getContentAsString(), "$.data.link");
         assertEquals(inviteCode, link);
 
+
+        List<Long> currentUserInList = new ArrayList<>();
+        currentUserInList.add(currentPersonId);
+        // remove current user from dialog
+        this.mockMvc.perform(delete(String.format("/dialogs/%s/users", dialog.getId())).contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(new ListUserIdsRequest(currentUserInList))))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.users_ids").exists());
+
         // joining by invite link
         LinkRequest linkRequest = new LinkRequest(link);
         MvcResult resultJoin = this.mockMvc.perform(put(String.format("/dialogs/%d/users/join", dialog.getId()))
@@ -276,10 +289,10 @@ public class DialogControllerTests {
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value(""))
-                .andExpect(jsonPath("$.data.user_ids").exists())
+                .andExpect(jsonPath("$.data.users_ids").exists())
                 .andReturn();
         Long idInResponse = Long.valueOf(
-                JsonPath.read(resultJoin.getResponse().getContentAsString(), "$.data.user_ids[0]").toString());
+                JsonPath.read(resultJoin.getResponse().getContentAsString(), "$.data.users_ids[0]").toString());
         assertEquals(currentPersonId, idInResponse);
     }
 

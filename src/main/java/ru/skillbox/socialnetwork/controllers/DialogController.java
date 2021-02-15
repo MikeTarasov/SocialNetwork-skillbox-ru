@@ -25,9 +25,9 @@ public class DialogController {
     public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getDialogList(
             @RequestBody(required = false) DialogRequest dialogRequest) {
         if (dialogRequest != null) {
-            return ResponseEntity.ok(dialogService.getDialogsList(dialogRequest));
+            return ResponseEntity.ok(dialogService.getDialogsLastMessages(dialogRequest));
         } else {
-            return ResponseEntity.ok(dialogService.getDialogsList());
+            return ResponseEntity.ok(dialogService.getDialogsLastMessages());
         }
     }
 
