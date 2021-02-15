@@ -66,14 +66,21 @@ public class FriendServiceImpl implements FriendService {
     public void addFriend(Long dstPersonId) {
         Person currentPerson = personDetailsService.getCurrentUser();
         Person dstPerson = personRepository.findById(dstPersonId).orElseThrow(() -> new PersonNotFoundException(dstPersonId));
-        Friendship friendshipOut = new Friendship();
+        Friendship friendshipOut = friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).orElse(new Friendship());
+        if (friendshipOut.getCode() != null &&
+                (friendshipOut.getCode().equals(FriendStatus.REQUEST.name()) ||
+                friendshipOut.getCode().equals(FriendStatus.FRIEND.name()) ||
+                friendshipOut.getCode().equals(FriendStatus.SUBSCRIBED.name()))
+        ) {
+            return;
+        }
         friendshipOut.setDstPerson(dstPerson);
         friendshipOut.setSrcPerson(currentPerson);
         if (friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).isEmpty()) {
             friendshipOut.setCode(FriendStatus.REQUEST.name());
         } else {
             Friendship friendshipIn = friendshipRepository.findByDstPersonAndSrcPerson(currentPerson, dstPerson).get();
-            if (friendshipIn.getCode().equals(FriendStatus.REQUEST.name())) {
+            if (friendshipIn.getCode().equals(FriendStatus.REQUEST.name()) || friendshipIn.getCode().equals(FriendStatus.SUBSCRIBED.name())) {
                 friendshipIn.setCode(FriendStatus.FRIEND.name());
                 friendshipOut.setCode(FriendStatus.FRIEND.name());
                 friendshipRepository.save(friendshipIn);
