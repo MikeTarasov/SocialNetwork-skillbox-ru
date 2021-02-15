@@ -1,4 +1,5 @@
 delete from notification;
+delete from friendship;
 delete from message;
 delete from person2dialog;
 delete from person;

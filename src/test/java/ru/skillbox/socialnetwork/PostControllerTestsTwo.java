@@ -12,6 +12,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.skillbox.socialnetwork.api.requests.ParentIdCommentTextRequest;
@@ -33,29 +36,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class PostControllerTests {
+@TestPropertySource("/application-test.properties")
+class PostControllerTestsTwo {
 
-    private final String email = "testtest@test.gmail";
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-    private final String password = "testPassword";
-    private final Person testPerson = new Person(0, "Steve", "Jobs",
-            LocalDateTime.of(2020, 1, 1, 15, 30, 00),
-            LocalDateTime.of(1982, 12, 31, 21, 00, 00),
-            email, "+71234567890", encoder.encode(password), "pictures.org/photo.jpg",
-            "smth about author", "Ufa", "Russian Federation", "some confirmation code",
-            1, "ALL", LocalDateTime.of(2020, 5, 5, 5, 30, 00),
-            0, 0, 0);
-    private final Post testPost = new Post(0, LocalDateTime.of(2021, 1, 1, 15, 30, 00),
-            testPerson, "Test post title", "Test post text", 0, 0, new ArrayList<>());
-    private final PostComment testPostComment = new PostComment(0, LocalDateTime.of(2021, 1,
-            12, 20, 45, 25), null,
-            "Good article!", 0, 0, testPerson, testPost);
     private Post savedPost = null;
     private PostComment savedComment = null;
 
@@ -75,62 +65,35 @@ public class PostControllerTests {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private String auth() {
-        return jwtTokenProvider.getAuthentication(email, password);
-    }
-
-    @BeforeEach
-    public void savePostToPostRepository() {
-        savedPost = postRepository.save(testPost);
-        testPostComment.setPerson(savedPost.getAuthor());
-        testPostComment.setPost(savedPost);
-        savedComment = commentRepository.save(testPostComment);
-        savedPost.getComments().add(savedComment);
-    }
-
-    @AfterEach
-    public void restoreDb() {
-        notificationsRepository.deleteAll();
-        commentRepository.delete(savedComment);
-        postRepository.delete(savedPost);
-        personRepository.delete(savedPost.getAuthor());
-    }
-
-    private List<Post> setPosts(Post post) {
-        List<Post> list = new ArrayList<>();
-        list.add(post);
-        return list;
-    }
-
     @Test
-    void started() {
-    }
-
-
-    @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearComments.sql", "/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void testGetApiPostSearch() throws Exception {
 
+        savedPost = postRepository.findById(1L).get();
+        savedComment = commentRepository.findById(1L).get();
+        List<Post> postList = new ArrayList<>();
+        postList.add(savedPost);
         ErrorTimeTotalOffsetPerPageListDataResponse errorTimeTotalOffsetPerPageListDataResponse =
                 new ErrorTimeTotalOffsetPerPageListDataResponse(
                         "",
                         System.currentTimeMillis(),
-                        0,
+                        1,
                         0,
                         5,
-                        getPostEntityResponseListByPosts(setPosts(savedPost))
+                        getPostEntityResponseListByPosts(postList)
                 );
 
-        String jwtToken = auth();
         long minusMonth = 1;
         mvc.perform(MockMvcRequestBuilders
                 .get("/post/")
-                .header(HttpHeaders.AUTHORIZATION, jwtToken)
                 .param("text", savedPost.getPostText())
                 .param("date_from", getMillis(savedPost.getTime().minusMonths(minusMonth)).toString())
                 .param("date_to", getMillis(LocalDateTime.now()).toString())
                 .param("offset", String.valueOf(0))
                 .param("itemPerPage", String.valueOf(5)))
-                .andDo(print())
+                .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.total")
@@ -138,71 +101,76 @@ public class PostControllerTests {
                 .andExpect(jsonPath("$.offset")
                         .value(String.valueOf(errorTimeTotalOffsetPerPageListDataResponse.getOffset())))
                 .andExpect(jsonPath("$.perPage")
-                        .value(String.valueOf(errorTimeTotalOffsetPerPageListDataResponse.getPerPage())));
-//                .andExpect(jsonPath("$.data[:1].id")
-//                        .value(Integer.parseInt(String.valueOf(savedPost.getId()))))
-//                .andExpect(jsonPath("$.data[:1].time")
-//                        .value(getMillis(savedPost.getTime())))
-//                .andExpect(jsonPath("$.data[:1].author.id")
-//                        .value(Integer.parseInt(String.valueOf(savedPost.getAuthor().getId()))))
-//                .andExpect(jsonPath("$.data[:1].author.email")
-//                        .value(String.valueOf(savedPost.getAuthor().getEmail())))
-//                .andExpect(jsonPath("$.data[:1].author.phone")
-//                        .value(String.valueOf(savedPost.getAuthor().getPhone())))
-//                .andExpect(jsonPath("$.data[:1].author.photo")
-//                        .value(String.valueOf(savedPost.getAuthor().getPhoto())))
-//                .andExpect(jsonPath("$.data[:1].author.about")
-//                        .value(String.valueOf(savedPost.getAuthor().getAbout())))
-//                .andExpect(jsonPath("$.data[:1].author.city")
-//                        .value(String.valueOf(savedPost.getAuthor().getCity())))
-//                .andExpect(jsonPath("$.data[:1].author.country")
-//                        .value(String.valueOf(savedPost.getAuthor().getCountry())))
-//                .andExpect(jsonPath("$.data[:1].author.first_name")
-//                        .value(String.valueOf(savedPost.getAuthor().getFirstName())))
-//                .andExpect(jsonPath("$.data[:1].author.last_name")
-//                        .value(String.valueOf(savedPost.getAuthor().getLastName())))
-//                .andExpect(jsonPath("$.data[:1].author.reg_date")
-//                        .value(getMillis(savedPost.getAuthor().getRegDate())))
-//                .andExpect(jsonPath("$.data[:1].author.birth_date")
-//                        .value(getMillis(savedPost.getAuthor().getBirthDate())))
-//                .andExpect(jsonPath("$.data[:1].author.messages_permission")
-//                        .value(savedPost.getAuthor().getMessagePermission()))
-//                .andExpect(jsonPath("$.data[:1].author.last_online_time")
-//                        .value(getMillis(savedPost.getAuthor().getLastOnlineTime())))
-//                .andExpect(jsonPath("$.data[:1].author.is_blocked")
-//                        .value(savedPost.getAuthor().getIsBlocked() == 1))
-//                .andExpect(jsonPath("$.data[:1].title")
-//                        .value(savedPost.getTitle()))
-//                .andExpect(jsonPath("$.data[:1].likes")
-//                        .value(getPostEntityResponseByPost(savedPost).getLikes()))
-//                .andExpect(jsonPath("$.data[:1].comments[:1].id")
-//                        .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
-//                .andExpect(jsonPath("$.data[:1].comments[:1].time")
-//                        .value(getMillis(savedComment.getTime())))
-//                .andExpect(jsonPath("$.data[:1].comments[:1].parent_id")
-//                        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
-//                .andExpect(jsonPath("$.data[:1].comments[:1].comment_text")
-//                        .value(savedComment.getCommentText()))
-//                .andExpect(jsonPath("$.data[:1].comments[:1].post_id")
-//                        .value(Integer.parseInt(String.valueOf(savedComment.getPost().getId()))))
-//                .andExpect(jsonPath("$.data[:1].comments[:1].author_id")
-//                        .value(Integer.parseInt(String.valueOf(savedComment.getPerson().getId()))))
-//                .andExpect(jsonPath("$.data[:1].comments[:1].is_blocked")
-//                        .value(savedComment.getIsBlocked()))
-//                .andExpect(jsonPath("$.data[:1].post_text")
-//                        .value(savedPost.getPostText()))
-//                .andExpect(jsonPath("$.data[:1].is_blocked")
-//                        .value(savedPost.getIsBlocked() == 1));
+                        .value(String.valueOf(errorTimeTotalOffsetPerPageListDataResponse.getPerPage())))
+                .andExpect(jsonPath("$.data[:1].id")
+                        .value(Integer.parseInt(String.valueOf(savedPost.getId()))))
+                .andExpect(jsonPath("$.data[:1].time")
+                        .value(getMillis(savedPost.getTime())))
+                .andExpect(jsonPath("$.data[:1].author.id")
+                        .value(Integer.parseInt(String.valueOf(savedPost.getAuthor().getId()))))
+                .andExpect(jsonPath("$.data[:1].author.email")
+                        .value(String.valueOf(savedPost.getAuthor().getEmail())))
+                .andExpect(jsonPath("$.data[:1].author.phone")
+                        .value(String.valueOf(savedPost.getAuthor().getPhone())))
+                .andExpect(jsonPath("$.data[:1].author.photo")
+                        .value(String.valueOf(savedPost.getAuthor().getPhoto())))
+                .andExpect(jsonPath("$.data[:1].author.about")
+                        .value(String.valueOf(savedPost.getAuthor().getAbout())))
+                .andExpect(jsonPath("$.data[:1].author.city")
+                        .value(String.valueOf(savedPost.getAuthor().getCity())))
+                .andExpect(jsonPath("$.data[:1].author.country")
+                        .value(String.valueOf(savedPost.getAuthor().getCountry())))
+                .andExpect(jsonPath("$.data[:1].author.first_name")
+                        .value(String.valueOf(savedPost.getAuthor().getFirstName())))
+                .andExpect(jsonPath("$.data[:1].author.last_name")
+                        .value(String.valueOf(savedPost.getAuthor().getLastName())))
+                .andExpect(jsonPath("$.data[:1].author.reg_date")
+                        .value(getMillis(savedPost.getAuthor().getRegDate())))
+                .andExpect(jsonPath("$.data[:1].author.birth_date")
+                        .value(getMillis(savedPost.getAuthor().getBirthDate())))
+                .andExpect(jsonPath("$.data[:1].author.messages_permission")
+                        .value(savedPost.getAuthor().getMessagePermission()))
+                .andExpect(jsonPath("$.data[:1].author.last_online_time")
+                        .value(getMillis(savedPost.getAuthor().getLastOnlineTime())))
+                .andExpect(jsonPath("$.data[:1].author.is_blocked")
+                        .value(savedPost.getAuthor().getIsBlocked() == 1))
+                .andExpect(jsonPath("$.data[:1].title")
+                        .value(savedPost.getTitle()))
+                .andExpect(jsonPath("$.data[:1].likes")
+                        .value(getPostEntityResponseByPost(savedPost).getLikes()))
+                .andExpect(jsonPath("$.data[:1].comments[:1].id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
+                .andExpect(jsonPath("$.data[:1].comments[:1].time")
+                        .value(getMillis(savedComment.getTime())))
+                .andExpect(jsonPath("$.data[:1].comments[:1].parent_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
+                .andExpect(jsonPath("$.data[:1].comments[:1].comment_text")
+                        .value(savedComment.getCommentText()))
+                .andExpect(jsonPath("$.data[:1].comments[:1].post_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getPost().getId()))))
+                .andExpect(jsonPath("$.data[:1].comments[:1].author_id")
+                        .value(Integer.parseInt(String.valueOf(savedComment.getPerson().getId()))))
+                .andExpect(jsonPath("$.data[:1].comments[:1].is_blocked")
+                        .value(savedComment.getIsBlocked()))
+                .andExpect(jsonPath("$.data[:1].post_text")
+                        .value(savedPost.getPostText()))
+                .andExpect(jsonPath("$.data[:1].is_blocked")
+                        .value(savedPost.getIsBlocked() == 1));
     }
 
     @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearComments.sql", "/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void testGetApiPostById() throws Exception {
-        String jwtToken = auth();
+        savedPost = postRepository.findById(1L).get();
+        savedComment = commentRepository.findById(1L).get();
         ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
                 "", getTimeZonedMillis(), getPostEntityResponseByPost(savedPost));
 
         mvc.perform(MockMvcRequestBuilders
-                .get("/post/" + savedPost.getId()).header(HttpHeaders.AUTHORIZATION, jwtToken))
+                .get("/post/" + savedPost.getId()))
+                .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error").value(errorTimeDataResponse.getError()))
                 .andExpect(jsonPath("$.data.id")
@@ -245,8 +213,6 @@ public class PostControllerTests {
                         .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
                 .andExpect(jsonPath("$.data.comments[:1].time")
                         .value(getMillis(savedComment.getTime())))
-                //.andExpect(jsonPath("$.data.comments[:1].parent_id")
-                //        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
                 .andExpect(jsonPath("$.data.comments[:1].comment_text")
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data.comments[:1].post_id")
@@ -262,8 +228,13 @@ public class PostControllerTests {
     }
 
     @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearComments.sql", "/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void testPutPostById() throws Exception {
-        String jwtToken = auth();
+
+        savedPost = postRepository.findById(1L).get();
+        savedComment = commentRepository.findById(1L).get();
 
         String newTitle = "Updated post title";
         String newText = "Updated post text";
@@ -276,10 +247,10 @@ public class PostControllerTests {
 
         mvc.perform(MockMvcRequestBuilders
                 .put("/post/{id}", savedPost.getId())
-                .header(HttpHeaders.AUTHORIZATION, jwtToken)
                 .param("publish_date", getMillis(savedPost.getTime()).toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
+                .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error").value(errorTimeDataResponse.getError()))
                 .andExpect(jsonPath("$.data.id")
@@ -322,8 +293,6 @@ public class PostControllerTests {
                         .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
                 .andExpect(jsonPath("$.data.comments[:1].time")
                         .value(getMillis(savedComment.getTime())))
-                //.andExpect(jsonPath("$.data.comments[:1].parent_id")
-                //        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
                 .andExpect(jsonPath("$.data.comments[:1].comment_text")
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data.comments[:1].post_id")
@@ -339,15 +308,19 @@ public class PostControllerTests {
     }
 
     @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearComments.sql", "/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void testDeletePostById() throws Exception {
-        String jwtToken = auth();
+        savedPost = postRepository.findById(1L).get();
+        savedComment = commentRepository.findById(1L).get();
         ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
                 "", getTimeZonedMillis(), new IdResponse(savedPost.getId()));
 
         assertEquals(0, postRepository.findById(savedPost.getId()).get().getIsDeleted());
         mvc.perform(MockMvcRequestBuilders
-                .delete("/post/{id}", savedPost.getId())
-                .header(HttpHeaders.AUTHORIZATION, jwtToken))
+                .delete("/post/{id}", savedPost.getId()))
+                .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error").value(errorTimeDataResponse.getError()))
                 .andExpect(jsonPath("$.data.id")
@@ -356,17 +329,21 @@ public class PostControllerTests {
     }
 
     @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearComments.sql", "/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void testPutPostRecover() throws Exception {
+        savedPost = postRepository.findById(1L).get();
+        savedComment = commentRepository.findById(1L).get();
         savedPost.setIsDeleted(1);
         postRepository.saveAndFlush(savedPost);
         ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
                 "", getTimeZonedMillis(), getPostEntityResponseByPost(savedPost));
 
         assertEquals(1, postRepository.findById(savedPost.getId()).get().getIsDeleted());
-        String jwtToken = auth();
         mvc.perform(MockMvcRequestBuilders
-                .put("/post/{id}/recover/", String.valueOf(savedPost.getId()))
-                .header(HttpHeaders.AUTHORIZATION, jwtToken))
+                .put("/post/{id}/recover/", String.valueOf(savedPost.getId())))
+                .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error").value(errorTimeDataResponse.getError()))
                 .andExpect(jsonPath("$.data.id")
@@ -409,8 +386,6 @@ public class PostControllerTests {
                         .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
                 .andExpect(jsonPath("$.data.comments[:1].time")
                         .value(getMillis(savedComment.getTime())))
-               // .andExpect(jsonPath("$.data.comments[:1].parent_id")
-               //         .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
                 .andExpect(jsonPath("$.data.comments[:1].comment_text")
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data.comments[:1].post_id")
@@ -428,7 +403,12 @@ public class PostControllerTests {
     }
 
     @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearComments.sql", "/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void testGetApiPostIdComments() throws Exception {
+        savedPost = postRepository.findById(1L).get();
+        savedComment = commentRepository.findById(1L).get();
         ErrorTimeTotalOffsetPerPageListDataResponse errorTimeTotalOffsetPerPageListDataResponse =
                 new ErrorTimeTotalOffsetPerPageListDataResponse(
                         "",
@@ -438,12 +418,11 @@ public class PostControllerTests {
                         5,
                         getCommentEntityResponseListByPost(savedPost, PageRequest.of(0, 5)));
 
-        String jwtToken = auth();
         mvc.perform(MockMvcRequestBuilders
                 .get("/post/{id}/comments", String.valueOf(savedPost.getId()))
-                .header(HttpHeaders.AUTHORIZATION, jwtToken)
                 .param("offset", String.valueOf(0))
                 .param("itemPerPage", String.valueOf(5)))
+                .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.total")
@@ -456,8 +435,6 @@ public class PostControllerTests {
                         .value(Integer.parseInt(String.valueOf(savedComment.getId()))))
                 .andExpect(jsonPath("$.data[:1].time")
                         .value(getMillis(savedComment.getTime())))
-                //.andExpect(jsonPath("$.data[:1].parent_id")
-                //        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
                 .andExpect(jsonPath("$.data[:1].comment_text")
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data[:1].post_id")
@@ -465,39 +442,45 @@ public class PostControllerTests {
                 .andExpect(jsonPath("$.data[:1].author_id")
                         .value(Integer.parseInt(String.valueOf(savedComment.getPerson().getId()))))
                 .andExpect(jsonPath("$.data[:1].is_blocked")
-                        .value(savedComment.getIsBlocked()))
-        ;
+                        .value(savedComment.getIsBlocked()));
     }
 
     @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql", "/AddNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearComments.sql", "/RemovePosts.sql", "/RemoveTestUsers.sql", "/RemoveNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void testPostApiPostIdComments() throws Exception {
-        PostComment newComment = new PostComment(savedComment.getId() + 1,
+        savedPost = postRepository.findById(1L).get();
+        savedComment = commentRepository.findById(1L).get();
+        PostComment newComment = new PostComment(
                 getMillisecondsToLocalDateTime(System.currentTimeMillis()), null,
-                "New comment text!", 0, 0, savedPost.getAuthor(), savedPost);
+                "New comment text!", false, false, savedPost.getAuthor(), savedPost);
 
         ParentIdCommentTextRequest parentIdCommentTextRequest = new ParentIdCommentTextRequest(
                 newComment.getParentId(), newComment.getCommentText());
 
-        String jwtToken = auth();
         mvc.perform(MockMvcRequestBuilders
                 .post("/post/{id}/comments", String.valueOf(savedPost.getId()))
-                .header(HttpHeaders.AUTHORIZATION, jwtToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(parentIdCommentTextRequest)))
+                .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error").value(""))
-                .andExpect(jsonPath("$.data.id").value(String.valueOf(newComment.getId())))
-                //.andExpect(jsonPath("$.data.parent_id").value(newComment.getParentId()))
                 .andExpect(jsonPath("$.data.comment_text").value(newComment.getCommentText()))
-                .andExpect(jsonPath("$.data.post_id").value(newComment.getPost().getId()))
-                .andExpect(jsonPath("$.data.author_id").value(newComment.getPost().getAuthor().getId()))
+                .andExpect(jsonPath("$.data.post_id").value(1))
                 .andExpect(jsonPath("$.data.is_blocked").value("false"));
-
+        assertEquals(1, notificationsRepository.count());
+        notificationsRepository.deleteAll();
         commentRepository.deleteById(newComment.getId());
     }
 
     @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearComments.sql", "/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void testPutApiPostIdComments() throws Exception {
+        savedPost = postRepository.findById(1L).get();
+        savedComment = commentRepository.findById(1L).get();
         savedComment.setCommentText("New comment text");
         postRepository.saveAndFlush(savedPost);
         ParentIdCommentTextRequest parentIdCommentTextRequest = new ParentIdCommentTextRequest(
@@ -507,35 +490,36 @@ public class PostControllerTests {
 
         ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
                 "", getTimeZonedMillis(), getCommentEntityResponseByComment(savedComment));
-        String jwtToken = auth();
 
         mvc.perform(MockMvcRequestBuilders
                 .put("/post/{id}/comments/{comment_id}", String.valueOf(savedPost.getId()),
                         String.valueOf(savedComment.getId()))
-                .header(HttpHeaders.AUTHORIZATION, jwtToken)
                 .content(objectMapper.writeValueAsString(parentIdCommentTextRequest))
                 .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.data.id").value(String.valueOf(savedComment.getId())))
                 .andExpect(jsonPath("$.data.time").value(String.valueOf(getMillis(savedComment.getTime()))))
-                //.andExpect(jsonPath("$.data.parent_id").value(savedComment.getParentId()))
                 .andExpect(jsonPath("$.data.comment_text").value(savedComment.getCommentText()))
-                .andExpect(jsonPath("$.data.post_id").value(savedComment.getPost().getId()))
-                .andExpect(jsonPath("$.data.author_id").value(savedComment.getPost().getAuthor().getId()))
+                .andExpect(jsonPath("$.data.post_id").value(1))
+                .andExpect(jsonPath("$.data.author_id").value(8))
                 .andExpect(jsonPath("$.data.is_blocked").value("false"));
 
     }
 
     @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearComments.sql", "/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void testDeleteApiPostIdCommentsCommentId() throws Exception {
-        String jwtToken = auth();
-
+        savedPost = postRepository.findById(1L).get();
+        savedComment = commentRepository.findById(1L).get();
         assertFalse(commentRepository.findById(savedComment.getId()).get().getIsDeleted());
 
         mvc.perform(MockMvcRequestBuilders
-                .delete("/post/{id}/comments/{commentId}", savedPost.getId(), savedComment.getId())
-                .header(HttpHeaders.AUTHORIZATION, jwtToken))
+                .delete("/post/{id}/comments/{commentId}", savedPost.getId(), savedComment.getId()))
+                .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.data.id").value(String.valueOf(savedComment.getId())));
@@ -544,8 +528,12 @@ public class PostControllerTests {
     }
 
     @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearComments.sql", "/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void testPutApiPostIdCommentsCommentIdRecover() throws Exception {
-        String jwtToken = auth();
+        savedPost = postRepository.findById(1L).get();
+        savedComment = commentRepository.findById(1L).get();
 
         CommentEntityResponse commentEntityResponse = CommentEntityResponse.builder()
                 .id(savedComment.getId())
@@ -556,55 +544,53 @@ public class PostControllerTests {
                 .isBlocked(savedComment.getIsBlocked())
                 .time(getMillis(savedComment.getTime())).build();
 
-        ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
-                "", getTimeZonedMillis(), commentEntityResponse);
 
         savedComment.setIsDeleted(true);
         commentRepository.saveAndFlush(savedComment);
         assertTrue(commentRepository.findById(savedComment.getId()).get().getIsDeleted());
         mvc.perform(MockMvcRequestBuilders
-                .put("/post/{id}/comments/{commentId}/recover", savedPost.getId(), savedComment.getId())
-                .header(HttpHeaders.AUTHORIZATION, jwtToken))
+                .put("/post/{id}/comments/{commentId}/recover", savedPost.getId(), savedComment.getId()))
+                .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error").value(""))
-                .andExpect(jsonPath("$.data.id").value(String.valueOf(savedComment.getId())))
-                .andExpect(jsonPath("$.data.time").value(String.valueOf(getMillis(savedComment.getTime()))))
-                //.andExpect(jsonPath("$.data.parent_id").value(savedComment.getParentId()))
-                .andExpect(jsonPath("$.data.comment_text").value(savedComment.getCommentText()))
-                .andExpect(jsonPath("$.data.post_id").value(savedComment.getPost().getId()))
-                .andExpect(jsonPath("$.data.author_id").value(savedComment.getPost().getAuthor().getId()))
+                .andExpect(jsonPath("$.data.id").value(String.valueOf(commentEntityResponse.getId())))
+                .andExpect(jsonPath("$.data.time").value(String.valueOf(commentEntityResponse.getTime())))
+                .andExpect(jsonPath("$.data.comment_text").value(commentEntityResponse.getCommentText()))
+                .andExpect(jsonPath("$.data.post_id").value(commentEntityResponse.getPostId()))
+                .andExpect(jsonPath("$.data.author_id").value(commentEntityResponse.getAuthorId()))
                 .andExpect(jsonPath("$.data.is_blocked").value("false"));
         assertFalse(commentRepository.findById(savedComment.getId()).get().getIsDeleted());
     }
 
     @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearComments.sql", "/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void testPostApiPostIdReport() throws Exception {
-        String jwtToken = auth();
-        ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
-                "", getTimeZonedMillis(), new MessageResponse());
-
+        savedPost = postRepository.findById(1L).get();
+        savedComment = commentRepository.findById(1L).get();
         mvc.perform(MockMvcRequestBuilders
-                .post("/post/{id}/report", savedPost.getId())
-                .header(HttpHeaders.AUTHORIZATION, jwtToken))
+                .post("/post/{id}/report", savedPost.getId()))
                 .andExpect(status().isOk())
+                .andExpect(authenticated())
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.data.message").value("ok"));
 
     }
 
     @Test
+    @WithUserDetails("shred@mail.who")
+    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearComments.sql", "/RemovePosts.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void testPostApiPostIdCommentsCommentIdReport() throws Exception {
-        String jwtToken = auth();
-        ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
-                "", getTimeZonedMillis(), new MessageResponse());
-
+        savedPost = postRepository.findById(1L).get();
+        savedComment = commentRepository.findById(1L).get();
         mvc.perform(MockMvcRequestBuilders
-                .post("/post/{id}/comments/{comment_id}/report", savedPost.getId(), savedComment.getId())
-                .header(HttpHeaders.AUTHORIZATION, jwtToken))
+                .post("/post/{id}/comments/{comment_id}/report", savedPost.getId(), savedComment.getId()))
                 .andExpect(status().isOk())
+                .andExpect(authenticated())
                 .andExpect(jsonPath("$.error").value(""))
                 .andExpect(jsonPath("$.data.message").value("ok"));
-
     }
 
     private PostEntityResponse getPostEntityResponseByPost(Post post) {
@@ -700,9 +686,7 @@ public class PostControllerTests {
     }
 
     private LocalDateTime getMillisecondsToLocalDateTime(long milliseconds) {
-        LocalDateTime localDateTime =
-                Instant.ofEpochMilli(milliseconds).atZone(ZoneId.of("Europe/Moscow")).toLocalDateTime();
-        return localDateTime;
+        return Instant.ofEpochMilli(milliseconds).atZone(ZoneId.of("Europe/Moscow")).toLocalDateTime();
 
     }
 }

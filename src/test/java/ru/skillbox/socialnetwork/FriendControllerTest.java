@@ -55,7 +55,6 @@ public class FriendControllerTest {
         this.mockMvc.perform(get("/friends")
                 .queryParam("offset", "0")
                 .queryParam("itemPerPage","10"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -101,7 +100,6 @@ public class FriendControllerTest {
     public void getAllFriends2Test() throws Exception {
         this.mockMvc.perform(get("/friends")
                 .queryParam("offset", "0"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -121,7 +119,6 @@ public class FriendControllerTest {
         this.mockMvc.perform(get("/friends")
                 .queryParam("offset", "0")
                 .queryParam("itemPerPage", "1"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -142,7 +139,6 @@ public class FriendControllerTest {
                 .queryParam("name", "дед")
                 .queryParam("offset", "0")
                 .queryParam("itemPerPage", "10"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -162,7 +158,6 @@ public class FriendControllerTest {
         this.mockMvc.perform(get("/friends/request")
                 .queryParam("offset", "0")
                 .queryParam("itemPerPage", "10"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -184,7 +179,6 @@ public class FriendControllerTest {
                 .queryParam("name", "ELON")
                 .queryParam("offset", "0")
                 .queryParam("itemPerPage", "10"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -206,7 +200,6 @@ public class FriendControllerTest {
     public void addFriend1Test() throws Exception {
         Long dstPersonId = 7L;
         this.mockMvc.perform(post("/friends/" + dstPersonId))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -232,7 +225,6 @@ public class FriendControllerTest {
     public void addFriend2Test() throws Exception {
         Long dstPersonId = 8L;
         this.mockMvc.perform(post("/friends/" + dstPersonId))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -259,7 +251,6 @@ public class FriendControllerTest {
     public void addFriend3Test() throws Exception {
         Long dstPersonId = 7L;
         this.mockMvc.perform(post("/friends/" + dstPersonId))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -286,7 +277,6 @@ public class FriendControllerTest {
     public void addFriend4Test() throws Exception {
         Long dstPersonId = 8L;
         this.mockMvc.perform(post("/friends/" + dstPersonId))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -311,7 +301,6 @@ public class FriendControllerTest {
     public void deleteFriendRequestTest() throws Exception {
         Long dstPersonId = 9L;
         this.mockMvc.perform(delete("/friends/" + dstPersonId))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -334,7 +323,6 @@ public class FriendControllerTest {
     public void deleteFriendTest() throws Exception {
         Long dstPersonId = 7L;
         this.mockMvc.perform(delete("/friends/" + dstPersonId))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -361,7 +349,6 @@ public class FriendControllerTest {
     public void deleteFriendErrorTest() throws Exception {
         Long dstPersonId = 5L;
         this.mockMvc.perform(delete("/friends/" + dstPersonId))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -384,7 +371,6 @@ public class FriendControllerTest {
 
         this.mockMvc.perform(post("/is/friends").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -403,7 +389,6 @@ public class FriendControllerTest {
     public void getRecommendationsTest() throws Exception {
         this.mockMvc.perform(get("/friends/recommendations")
                 .queryParam("offset", "0"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -423,7 +408,6 @@ public class FriendControllerTest {
     public void getRecommendationsNoFriendsTest() throws Exception {
         this.mockMvc.perform(get("/friends/recommendations")
                 .queryParam("offset", "0"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
