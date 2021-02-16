@@ -292,6 +292,32 @@ public class FriendControllerTest {
     }
 
     /**
+     * create friend request when another request already exists
+     */
+    @Test
+    @WithUserDetails("dedm@mail.who")
+    @Sql(value = {"/Add4UsersForRequestTest.sql", "/AddFriendshipRequestsFor4.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void addFriend5Test() throws Exception {
+        Long dstPersonId = 9L;
+        this.mockMvc.perform(post("/friends/" + dstPersonId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value(""))
+                .andExpect(jsonPath("$.data.message").value("ok"));
+
+        Person currentPerson = personRepository.findByEmail("dedm@mail.who").get();
+        Person dstPerson = personRepository.findById(dstPersonId).get();
+        assertTrue(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).isPresent());
+        assertEquals(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).get()
+                .getCode(), FriendStatus.REQUEST.name());
+        assertEquals(friendshipRepository.countByDstPersonAndSrcPerson(dstPerson, currentPerson), 1);
+        assertEquals(friendshipRepository.count(), 5);
+    }
+
+    /**
      * delete friend request
      */
     @Test
