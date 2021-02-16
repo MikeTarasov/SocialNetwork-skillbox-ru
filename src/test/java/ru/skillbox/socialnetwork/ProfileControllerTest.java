@@ -75,7 +75,7 @@ public class ProfileControllerTest {
     @Test
     public void getCurrentUserTest() throws Exception {
         this.mockMvc.perform(get("/users/me"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -99,7 +99,7 @@ public class ProfileControllerTest {
     @Test
     public void deleteCurrentUserTest() throws Exception {
         this.mockMvc.perform(delete("/users/me"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated());
 
@@ -134,7 +134,7 @@ public class ProfileControllerTest {
         this.mockMvc.perform(put("/users/me")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(jsonPath("$.data.id").value(currentUserId))
@@ -179,7 +179,7 @@ public class ProfileControllerTest {
         this.mockMvc.perform(put("/users/me")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(jsonPath("$.data.id").value(currentUserId))
@@ -201,7 +201,7 @@ public class ProfileControllerTest {
     public void userSearchByFirstNameTest() throws Exception {
         this.mockMvc.perform(get("/users/search")
                 .queryParam("first_name", "Котик"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value(""))
@@ -214,7 +214,7 @@ public class ProfileControllerTest {
     public void userSearchByLastNameTest() throws Exception {
         this.mockMvc.perform(get("/users/search")
                 .queryParam("last_name", "Чеширский"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value(""))
@@ -227,7 +227,7 @@ public class ProfileControllerTest {
     public void userSearchByAgeFromTest() throws Exception {
         this.mockMvc.perform(get("/users/search")
                 .queryParam("age_from", "20"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value(""))
@@ -239,7 +239,7 @@ public class ProfileControllerTest {
     public void userSearchByAgeToTest() throws Exception {
         this.mockMvc.perform(get("/users/search")
                 .queryParam("age_to", "30"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value(""))
@@ -252,7 +252,7 @@ public class ProfileControllerTest {
     @Test
     public void getNotesOnUserWallTest() throws Exception {
         this.mockMvc.perform(get("/users/8/wall"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value(""))
@@ -271,7 +271,7 @@ public class ProfileControllerTest {
         this.mockMvc.perform(post("/users/9/wall")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
+
                 .andExpect(status().isOk());
 
         assertTrue(postRepository.findById(10L).isPresent());
@@ -286,7 +286,7 @@ public class ProfileControllerTest {
     public void blockUserByIdTest() throws Exception {
         long UserForBlockingId = 8L;
         this.mockMvc.perform(put("/users/block/" + UserForBlockingId))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(jsonPath("$.data.message").value("ok"));
@@ -299,7 +299,7 @@ public class ProfileControllerTest {
     public void unblockUserByIdTest() throws Exception {
         long UserForUnblockingId = 8L;
         this.mockMvc.perform(delete("/users/block/" + UserForUnblockingId))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(jsonPath("$.data.message").value("ok"));
@@ -312,7 +312,7 @@ public class ProfileControllerTest {
 //    public void blockUserByIdTest_wrongId() throws Exception {
 //        long UserForBlockingId = 7L;
 //        this.mockMvc.perform(put("/users/block/" + UserForBlockingId))
-//                .andDo(print())
+//
 //                .andExpect(status().isOk())
 //                .andExpect(authenticated())
 //                .andExpect(jsonPath("$.error").value("invalid_request"));
