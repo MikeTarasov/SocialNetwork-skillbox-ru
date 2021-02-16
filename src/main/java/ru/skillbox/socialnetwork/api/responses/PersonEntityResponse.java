@@ -3,6 +3,7 @@ package ru.skillbox.socialnetwork.api.responses;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import ru.skillbox.socialnetwork.model.entity.Person;
 
 @Data
 @Builder
@@ -83,5 +85,32 @@ public class PersonEntityResponse {
         if (lastOnlineTime != null) this.lastOnlineTime = lastOnlineTime.atZone(ZoneId.systemDefault()).toEpochSecond();
         this.isBlocked = isBlocked;
         this.token = token;
+    }
+
+
+    public static PersonEntityResponse getResponseEntity(Person person){
+        return new PersonEntityResponse(
+            person.getId(),
+            person.getFirstName(),
+            person.getLastName(),
+            Date
+                .from(person.getRegDate().atZone(ZoneId.systemDefault())
+                    .toInstant()).getTime(),
+            person.getBirthDate() == null ? null : Date
+                .from(person.getBirthDate().atZone(ZoneId.systemDefault())
+                    .toInstant()).getTime(),
+            person.getEmail(),
+            person.getPhone(),
+            person.getPhoto(),
+            person.getAbout(),
+            person.getCity(),
+            person.getCountry(),
+            person.getMessagePermission(),
+            person.getLastOnlineTime() == null ? null : Date
+                .from(person.getLastOnlineTime().atZone(ZoneId.systemDefault())
+                    .toInstant()).getTime(),
+            person.getIsBlocked() == 1
+        );
+
     }
 }
