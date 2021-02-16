@@ -10,21 +10,16 @@ import ru.skillbox.socialnetwork.api.requests.DialogRequest;
 import ru.skillbox.socialnetwork.api.requests.LinkRequest;
 import ru.skillbox.socialnetwork.api.requests.MessageTextRequest;
 import ru.skillbox.socialnetwork.api.responses.*;
-import ru.skillbox.socialnetwork.model.entity.Dialog;
-import ru.skillbox.socialnetwork.model.entity.Message;
-import ru.skillbox.socialnetwork.model.entity.Person;
-import ru.skillbox.socialnetwork.model.entity.PersonToDialog;
+import ru.skillbox.socialnetwork.model.entity.*;
 import ru.skillbox.socialnetwork.model.enums.ReadStatus;
-import ru.skillbox.socialnetwork.repository.DialogRepository;
-import ru.skillbox.socialnetwork.repository.MessageRepository;
-import ru.skillbox.socialnetwork.repository.PersonRepository;
-import ru.skillbox.socialnetwork.repository.PersonToDialogRepository;
+import ru.skillbox.socialnetwork.repository.*;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 import ru.skillbox.socialnetwork.services.DialogService;
 import ru.skillbox.socialnetwork.services.exceptions.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -34,14 +29,23 @@ public class DialogServiceImpl implements DialogService {
     private final PersonToDialogRepository personToDialogRepository;
     private final PersonDetailsService personDetailsService;
     private final MessageRepository messageRepository;
+    private final NotificationsRepository notificationsRepository;
+    private final NotificationTypeRepository notificationTypeRepository;
+
+    private Long notType = 5L;
 
     @Autowired
-    public DialogServiceImpl(PersonRepository personRepository, DialogRepository dialogRepository, PersonToDialogRepository personToDialogRepository, PersonDetailsService personDetailsService, MessageRepository messageRepository) {
+    public DialogServiceImpl(PersonRepository personRepository, DialogRepository dialogRepository,
+                             PersonToDialogRepository personToDialogRepository, PersonDetailsService personDetailsService,
+                             MessageRepository messageRepository, NotificationsRepository notificationsRepository,
+                             NotificationTypeRepository notificationTypeRepository) {
         this.personRepository = personRepository;
         this.dialogRepository = dialogRepository;
         this.personToDialogRepository = personToDialogRepository;
         this.personDetailsService = personDetailsService;
         this.messageRepository = messageRepository;
+        this.notificationsRepository = notificationsRepository;
+        this.notificationTypeRepository = notificationTypeRepository;
     }
 
     @Override
@@ -266,8 +270,18 @@ public class DialogServiceImpl implements DialogService {
         message.setTime(timeMessage);
         message.setReadStatus(ReadStatus.SENT.name());
         message.setIsDeleted(0);
-        messageRepository.save(message);
+        Message savedMessage = messageRepository.save(message);
         MessageEntityResponse messageEntityResponse = messageToResponse(message);
+
+        notificationsRepository.save(new Notification(
+           notificationTypeRepository.findByName("MESSAGE").get(),
+           getMillisecondsToLocalDateTime(System.currentTimeMillis()),
+           personRepository.findById(recipientId).get(),
+           savedMessage.getId(),
+           personRepository.findById(recipientId).get().getEmail(),
+           0
+        ));
+
         return new ErrorTimeDataResponse("", messageEntityResponse);
     }
 
@@ -373,4 +387,10 @@ public class DialogServiceImpl implements DialogService {
                 .readStatus(message.getReadStatus())
                 .build();
     }
+
+    private LocalDateTime getMillisecondsToLocalDateTime(long milliseconds) {
+        return Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+    }
+
 }

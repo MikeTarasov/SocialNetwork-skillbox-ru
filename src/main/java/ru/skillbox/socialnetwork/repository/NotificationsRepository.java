@@ -2,6 +2,8 @@ package ru.skillbox.socialnetwork.repository;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.skillbox.socialnetwork.model.entity.Notification;
 import ru.skillbox.socialnetwork.model.entity.Person;
@@ -14,4 +16,6 @@ public interface NotificationsRepository extends JpaRepository<Notification, Lon
     List<Notification> findByPersonNotificationAndIsRead(Person person, int isRead, Pageable pageable);
 
     long countNotificationByPersonNotification(Person person);
+
+
 }

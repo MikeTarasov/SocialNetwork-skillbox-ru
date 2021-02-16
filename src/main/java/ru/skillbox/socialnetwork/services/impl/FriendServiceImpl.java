@@ -10,16 +10,26 @@ import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDa
 import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
 import ru.skillbox.socialnetwork.api.responses.UserIdStatusResponse;
 import ru.skillbox.socialnetwork.model.entity.Friendship;
+import ru.skillbox.socialnetwork.model.entity.Notification;
+import ru.skillbox.socialnetwork.model.entity.Notification;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.enums.FriendStatus;
 import ru.skillbox.socialnetwork.repository.FriendshipRepository;
+import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
+import ru.skillbox.socialnetwork.repository.NotificationsRepository;
+import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
+import ru.skillbox.socialnetwork.repository.NotificationsRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 import ru.skillbox.socialnetwork.services.FriendService;
 import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TimeZone;
 
 @Service
 public class FriendServiceImpl implements FriendService {
@@ -27,16 +37,22 @@ public class FriendServiceImpl implements FriendService {
     private final FriendshipRepository friendshipRepository;
     private final PersonRepository personRepository;
     private final PersonDetailsService personDetailsService;
+    private final NotificationsRepository notificationsRepository;
+    private final NotificationTypeRepository notificationTypeRepository;
     private final ProfileServiceImpl profileService;
 
     @Autowired
     public FriendServiceImpl(FriendshipRepository friendshipRepository,
                              PersonRepository personRepository,
                              PersonDetailsService personDetailsService,
+                             NotificationsRepository notificationsRepository,
+                             NotificationTypeRepository notificationTypeRepository,
                              ProfileServiceImpl profileService) {
         this.friendshipRepository = friendshipRepository;
         this.personRepository = personRepository;
         this.personDetailsService = personDetailsService;
+        this.notificationsRepository = notificationsRepository;
+        this.notificationTypeRepository = notificationTypeRepository;
         this.profileService = profileService;
     }
 
@@ -91,6 +107,14 @@ public class FriendServiceImpl implements FriendService {
             }
         }
         friendshipRepository.save(friendshipOut);
+        notificationsRepository.save(new Notification(
+           notificationTypeRepository.findById(4L).get(),
+           getMillisecondsToLocalDateTime(System.currentTimeMillis()),
+           dstPerson,
+           dstPersonId,
+           dstPerson.getEmail(),
+           0
+        ));
     }
 
     @Override
@@ -190,6 +214,31 @@ public class FriendServiceImpl implements FriendService {
      */
 
     private PersonEntityResponse convertPersonToResponse(Person person) {
-        return profileService.convertPersonToResponse(person);
+        LocalDateTime birthDate = person.getBirthDate();
+        LocalDateTime lastOnlineTime = person.getLastOnlineTime();
+
+        return PersonEntityResponse.builder()
+                .id(person.getId())
+                .firstName(person.getFirstName())
+                .lastName(person.getLastName())
+                .regDate(person.getRegDate().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
+                .birthDate(birthDate == null ? null :
+                        birthDate.atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
+                .email(person.getEmail())
+                .phone(person.getPhone())
+                .photo(person.getPhoto())
+                .about(person.getAbout())
+                .city(person.getCity())
+                .country(person.getCountry())
+                .messagesPermission(person.getMessagePermission())
+                .lastOnlineTime(lastOnlineTime == null ? null :
+                        lastOnlineTime.atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
+                .isBlocked(person.getIsBlocked() == 1)
+                .build();
+    }
+
+    private LocalDateTime getMillisecondsToLocalDateTime(long milliseconds) {
+        return Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
+
     }
 }
