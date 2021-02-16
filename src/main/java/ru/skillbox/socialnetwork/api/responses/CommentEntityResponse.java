@@ -26,23 +26,26 @@ public class CommentEntityResponse {
     @JsonProperty("post_id")
     private long postId;
     private long time;
-    @JsonProperty("author_id")
-    private long authorId;
+    @JsonProperty("author")
+    private PersonEntityResponse author;
     @JsonProperty("is_blocked")
     private boolean isBlocked;
+    @JsonProperty("is_deleted")
+    private boolean isDeleted;
 
-    public static List<CommentEntityResponse> getCommentEntityResponseList(
-            List<PostComment> listComments) {
+
+  public static List<CommentEntityResponse> getCommentEntityResponseList(
+      List<PostComment> listComments) {
         return listComments.stream().map(lc -> CommentEntityResponse.builder()
-                .parentId(lc.getParentId())
-                .commentText(lc.getCommentText())
-                .id(lc.getId())
-                .postId(lc.getPost().getId())
-                .time(lc.getTimestamp())
-                .authorId(lc.getPerson().getId())
-                .isBlocked(lc.getIsBlocked())
-                .build())
-                .collect(Collectors.toList());
-    }
-
+            .parentId(lc.getParentId())
+            .commentText(lc.getCommentText())
+            .id(lc.getId())
+            .postId(lc.getPost().getId())
+            .time(lc.getTimestamp())
+            .author(new PersonEntityResponse(lc.getPerson()))
+            .isBlocked(lc.getIsBlocked())
+                .isDeleted(lc.getIsDeleted())
+            .build())
+            .collect(Collectors.toList());
+  }
 }

@@ -12,7 +12,10 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import ru.skillbox.socialnetwork.api.requests.*;
+import ru.skillbox.socialnetwork.api.requests.DialogRequest;
+import ru.skillbox.socialnetwork.api.requests.LinkRequest;
+import ru.skillbox.socialnetwork.api.requests.ListUserIdsRequest;
+import ru.skillbox.socialnetwork.api.requests.MessageTextRequest;
 import ru.skillbox.socialnetwork.controllers.DialogController;
 import ru.skillbox.socialnetwork.model.entity.Dialog;
 import ru.skillbox.socialnetwork.model.entity.Person;
@@ -30,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -84,7 +86,7 @@ public class DialogControllerTests {
         ListUserIdsRequest request = new ListUserIdsRequest(idList);
         this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -105,7 +107,7 @@ public class DialogControllerTests {
         ListUserIdsRequest request = new ListUserIdsRequest(idList);
         this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -124,7 +126,7 @@ public class DialogControllerTests {
         ListUserIdsRequest request = new ListUserIdsRequest(idList);
         this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -148,7 +150,7 @@ public class DialogControllerTests {
         ListUserIdsRequest request = new ListUserIdsRequest(idList);
         this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -175,7 +177,7 @@ public class DialogControllerTests {
         ListUserIdsRequest request = new ListUserIdsRequest(idList);
         this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -201,7 +203,7 @@ public class DialogControllerTests {
         // create 1 participant dialog
         this.mockMvc.perform(post("/dialogs/").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -215,7 +217,7 @@ public class DialogControllerTests {
         // add 2 participants
         this.mockMvc.perform(put(String.format("/dialogs/%s/users", dialogId)).contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestAddRemove)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -227,7 +229,7 @@ public class DialogControllerTests {
 
         this.mockMvc.perform(put(String.format("/dialogs/%s/users", dialogId)).contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new ListUserIdsRequest(List.of(thirdId)))))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -238,7 +240,7 @@ public class DialogControllerTests {
         // remove 2 participants
         this.mockMvc.perform(delete(String.format("/dialogs/%s/users", dialogId)).contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestAddRemove)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -256,7 +258,7 @@ public class DialogControllerTests {
         // getting invite link
         MvcResult resultGetInvite = this.mockMvc.perform(get(String.format("/dialogs/%d/users/invite", dialog.getId()))
                 .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -273,7 +275,7 @@ public class DialogControllerTests {
         // remove current user from dialog
         this.mockMvc.perform(delete(String.format("/dialogs/%s/users", dialog.getId())).contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(new ListUserIdsRequest(currentUserInList))))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -284,7 +286,7 @@ public class DialogControllerTests {
         LinkRequest linkRequest = new LinkRequest(link);
         MvcResult resultJoin = this.mockMvc.perform(put(String.format("/dialogs/%d/users/join", dialog.getId()))
                 .contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(linkRequest)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -304,7 +306,7 @@ public class DialogControllerTests {
         }
 
         this.mockMvc.perform((get("/dialogs/")))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -322,7 +324,7 @@ public class DialogControllerTests {
         DialogRequest dialogRequest = new DialogRequest("", 2, 2);
         this.mockMvc.perform(get("/dialogs/").contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(dialogRequest)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -337,7 +339,7 @@ public class DialogControllerTests {
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getPersonActivityFalseTest() throws Exception {
         this.mockMvc.perform(get("/dialogs/1/activity/8"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -351,7 +353,7 @@ public class DialogControllerTests {
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getPersonActivityTrueTest() throws Exception {
         this.mockMvc.perform(get("/dialogs/1/activity/9"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -365,7 +367,7 @@ public class DialogControllerTests {
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getPersonActivityWrongPersonTest() throws Exception {
         this.mockMvc.perform(get("/dialogs/1/activity/10"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -380,7 +382,7 @@ public class DialogControllerTests {
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void getPersonActivityWrongDialogTest() throws Exception {
         this.mockMvc.perform(get("/dialogs/2/activity/9"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -395,7 +397,7 @@ public class DialogControllerTests {
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void setPersonActivityTrueTest() throws Exception {
         this.mockMvc.perform(post("/dialogs/1/activity/9"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -408,7 +410,7 @@ public class DialogControllerTests {
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void setPersonActivityWrongPersonTest() throws Exception {
         this.mockMvc.perform(post("/dialogs/1/activity/10"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -423,7 +425,7 @@ public class DialogControllerTests {
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     public void setPersonActivityWrongDialogTest() throws Exception {
         this.mockMvc.perform(post("/dialogs/2/activity/9"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -439,7 +441,7 @@ public class DialogControllerTests {
     public void deleteDialogTest() throws Exception {
         long dialogId = 1L;
         this.mockMvc.perform(delete("/dialogs/" + dialogId))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -454,7 +456,7 @@ public class DialogControllerTests {
     public void deleteDialogWrongIdTest() throws Exception {
         long dialogId = 2L;
         this.mockMvc.perform(delete("/dialogs/" + dialogId))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -477,7 +479,7 @@ public class DialogControllerTests {
         MvcResult resultSend = this.mockMvc.perform(post(String.format("/dialogs/%d/messages", dialog.getId()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(messageTextRequest)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -494,7 +496,7 @@ public class DialogControllerTests {
         this.mockMvc.perform(put(String.format("/dialogs/%d/messages/%d", dialog.getId(), messageId))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(messageTextRequest)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -504,7 +506,7 @@ public class DialogControllerTests {
 
         // mark read
         this.mockMvc.perform(put(String.format("/dialogs/%d/messages/%d/read", dialog.getId(), messageId)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -513,7 +515,7 @@ public class DialogControllerTests {
 
         // delete message
         this.mockMvc.perform(delete(String.format("/dialogs/%d/messages/%d", dialog.getId(), messageId)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -522,7 +524,7 @@ public class DialogControllerTests {
 
         // restore message
         this.mockMvc.perform(put(String.format("/dialogs/%d/messages/%d/recover", dialog.getId(), messageId)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -536,7 +538,7 @@ public class DialogControllerTests {
     public void deleteMessageError() throws Exception {
         // try deleting message from non-existing dialog
         this.mockMvc.perform(delete(String.format("/dialogs/%d/messages/%d", 500, 999)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -546,7 +548,7 @@ public class DialogControllerTests {
         // try deleting non-existing message from existing dialog
         Dialog dialog = generateDialogForTwo(currentPersonId, secondId);
         this.mockMvc.perform(delete(String.format("/dialogs/%d/messages/%d", dialog.getId(), 999)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -564,7 +566,7 @@ public class DialogControllerTests {
         this.mockMvc.perform(post(String.format("/dialogs/%d/messages", dialog.getId()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(messageTextRequest)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -576,7 +578,7 @@ public class DialogControllerTests {
         this.mockMvc.perform(post(String.format("/dialogs/%d/messages", dialog.getId()))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(messageTextRequest)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -590,7 +592,7 @@ public class DialogControllerTests {
         this.mockMvc.perform(post(String.format("/dialogs/%d/messages", 500))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(messageTextRequest)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -626,7 +628,7 @@ public class DialogControllerTests {
         this.mockMvc.perform(put(String.format("/dialogs/%d/messages/%d", dialog.getId(), messageId))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(messageTextRequest)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -639,7 +641,7 @@ public class DialogControllerTests {
         this.mockMvc.perform(put(String.format("/dialogs/%d/messages/%d", dialog.getId(), messageId))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(messageTextRequest)))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -653,7 +655,7 @@ public class DialogControllerTests {
     @Sql(value = {"/ClearDialogsAfterTest.sql", "/RemoveTestUsers.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void getNewMessagesCount() throws Exception {
         this.mockMvc.perform(get("/dialogs/unreaded"))
-                .andDo(print())
+
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
