@@ -1,16 +1,6 @@
 package ru.skillbox.socialnetwork.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -25,12 +15,14 @@ import ru.skillbox.socialnetwork.model.entity.Friendship;
 import ru.skillbox.socialnetwork.model.entity.Notification;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
-import ru.skillbox.socialnetwork.repository.FriendshipRepository;
-import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
-import ru.skillbox.socialnetwork.repository.NotificationsRepository;
-import ru.skillbox.socialnetwork.repository.PostRepository;
+import ru.skillbox.socialnetwork.repository.*;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,14 +31,21 @@ import java.util.stream.Collectors;
 public class FeedService {
 
     private final PostRepository postRepository;
+    private final PostCommentRepository postCommentRepository;
     private final NotificationsRepository notificationsRepository;
     private final NotificationTypeRepository notificationTypeRepository;
     private final PersonDetailsService personDetailsService;
     private final FriendshipRepository friendshipRepository;
 
     @Autowired
-    public FeedService(PostRepository postRepository, NotificationsRepository notificationsRepository, NotificationTypeRepository notificationTypeRepository, PersonDetailsService personDetailsService, FriendshipRepository friendshipRepository) {
+    public FeedService(PostRepository postRepository,
+                       PostCommentRepository postCommentRepository,
+                       NotificationsRepository notificationsRepository,
+                       NotificationTypeRepository notificationTypeRepository,
+                       PersonDetailsService personDetailsService,
+                       FriendshipRepository friendshipRepository) {
         this.postRepository = postRepository;
+        this.postCommentRepository = postCommentRepository;
         this.notificationsRepository = notificationsRepository;
         this.notificationTypeRepository = notificationTypeRepository;
         this.personDetailsService = personDetailsService;
@@ -97,7 +96,7 @@ public class FeedService {
                 .postText(post.getPostText())
                 .isBlocked(post.isBlocked())
                 .likes(post.getLikes().size())
-                .comments(CommentEntityResponse.getCommentEntityResponseList(post.getComments()))
+                .comments(CommentEntityResponse.getCommentEntityResponseList(post.getComments(), postCommentRepository))
                 .build();
     }
 
@@ -123,18 +122,18 @@ public class FeedService {
         List<Friendship> getFriends = friendshipRepository.findByDstPersonOrSrcPerson(me, me);
         for (Friendship friend : getFriends) {
 
-            if (friend.getSrcPerson().equals(me)
+            if (friend.getDstPerson().getBirthDate() != null && friend.getSrcPerson().equals(me)
                     && friend.getDstPerson().getBirthDate().getDayOfMonth() == LocalDateTime.now().getDayOfMonth()
                     && friend.getDstPerson().getBirthDate().getMonthValue() == LocalDateTime.now().getMonthValue()) {
                 friends.add(friend.getDstPerson());
-            } else if (friend.getDstPerson().equals(me)
+            } else if (friend.getSrcPerson().getBirthDate() != null && friend.getDstPerson().equals(me)
                     && friend.getSrcPerson().getBirthDate().getDayOfMonth() == LocalDateTime.now().getDayOfMonth()
                     && friend.getSrcPerson().getBirthDate().getMonthValue() == LocalDateTime.now().getMonthValue()) {
                 friends.add(friend.getSrcPerson());
             }
         }
-            return friends;
-        }
+        return friends;
+    }
 
     private LocalDateTime getMillisecondsToLocalDateTime(long milliseconds) {
         return Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
