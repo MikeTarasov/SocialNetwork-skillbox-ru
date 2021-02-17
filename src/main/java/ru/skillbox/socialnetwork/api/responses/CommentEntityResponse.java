@@ -1,16 +1,15 @@
 package ru.skillbox.socialnetwork.api.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
+import ru.skillbox.socialnetwork.repository.PostCommentRepository;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -32,20 +31,35 @@ public class CommentEntityResponse {
     private boolean isBlocked;
     @JsonProperty("is_deleted")
     private boolean isDeleted;
+    @JsonProperty("sub_comments")
+    private List<CommentEntityResponse> subComments;
 
 
-  public static List<CommentEntityResponse> getCommentEntityResponseList(
-      List<PostComment> listComments) {
-        return listComments.stream().map(lc -> CommentEntityResponse.builder()
-            .parentId(lc.getParentId())
-            .commentText(lc.getCommentText())
-            .id(lc.getId())
-            .postId(lc.getPost().getId())
-            .time(lc.getTimestamp())
-            .author(new PersonEntityResponse(lc.getPerson()))
-            .isBlocked(lc.getIsBlocked())
-                .isDeleted(lc.getIsDeleted())
-            .build())
-            .collect(Collectors.toList());
-  }
+    public CommentEntityResponse(PostComment comment, PostCommentRepository repository) {
+        this.parentId = comment.getParentId();
+        this.commentText = comment.getCommentText();
+        this.id = comment.getId();
+        this.postId = comment.getPost().getId();
+        this.time = comment.getTimestamp();
+        this.author = new PersonEntityResponse(comment.getPerson());
+        this.isBlocked = comment.getIsBlocked();
+        this.isDeleted = comment.getIsDeleted();
+        subComments = new ArrayList<>();
+        List<PostComment> subComments = repository.findByParentId(comment.getId());
+        if (subComments.size() != 0 && parentId == null) addSubComment(subComments, repository);
+    }
+
+    public static List<CommentEntityResponse> getCommentEntityResponseList(
+            List<PostComment> listComments, PostCommentRepository repository) {
+        List<CommentEntityResponse> response = new ArrayList<>();
+
+        listComments.stream().filter(comment -> comment.getParentId() == null)
+                .forEach(comment -> response.add(new CommentEntityResponse(comment, repository)));
+
+        return response;
+    }
+
+    private void addSubComment(List<PostComment> comments, PostCommentRepository repository) {
+        comments.forEach(comment -> subComments.add(new CommentEntityResponse(comment, repository)));
+    }
 }

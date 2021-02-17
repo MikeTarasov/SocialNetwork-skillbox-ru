@@ -5,7 +5,6 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 
 @Data
@@ -39,7 +38,7 @@ public class Notification {
     private int isRead;
 
     public long getTimeStamp() {
-        return time.toInstant(ZoneOffset.of(String.valueOf(ZoneId.systemDefault()))).toEpochMilli();
+        return time.toInstant(ZoneOffset.of(String.valueOf(ZoneOffset.systemDefault()))).toEpochMilli();
     }
 
     public Notification(NotificationType type, LocalDateTime time, Person personNotification, Long entityId, String contact, int isRead) {

@@ -13,6 +13,7 @@ import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
+import ru.skillbox.socialnetwork.repository.PostCommentRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 import ru.skillbox.socialnetwork.services.ProfileService;
@@ -33,14 +34,17 @@ public class ProfileServiceImpl implements ProfileService {
     private final PersonRepository personRepository;
     private final PersonDetailsService personDetailsService;
     private final PostRepository postRepository;
+    private final PostCommentRepository postCommentRepository;
 
     @Autowired
     public ProfileServiceImpl(PersonRepository personRepository,
                               PersonDetailsService personDetailsService,
-                              PostRepository postRepository) {
+                              PostRepository postRepository,
+                              PostCommentRepository postCommentRepository) {
         this.personRepository = personRepository;
         this.personDetailsService = personDetailsService;
         this.postRepository = postRepository;
+        this.postCommentRepository = postCommentRepository;
     }
 
     @Override
@@ -261,7 +265,7 @@ public class ProfileServiceImpl implements ProfileService {
                 .isBlocked(post.getIsBlocked() == 1)
                 .likes(post.getLikes().size())
                 .type(type)     // Mock
-                .comments(convertCommentsToCommentResponseList(post.getComments()))
+                .comments(convertCommentsToCommentResponseList(postCommentRepository.getCommentsByPostId(post.getId())))
                 .build();
     }
 
@@ -270,24 +274,7 @@ public class ProfileServiceImpl implements ProfileService {
      * Converting List<PostComment> to List<CommentEntityResponse>
      */
     private List<CommentEntityResponse> convertCommentsToCommentResponseList(List<PostComment> comments) {
-        List<CommentEntityResponse> postComments = new ArrayList<>();
-        if (comments != null) {
-            comments.forEach(comment ->
-                            postComments.add(
-                                    CommentEntityResponse.builder()
-                                            .id(comment.getId())
-                                            .author(new PersonEntityResponse(comment.getPerson()))
-                                            .commentText(comment.getCommentText())
-                                            .isBlocked(comment.getIsBlocked())
-                                            .isDeleted(comment.getIsDeleted())
-//                                            .parentId(comment.getParentId() == null ? 0 : comment.getParentId()) //TODO зачем меняем на 0???
-                                            .parentId(comment.getParentId())
-                                            .postId(comment.getPost().getId())
-                                            .time(comment.getTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
-                                            .build()
-                            )
-            );
-        }
-        return postComments;
+        if (comments == null) comments = new ArrayList<>();
+        return CommentEntityResponse.getCommentEntityResponseList(comments, postCommentRepository);
     }
 }

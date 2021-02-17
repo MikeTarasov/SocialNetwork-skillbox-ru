@@ -61,6 +61,7 @@ class PostControllerTestsTwo {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Transactional
     @Test
     @WithUserDetails("shred@mail.who")
     @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
@@ -140,7 +141,7 @@ class PostControllerTestsTwo {
                 .andExpect(jsonPath("$.data[:1].comments[:1].time")
                         .value(getMillis(savedComment.getTime())))
                 .andExpect(jsonPath("$.data[:1].comments[:1].parent_id")
-                        .value(Integer.parseInt(String.valueOf(savedComment.getParentId()))))
+                        .value(savedComment.getParentId()))
                 .andExpect(jsonPath("$.data[:1].comments[:1].comment_text")
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data[:1].comments[:1].post_id")
@@ -213,8 +214,7 @@ class PostControllerTestsTwo {
                 .andExpect(jsonPath("$.data.comments[:1].comment_text")
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data.comments[:1].post_id")
-
-                        .value(Integer.parseInt(String.valueOf(savedComment.getPerson().getId()))))
+                        .value(Integer.parseInt(String.valueOf(savedPost.getId()))))
                 .andExpect(jsonPath("$.data.comments[:1].is_blocked")
                         .value(savedComment.getIsBlocked()))
                 .andExpect(jsonPath("$.data.post_text")
@@ -466,9 +466,10 @@ class PostControllerTestsTwo {
                 .andExpect(jsonPath("$.data.is_blocked").value("false"));
         assertEquals(1, notificationsRepository.count());
         notificationsRepository.deleteAll();
-        commentRepository.deleteById(newComment.getId());
+        commentRepository.deleteAll();
     }
 
+    @Transactional
     @Test
     @WithUserDetails("shred@mail.who")
     @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
@@ -522,6 +523,7 @@ class PostControllerTestsTwo {
         assertTrue(commentRepository.findById(savedComment.getId()).get().getIsDeleted());
     }
 
+    @Transactional
     @Test
     @WithUserDetails("shred@mail.who")
     @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
@@ -592,13 +594,13 @@ class PostControllerTestsTwo {
         return new PostEntityResponse(
                 post.getId(),
                 java.util.Date
-                        .from(post.getTime().atZone(ZoneId.of("Europe/Moscow"))
+                        .from(post.getTime().atZone(ZoneId.systemDefault())
                                 .toInstant()).getTime(),
                 getPersonEntityResponseByPost(post),
                 post.getTitle(),
                 post.getPostText(),
                 post.getIsBlocked() == 1,
-                1,
+                postLikeRepository.findByPostId(post.getId()).size(),
                 getCommentEntityResponseListByPost(post)
         );
     }
@@ -610,10 +612,10 @@ class PostControllerTestsTwo {
                 author.getFirstName(),
                 author.getLastName(),
                 java.util.Date
-                        .from(author.getRegDate().atZone(ZoneId.of("Europe/Moscow"))
+                        .from(author.getRegDate().atZone(ZoneId.systemDefault())
                                 .toInstant()).getTime(),
                 java.util.Date
-                        .from(author.getBirthDate().atZone(ZoneId.of("Europe/Moscow"))
+                        .from(author.getBirthDate().atZone(ZoneId.systemDefault())
                                 .toInstant()).getTime(),
                 author.getEmail(),
                 author.getPhone(),
@@ -623,7 +625,7 @@ class PostControllerTestsTwo {
                 author.getCountry(),
                 author.getMessagePermission(),
                 java.util.Date
-                        .from(author.getLastOnlineTime().atZone(ZoneId.of("Europe/Moscow"))
+                        .from(author.getLastOnlineTime().atZone(ZoneId.systemDefault())
                                 .toInstant()).getTime(),
                 author.getIsBlocked() == 1
         );
@@ -647,29 +649,18 @@ class PostControllerTestsTwo {
     }
 
     private CommentEntityResponse getCommentEntityResponseByComment(PostComment comment) {
-        return new CommentEntityResponse(
-                comment.getParentId(),
-                comment.getCommentText(),
-                comment.getId(),
-                comment.getPost().getId(),
-                java.util.Date
-                        .from(comment.getTime().atZone(ZoneId.of("Europe/Moscow"))
-                                .toInstant()).getTime(),
-                new PersonEntityResponse(comment.getPerson()),
-                comment.getIsBlocked(),
-                comment.getIsDeleted()
-        );
+        return new CommentEntityResponse(comment, commentRepository);
     }
 
     private Long getTimeZonedMillis() {
         return java.util.Date
-                .from(LocalDateTime.now().atZone(ZoneId.of("Europe/Moscow"))
+                .from(LocalDateTime.now().atZone(ZoneId.systemDefault())
                         .toInstant()).getTime();
     }
 
     private Long getMillis(LocalDateTime localDateTime) {
         return java.util.Date
-                .from(localDateTime.atZone(ZoneId.of("Europe/Moscow"))
+                .from(localDateTime.atZone(ZoneId.systemDefault())
                         .toInstant()).getTime();
     }
 
@@ -682,7 +673,7 @@ class PostControllerTestsTwo {
     }
 
     private LocalDateTime getMillisecondsToLocalDateTime(long milliseconds) {
-        return Instant.ofEpochMilli(milliseconds).atZone(ZoneId.of("Europe/Moscow")).toLocalDateTime();
+        return Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
 
     }
 }
