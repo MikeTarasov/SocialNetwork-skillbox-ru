@@ -10,10 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.skillbox.socialnetwork.api.requests.ParentIdCommentTextRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
 import ru.skillbox.socialnetwork.api.responses.*;
-import ru.skillbox.socialnetwork.model.entity.*;
+import ru.skillbox.socialnetwork.model.entity.Notification;
+import ru.skillbox.socialnetwork.model.entity.Person;
+import ru.skillbox.socialnetwork.model.entity.Post;
+import ru.skillbox.socialnetwork.model.entity.PostComment;
 import ru.skillbox.socialnetwork.repository.*;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
-import ru.skillbox.socialnetwork.repository.PostLikeRepository;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -211,7 +213,7 @@ public class PostService {
         }
 
         PostComment comment = commentRepository.save(new PostComment(
-                getMillisecondsToLocalDateTime(System.currentTimeMillis()),
+                LocalDateTime.now(),
                 requestBody.getParentId(),
                 requestBody.getCommentText(),
                 false,
@@ -259,28 +261,14 @@ public class PostService {
     }
 
     public ResponseEntity<?> deleteApiPostIdCommentsCommentId(long id, long commentId) {
-        if (postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now()).isEmpty()) {
-            return ResponseEntity.status(400)
-                    .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
-        }
-
-        Optional<PostComment> optionalPostComment = commentRepository.findById(commentId);
-        if (optionalPostComment.isEmpty()) {
-            return ResponseEntity.status(400)
-                    .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + " not found."));
-        }
-        PostComment comment = optionalPostComment.get();
-        if (id != comment.getPost().getId()) {
-            return ResponseEntity.status(400)
-                    .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + "is not found for post with id = " + id + "."));
-        }
-        comment.setIsDeleted(true);
-        commentRepository.saveAndFlush(comment);
-        return ResponseEntity.status(200)
-                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(), new IdResponse(commentId)));
+        return recoverDeleteMessageComment(id, commentId, "delete");
     }
 
     public ResponseEntity<?> putApiPostIdCommentsCommentId(long id, long commentId) {
+        return recoverDeleteMessageComment(id, commentId, "recover");
+    }
+
+    private ResponseEntity<?> recoverDeleteMessageComment(long id, long commentId, String type) {
         if (postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now()).isEmpty()) {
             return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
@@ -295,11 +283,26 @@ public class PostService {
             return ResponseEntity.status(400)
                     .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + "is not found for post with id = " + id + "."));
         }
-        comment.setIsDeleted(false);
-        commentRepository.saveAndFlush(comment);
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
-                        getCommentEntityResponseByComment(comment)));
+        switch (type.toLowerCase()) {
+            case "recover":
+                comment.setIsDeleted(false);
+                commentRepository.saveAndFlush(comment);
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
+                                getCommentEntityResponseByComment(comment)));
+            case "delete":
+                comment.setIsDeleted(true);
+                commentRepository.saveAndFlush(comment);
+                return ResponseEntity.status(200)
+                        .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
+                                new IdResponse(commentId)));
+            case "message":
+                return ResponseEntity.status(HttpStatus.OK)
+                        .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
+                                new MessageResponse()));
+        }
+        return ResponseEntity.status(400)
+                .body(new ErrorErrorDescriptionResponse("Some error happened"));
     }
 
     public ResponseEntity<?> postApiPostIdReport(long id) {
@@ -318,23 +321,7 @@ public class PostService {
     }
 
     public ResponseEntity<?> postApiPostIdCommentsCommentIdReport(long id, long commentId) {
-        if (postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now()).isEmpty()) {
-            return ResponseEntity.status(400)
-                    .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
-        }
-        Optional<PostComment> optionalPostComment = commentRepository.findById(commentId);
-        if (optionalPostComment.isEmpty()) {
-            return ResponseEntity.status(400)
-                    .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + " not found."));
-        }
-        PostComment comment = optionalPostComment.get();
-        if (id != comment.getPost().getId()) {
-            return ResponseEntity.status(400)
-                    .body(new ErrorErrorDescriptionResponse("PostComment with id = " + commentId + "is not found for post with id = " + id + "."));
-        }
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
-                        new MessageResponse()));
+        return recoverDeleteMessageComment(id, commentId, "message");
     }
 
     private List<PostEntityResponse> getPostEntityResponseListByPosts(List<Post> posts) {
@@ -397,27 +384,13 @@ public class PostService {
     }
 
     private List<CommentEntityResponse> getCommentEntityResponseListByPost(Post post, Pageable pageable) {
-        List<CommentEntityResponse> commentEntityResponseList = new ArrayList<>();
-        List<PostComment> comments = commentRepository.getCommentsByPostId(post.getId(), pageable);
-        for (PostComment comment : comments) {
-            commentEntityResponseList.add(getCommentEntityResponseByComment(comment));
-        }
-        return commentEntityResponseList;
+        return CommentEntityResponse
+                .getCommentEntityResponseList(commentRepository.getCommentsByPostId(post.getId(), pageable),
+                        commentRepository);
     }
 
     private CommentEntityResponse getCommentEntityResponseByComment(PostComment comment) {
-        return new CommentEntityResponse(
-                comment.getParentId(),
-                comment.getCommentText(),
-                comment.getId(),
-                comment.getPost().getId(),
-                java.util.Date
-                        .from(comment.getTime().atZone(ZoneId.systemDefault())
-                                .toInstant()).getTime(),
-                new PersonEntityResponse(comment.getPerson()),
-                comment.getIsBlocked(),
-                comment.getIsDeleted()
-        );
+        return new CommentEntityResponse(comment, commentRepository);
     }
 
     private LocalDateTime getMillisecondsToLocalDateTime(long milliseconds) {
