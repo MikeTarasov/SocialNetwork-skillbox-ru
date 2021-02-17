@@ -146,7 +146,7 @@ public class FeedService {
   }
 
   private long getTimeStamp(LocalDateTime time) {
-    return time.toInstant(ZoneOffset.of(String.valueOf(ZoneId.systemDefault()))).toEpochMilli();
+    return time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
   }
 
   private void deleteOldNotifications() {
