@@ -414,8 +414,9 @@ public class PostService {
                 java.util.Date
                         .from(comment.getTime().atZone(ZoneId.systemDefault())
                                 .toInstant()).getTime(),
-                comment.getPerson().getId(),
-                comment.getIsBlocked()
+                new PersonEntityResponse(comment.getPerson()),
+                comment.getIsBlocked(),
+                comment.getIsDeleted()
         );
     }
 

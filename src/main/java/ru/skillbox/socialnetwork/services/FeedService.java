@@ -29,6 +29,10 @@ import ru.skillbox.socialnetwork.repository.NotificationsRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class FeedService {
 

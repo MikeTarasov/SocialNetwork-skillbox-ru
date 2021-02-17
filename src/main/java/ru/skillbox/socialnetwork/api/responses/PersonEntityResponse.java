@@ -87,6 +87,27 @@ public class PersonEntityResponse {
         this.isBlocked = isBlocked;
         this.token = token;
     }
+
+    public PersonEntityResponse(Person person) {
+        this.id = person.getId();
+        this.firstName = person.getFirstName();
+        this.lastName = person.getLastName();
+        if (regDate != null) this.regDate = person.getRegDate().atZone(ZoneId.systemDefault()).toEpochSecond();
+        if (birthDate != null) this.birthDate = person.getBirthDate().atZone(ZoneId.systemDefault()).toEpochSecond();
+        this.email = person.getEmail();
+        this.phone = person.getPhone();
+        this.photo = person.getPhoto();
+        this.about = person.getAbout();
+        this.city = person.getCity();
+        this.country = person.getCountry();
+        this.messagesPermission = person.getMessagePermission();
+        if (lastOnlineTime != null) {
+            this.lastOnlineTime = person.getLastOnlineTime().atZone(ZoneId.systemDefault()).toEpochSecond();
+        }
+        this.isBlocked = person.isBlocked();
+    }
+
+
     public static PersonEntityResponse getResponseEntity(Person person){
         return new PersonEntityResponse(
                 person.getId(),

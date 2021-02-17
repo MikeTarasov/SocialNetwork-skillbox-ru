@@ -13,6 +13,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import ru.skillbox.socialnetwork.api.requests.ParentIdCommentTextRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
 import ru.skillbox.socialnetwork.api.responses.*;
@@ -20,8 +21,8 @@ import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
 import ru.skillbox.socialnetwork.repository.NotificationsRepository;
-import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.repository.PostCommentRepository;
+import ru.skillbox.socialnetwork.repository.PostLikeRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 import ru.skillbox.socialnetwork.security.JwtTokenProvider;
 
@@ -56,7 +57,7 @@ class PostControllerTestsTwo {
     @Autowired
     private PostCommentRepository commentRepository;
     @Autowired
-    private PersonRepository personRepository;
+    private PostLikeRepository postLikeRepository;
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -88,6 +89,7 @@ class PostControllerTestsTwo {
                 .param("date_to", getMillis(LocalDateTime.now()).toString())
                 .param("offset", String.valueOf(0))
                 .param("itemPerPage", String.valueOf(5)))
+
                 .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error").value(""))
@@ -143,8 +145,7 @@ class PostControllerTestsTwo {
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data[:1].comments[:1].post_id")
                         .value(Integer.parseInt(String.valueOf(savedComment.getPost().getId()))))
-                .andExpect(jsonPath("$.data[:1].comments[:1].author_id")
-                        .value(Integer.parseInt(String.valueOf(savedComment.getPerson().getId()))))
+
                 .andExpect(jsonPath("$.data[:1].comments[:1].is_blocked")
                         .value(savedComment.getIsBlocked()))
                 .andExpect(jsonPath("$.data[:1].post_text")
@@ -153,6 +154,7 @@ class PostControllerTestsTwo {
                         .value(savedPost.getIsBlocked() == 1));
     }
 
+    @Transactional
     @Test
     @WithUserDetails("shred@mail.who")
     @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
@@ -211,8 +213,7 @@ class PostControllerTestsTwo {
                 .andExpect(jsonPath("$.data.comments[:1].comment_text")
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data.comments[:1].post_id")
-                        .value(Integer.parseInt(String.valueOf(savedComment.getPost().getId()))))
-                .andExpect(jsonPath("$.data.comments[:1].author_id")
+
                         .value(Integer.parseInt(String.valueOf(savedComment.getPerson().getId()))))
                 .andExpect(jsonPath("$.data.comments[:1].is_blocked")
                         .value(savedComment.getIsBlocked()))
@@ -222,6 +223,7 @@ class PostControllerTestsTwo {
                         .value(savedPost.getIsBlocked() == 1));
     }
 
+    @Transactional
     @Test
     @WithUserDetails("shred@mail.who")
     @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
@@ -292,8 +294,7 @@ class PostControllerTestsTwo {
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data.comments[:1].post_id")
                         .value(Integer.parseInt(String.valueOf(savedComment.getPost().getId()))))
-                .andExpect(jsonPath("$.data.comments[:1].author_id")
-                        .value(Integer.parseInt(String.valueOf(savedComment.getPerson().getId()))))
+
                 .andExpect(jsonPath("$.data.comments[:1].is_blocked")
                         .value(savedComment.getIsBlocked()))
                 .andExpect(jsonPath("$.data.post_text")
@@ -323,6 +324,7 @@ class PostControllerTestsTwo {
         assertEquals(1, postRepository.findById(savedPost.getId()).get().getIsDeleted());
     }
 
+    @Transactional
     @Test
     @WithUserDetails("shred@mail.who")
     @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
@@ -385,8 +387,7 @@ class PostControllerTestsTwo {
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data.comments[:1].post_id")
                         .value(Integer.parseInt(String.valueOf(savedComment.getPost().getId()))))
-                .andExpect(jsonPath("$.data.comments[:1].author_id")
-                        .value(Integer.parseInt(String.valueOf(savedComment.getPerson().getId()))))
+
                 .andExpect(jsonPath("$.data.comments[:1].is_blocked")
                         .value(savedComment.getIsBlocked()))
                 .andExpect(jsonPath("$.data.post_text")
@@ -397,6 +398,7 @@ class PostControllerTestsTwo {
         assertEquals(0, postRepository.findById(savedPost.getId()).get().getIsDeleted());
     }
 
+    @Transactional
     @Test
     @WithUserDetails("shred@mail.who")
     @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
@@ -434,8 +436,6 @@ class PostControllerTestsTwo {
                         .value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data[:1].post_id")
                         .value(Integer.parseInt(String.valueOf(savedComment.getPost().getId()))))
-                .andExpect(jsonPath("$.data[:1].author_id")
-                        .value(Integer.parseInt(String.valueOf(savedComment.getPerson().getId()))))
                 .andExpect(jsonPath("$.data[:1].is_blocked")
                         .value(savedComment.getIsBlocked()));
     }
@@ -498,7 +498,7 @@ class PostControllerTestsTwo {
                 .andExpect(jsonPath("$.data.time").value(String.valueOf(getMillis(savedComment.getTime()))))
                 .andExpect(jsonPath("$.data.comment_text").value(savedComment.getCommentText()))
                 .andExpect(jsonPath("$.data.post_id").value(1))
-                .andExpect(jsonPath("$.data.author_id").value(8))
+
                 .andExpect(jsonPath("$.data.is_blocked").value("false"));
 
     }
@@ -534,7 +534,7 @@ class PostControllerTestsTwo {
                 .id(savedComment.getId())
                 .parentId(savedComment.getParentId())
                 .commentText(savedComment.getCommentText())
-                .authorId(savedComment.getPerson().getId())
+                .author(new PersonEntityResponse(savedComment.getPerson()))
                 .postId(savedComment.getPost().getId())
                 .isBlocked(savedComment.getIsBlocked())
                 .time(getMillis(savedComment.getTime())).build();
@@ -552,7 +552,7 @@ class PostControllerTestsTwo {
                 .andExpect(jsonPath("$.data.time").value(String.valueOf(commentEntityResponse.getTime())))
                 .andExpect(jsonPath("$.data.comment_text").value(commentEntityResponse.getCommentText()))
                 .andExpect(jsonPath("$.data.post_id").value(commentEntityResponse.getPostId()))
-                .andExpect(jsonPath("$.data.author_id").value(commentEntityResponse.getAuthorId()))
+
                 .andExpect(jsonPath("$.data.is_blocked").value("false"));
         assertFalse(commentRepository.findById(savedComment.getId()).get().getIsDeleted());
     }
@@ -655,8 +655,9 @@ class PostControllerTestsTwo {
                 java.util.Date
                         .from(comment.getTime().atZone(ZoneId.of("Europe/Moscow"))
                                 .toInstant()).getTime(),
-                comment.getPerson().getId(),
-                comment.getIsBlocked()
+                new PersonEntityResponse(comment.getPerson()),
+                comment.getIsBlocked(),
+                comment.getIsDeleted()
         );
     }
 

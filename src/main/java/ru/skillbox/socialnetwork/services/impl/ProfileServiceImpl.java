@@ -276,9 +276,10 @@ public class ProfileServiceImpl implements ProfileService {
                             postComments.add(
                                     CommentEntityResponse.builder()
                                             .id(comment.getId())
-                                            .authorId(comment.getPerson().getId())
+                                            .author(new PersonEntityResponse(comment.getPerson()))
                                             .commentText(comment.getCommentText())
                                             .isBlocked(comment.getIsBlocked())
+                                            .isDeleted(comment.getIsDeleted())
 //                                            .parentId(comment.getParentId() == null ? 0 : comment.getParentId()) //TODO зачем меняем на 0???
                                             .parentId(comment.getParentId())
                                             .postId(comment.getPost().getId())
