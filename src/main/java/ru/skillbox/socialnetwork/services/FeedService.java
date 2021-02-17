@@ -3,7 +3,6 @@ package ru.skillbox.socialnetwork.services;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -25,15 +24,6 @@ import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.repository.*;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
-
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class FeedService {
