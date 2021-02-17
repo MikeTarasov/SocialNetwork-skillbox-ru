@@ -22,23 +22,31 @@ import ru.skillbox.socialnetwork.model.entity.Friendship;
 import ru.skillbox.socialnetwork.model.entity.Notification;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
-import ru.skillbox.socialnetwork.repository.*;
+import ru.skillbox.socialnetwork.repository.FriendshipRepository;
+import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
+import ru.skillbox.socialnetwork.repository.NotificationsRepository;
+import ru.skillbox.socialnetwork.repository.PostCommentRepository;
+import ru.skillbox.socialnetwork.repository.PostRepository;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 
 @Service
 public class FeedService {
 
   private final PostRepository postRepository;
+  private final PostCommentRepository postCommentRepository;
   private final NotificationsRepository notificationsRepository;
   private final NotificationTypeRepository notificationTypeRepository;
   private final PersonDetailsService personDetailsService;
   private final FriendshipRepository friendshipRepository;
 
   @Autowired
-  public FeedService(PostRepository postRepository, NotificationsRepository notificationsRepository,
+  public FeedService(PostRepository postRepository,
+      PostCommentRepository postCommentRepository,
+      NotificationsRepository notificationsRepository,
       NotificationTypeRepository notificationTypeRepository,
       PersonDetailsService personDetailsService, FriendshipRepository friendshipRepository) {
     this.postRepository = postRepository;
+    this.postCommentRepository = postCommentRepository;
     this.notificationsRepository = notificationsRepository;
     this.notificationTypeRepository = notificationTypeRepository;
     this.personDetailsService = personDetailsService;
@@ -89,7 +97,8 @@ public class FeedService {
         .postText(post.getPostText())
         .isBlocked(post.isBlocked())
         .likes(post.getLikes().size())
-        .comments(CommentEntityResponse.getCommentEntityResponseList(post.getComments()))
+        .comments(CommentEntityResponse
+            .getCommentEntityResponseList(post.getComments(), postCommentRepository))
         .build();
   }
 
