@@ -286,11 +286,11 @@ public class FriendControllerTest {
         Long dstPersonId = 8L;
         this.mockMvc.perform(post("/friends/" + dstPersonId))
 
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.error").value(""))
-                .andExpect(jsonPath("$.data.message").value("ok"));
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("Friendhsip request prohibited by destination user"));
 
         Person currentPerson = personRepository.findByEmail("shred@mail.who").get();
         Person dstPerson = personRepository.findById(dstPersonId).get();
@@ -311,11 +311,11 @@ public class FriendControllerTest {
         Long dstPersonId = 9L;
         this.mockMvc.perform(post("/friends/" + dstPersonId))
 
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.error").value(""))
-                .andExpect(jsonPath("$.data.message").value("ok"));
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("Duplicate request"));
 
         Person currentPerson = personRepository.findByEmail("dedm@mail.who").get();
         Person dstPerson = personRepository.findById(dstPersonId).get();
@@ -324,6 +324,30 @@ public class FriendControllerTest {
                 .getCode(), FriendStatus.REQUEST.name());
         assertEquals(friendshipRepository.countByDstPersonAndSrcPerson(dstPerson, currentPerson), 1);
         assertEquals(friendshipRepository.count(), 5);
+    }
+
+    /**
+     * send friend request itself
+     */
+    @Test
+    @WithUserDetails("dedm@mail.who")
+    @Sql(value = {"/Add4UsersForRequestTest.sql",}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(value = {"/ClearFriendshipAfterTest.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+    public void addFriend6Test() throws Exception {
+        Long dstPersonId = 8L;
+        this.mockMvc.perform(post("/friends/" + dstPersonId))
+
+                .andExpect(status().isBadRequest())
+                .andExpect(authenticated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.error").value("invalid_request"))
+                .andExpect(jsonPath("$.error_description").value("Self request"));
+
+        Person currentPerson = personRepository.findByEmail("dedm@mail.who").get();
+        Person dstPerson = personRepository.findById(dstPersonId).get();
+        assertTrue(friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).isEmpty());
+        assertEquals(0, friendshipRepository.count());
+
     }
 
     /**

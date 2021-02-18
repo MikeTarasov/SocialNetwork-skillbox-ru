@@ -11,17 +11,15 @@ import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
 import ru.skillbox.socialnetwork.api.responses.UserIdStatusResponse;
 import ru.skillbox.socialnetwork.model.entity.Friendship;
 import ru.skillbox.socialnetwork.model.entity.Notification;
-import ru.skillbox.socialnetwork.model.entity.Notification;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.enums.FriendStatus;
 import ru.skillbox.socialnetwork.repository.FriendshipRepository;
 import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
 import ru.skillbox.socialnetwork.repository.NotificationsRepository;
-import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
-import ru.skillbox.socialnetwork.repository.NotificationsRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 import ru.skillbox.socialnetwork.services.FriendService;
+import ru.skillbox.socialnetwork.services.exceptions.CustomExceptionBadRequest;
 import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
 import java.time.Instant;
@@ -81,14 +79,17 @@ public class FriendServiceImpl implements FriendService {
     @Override
     public void addFriend(Long dstPersonId) {
         Person currentPerson = personDetailsService.getCurrentUser();
-        Person dstPerson = personRepository.findById(dstPersonId).orElseThrow(() -> new PersonNotFoundException(dstPersonId));
+        if (currentPerson.getId() == dstPersonId) {
+            throw new CustomExceptionBadRequest("Self request");
+        }
+            Person dstPerson = personRepository.findById(dstPersonId).orElseThrow(() -> new PersonNotFoundException(dstPersonId));
         Friendship friendshipOut = friendshipRepository.findByDstPersonAndSrcPerson(dstPerson, currentPerson).orElse(new Friendship());
         if (friendshipOut.getCode() != null &&
                 (friendshipOut.getCode().equals(FriendStatus.REQUEST.name()) ||
                 friendshipOut.getCode().equals(FriendStatus.FRIEND.name()) ||
                 friendshipOut.getCode().equals(FriendStatus.SUBSCRIBED.name()))
         ) {
-            return;
+            throw new CustomExceptionBadRequest("Duplicate request");
         }
         friendshipOut.setDstPerson(dstPerson);
         friendshipOut.setSrcPerson(currentPerson);
@@ -103,7 +104,7 @@ public class FriendServiceImpl implements FriendService {
             } else if (friendshipIn.getCode().equals(FriendStatus.DECLINED.name())) {
                 friendshipOut.setCode(FriendStatus.SUBSCRIBED.name());
             } else if (friendshipIn.getCode().equals(FriendStatus.BLOCKED.name())) {
-                return;
+                throw new CustomExceptionBadRequest("Friendhsip request prohibited by destination user");
             }
         }
         friendshipRepository.save(friendshipOut);

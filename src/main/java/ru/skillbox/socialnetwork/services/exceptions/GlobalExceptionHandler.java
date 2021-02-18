@@ -38,6 +38,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 HttpStatus.OK);
     }
 
+    @ExceptionHandler(CustomExceptionBadRequest.class)
+    protected ResponseEntity<ErrorErrorDescriptionResponse> handleCustomException(CustomExceptionBadRequest ex) {
+        return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
+                HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(UnauthorizedException.class)
     protected ResponseEntity<?> handleUnauthorizedException() {
         return ResponseEntity.status(401).body(null);
