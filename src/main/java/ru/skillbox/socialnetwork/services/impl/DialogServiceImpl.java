@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class DialogServiceImpl implements DialogService {
@@ -60,7 +61,10 @@ public class DialogServiceImpl implements DialogService {
 
         // if no dialogs
         if (dialogIdsList.isEmpty()) {
-            return null; // TODO
+            return new ErrorTimeTotalOffsetPerPageListDataResponse("", System.currentTimeMillis(), 0,
+                    dialogRequest.getOffset(),
+                    dialogRequest.getItemPerPage(),
+                    dialogIdsList); // TODO
         }
 
         List<IdUnreadCountLastMessageResponse> unreadDialogsList = new ArrayList<>();
@@ -93,7 +97,7 @@ public class DialogServiceImpl implements DialogService {
                         dialogRepository.findById(dialogId).get().getUnreadCount(),
                         messageToResponse(messageOptional.get())));
             } else {
-                unreadDialogsList.add(new IdUnreadCountLastMessageResponse(dialogId, 0, null));
+                unreadDialogsList.add(new IdUnreadCountLastMessageResponse(dialogId, 0, new MessageEntityResponse()));
             }
         }
 
@@ -108,35 +112,35 @@ public class DialogServiceImpl implements DialogService {
         return getDialogsLastMessages(new DialogRequest("", 20, 0));
     }
 
-    @Override
-    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList(DialogRequest dialogRequest) {
-        Person currentUser = personDetailsService.getCurrentUser();
-        // find where the user is participant
-        List<PersonToDialog> personToDialogs = personToDialogRepository.findByPerson(currentUser);
-        List<Long> dialogIdsList = new ArrayList<>();
-        for (PersonToDialog personToDialog : personToDialogs) {
-            dialogIdsList.add(personToDialog.getDialog().getId());
-        }
-        // getting paged response
-        int offset = dialogRequest.getOffset();
-        int itemPerPage = dialogRequest.getItemPerPage();
-        Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage, Sort.by(Sort.Direction.ASC, "id"));
-        List<Dialog> dialogResponseList = new ArrayList<>();
-        Page<Dialog> dialogPage = dialogRepository.findByIdIn(dialogIdsList, pageable);
-        dialogPage.forEach(dialogResponseList::add);
-        return new ErrorTimeTotalOffsetPerPageListDataResponse(
-                "",
-                System.currentTimeMillis(),
-                dialogPage.getTotalElements(),
-                offset,
-                itemPerPage,
-                dialogResponseList);
-    }
-
-    @Override
-    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList() {
-        return getDialogsList(new DialogRequest("", 20, 0));
-    }
+//    @Override
+//    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList(DialogRequest dialogRequest) {
+//        Person currentUser = personDetailsService.getCurrentUser();
+//        // find where the user is participant
+//        List<PersonToDialog> personToDialogs = personToDialogRepository.findByPerson(currentUser);
+//        List<Long> dialogIdsList = new ArrayList<>();
+//        for (PersonToDialog personToDialog : personToDialogs) {
+//            dialogIdsList.add(personToDialog.getDialog().getId());
+//        }
+//        // getting paged response
+//        int offset = dialogRequest.getOffset();
+//        int itemPerPage = dialogRequest.getItemPerPage();
+//        Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage, Sort.by(Sort.Direction.ASC, "id"));
+//        List<Dialog> dialogResponseList = new ArrayList<>();
+//        Page<Dialog> dialogPage = dialogRepository.findByIdIn(dialogIdsList, pageable);
+//        dialogPage.forEach(dialogResponseList::add);
+//        return new ErrorTimeTotalOffsetPerPageListDataResponse(
+//                "",
+//                System.currentTimeMillis(),
+//                dialogPage.getTotalElements(),
+//                offset,
+//                itemPerPage,
+//                dialogResponseList);
+//    }
+//
+//    @Override
+//    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList() {
+//        return getDialogsList(new DialogRequest("", 20, 0));
+//    }
 
     @Override
     public ErrorTimeDataResponse createDialog(List<Long> userIds) {
@@ -160,6 +164,16 @@ public class DialogServiceImpl implements DialogService {
             personToDialog.setPerson(personRepository.findById(id).get());
             personToDialogRepository.save(personToDialog);
         }
+
+        Message message = new Message();
+        message.setAuthor(owner);
+        message.setRecipient(owner);
+        message.setDialog(dialog);
+        message.setText("Start messaging");
+        message.setTime(LocalDateTime.now());
+        message.setReadStatus(ReadStatus.SENT.name());
+        message.setIsDeleted(0);
+        messageRepository.save(message);
 
         return new ErrorTimeDataResponse("",
                 new IdResponse(dialog.getId()));
@@ -236,8 +250,8 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeTotalOffsetPerPageListDataResponse("",
                 System.currentTimeMillis(),
                 pageMessage.getTotalElements(),
-                offset, limit, pageMessage.getContent()
-        );
+                offset, limit, pageMessage.stream().map(this::messageToResponse).collect(Collectors.toList()));
+
     }
 
     @Override

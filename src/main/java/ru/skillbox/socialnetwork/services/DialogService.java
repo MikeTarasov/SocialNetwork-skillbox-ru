@@ -13,8 +13,8 @@ import java.util.List;
 public interface DialogService {
 
     public ErrorTimeDataResponse createDialog(List<Long> userIds);
-    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList(DialogRequest dialogRequest);
-    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList();
+//    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList(DialogRequest dialogRequest);
+//    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList();
     public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsLastMessages();
     public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsLastMessages(DialogRequest dialogRequest);
     public ErrorTimeDataResponse addUsersToDialog(Long dialogId, List<Long> userIds);
