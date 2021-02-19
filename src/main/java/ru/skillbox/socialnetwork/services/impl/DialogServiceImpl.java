@@ -392,10 +392,20 @@ public class DialogServiceImpl implements DialogService {
     }
 
     private MessageEntityResponse messageToResponse(Message message) {
+        Person recipient = message.getRecipient();
         return MessageEntityResponse.builder()
                 .id(message.getId())
                 .authorId(message.getAuthor().getId())
-                .recipientId(message.getRecipient().getId())
+                .recipient(PersonEntityResponse.builder()
+                        .email(recipient.getEmail())
+                        .firstName(recipient.getFirstName())
+                        .lastName(recipient.getLastName())
+                        .id(recipient.getId())
+                        .photo(recipient.getPhoto())
+                        .lastOnlineTime(recipient.getLastOnlineTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
+                        .isBlocked(recipient.isBlocked())
+                        .build()
+                )
                 .messageText(message.getText())
                 .timestamp(message.getTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
                 .readStatus(message.getReadStatus())
