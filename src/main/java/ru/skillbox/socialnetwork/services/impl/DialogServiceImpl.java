@@ -391,7 +391,8 @@ public class DialogServiceImpl implements DialogService {
     }
 
     private MessageEntityResponse messageToResponse(Message message, long currentPersonId) {
-        Person recipient = message.getRecipient();
+        //Person recipient = message.getRecipient();
+        Person recipient = message.getAuthor().getId() == currentPersonId ? message.getRecipient() : message.getAuthor(); //костыль
         return MessageEntityResponse.builder()
                 .id(message.getId())
                 .isSentByMe(message.getAuthor().getId() == currentPersonId)
