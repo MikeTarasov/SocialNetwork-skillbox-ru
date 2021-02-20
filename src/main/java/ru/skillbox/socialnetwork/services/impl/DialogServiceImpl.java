@@ -97,35 +97,6 @@ public class DialogServiceImpl implements DialogService {
         return getDialogsLastMessages(new DialogRequest("", 20, 0));
     }
 
-//    @Override
-//    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList(DialogRequest dialogRequest) {
-//        Person currentUser = personDetailsService.getCurrentUser();
-//        // find where the user is participant
-//        List<PersonToDialog> personToDialogs = personToDialogRepository.findByPerson(currentUser);
-//        List<Long> dialogIdsList = new ArrayList<>();
-//        for (PersonToDialog personToDialog : personToDialogs) {
-//            dialogIdsList.add(personToDialog.getDialog().getId());
-//        }
-//        // getting paged response
-//        int offset = dialogRequest.getOffset();
-//        int itemPerPage = dialogRequest.getItemPerPage();
-//        Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage, Sort.by(Sort.Direction.ASC, "id"));
-//        List<Dialog> dialogResponseList = new ArrayList<>();
-//        Page<Dialog> dialogPage = dialogRepository.findByIdIn(dialogIdsList, pageable);
-//        dialogPage.forEach(dialogResponseList::add);
-//        return new ErrorTimeTotalOffsetPerPageListDataResponse(
-//                "",
-//                System.currentTimeMillis(),
-//                dialogPage.getTotalElements(),
-//                offset,
-//                itemPerPage,
-//                dialogResponseList);
-//    }
-//
-//    @Override
-//    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList() {
-//        return getDialogsList(new DialogRequest("", 20, 0));
-//    }
 
     @Override
     public ErrorTimeDataResponse createDialog(List<Long> userIds) {
@@ -243,6 +214,15 @@ public class DialogServiceImpl implements DialogService {
         dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
         Pageable pageable = PageRequest.of(offset / limit, limit);
         Page<Message> pageMessage = messageRepository.findMessageWithQueryWithPagination(query, dialogId, pageable);
+        // marking message as read if current user is recipient
+        for (Message message : pageMessage) {
+            if (message.getReadStatus().equals(ReadStatus.SENT.toString())
+                    && message.getRecipient() == personDetailsService.getCurrentUser()) {
+                message.setReadStatus(ReadStatus.READ.toString());
+//                message.setText(message.getText() + "[READ]");
+                messageRepository.save(message);
+            }
+        }
         long currentUserId = personDetailsService.getCurrentUser().getId();
         return new ErrorTimeTotalOffsetPerPageListDataResponse("",
                 System.currentTimeMillis(),
@@ -285,12 +265,12 @@ public class DialogServiceImpl implements DialogService {
         MessageEntityResponse messageEntityResponse = messageToResponse(message, authorId);
 
         notificationsRepository.save(new Notification(
-           notificationTypeRepository.findByName("MESSAGE").get(),
-           getMillisecondsToLocalDateTime(System.currentTimeMillis()),
-           personRepository.findById(recipientId).get(),
-           savedMessage.getId(),
-           personRepository.findById(recipientId).get().getEmail(),
-           0
+                notificationTypeRepository.findByName("MESSAGE").get(),
+                getMillisecondsToLocalDateTime(System.currentTimeMillis()),
+                personRepository.findById(recipientId).get(),
+                savedMessage.getId(),
+                personRepository.findById(recipientId).get().getEmail(),
+                0
         ));
 
         return new ErrorTimeDataResponse("", messageEntityResponse);
