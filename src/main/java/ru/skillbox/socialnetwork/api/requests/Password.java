@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TokenPasswordRequest {
-
-  private String token;
-  private Password password;
+public class Password {
+    private String password;
 }

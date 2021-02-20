@@ -15,6 +15,7 @@ import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.repository.NotificationSettingsRepository;
 import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
+import ru.skillbox.socialnetwork.security.JwtTokenProvider;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 
 import java.time.LocalDateTime;
@@ -31,19 +32,23 @@ public class AccountService {
     private final EmailSenderService emailSenderService;
     private final BCryptPasswordEncoder encoder;
     private final PersonDetailsService personDetailsService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Autowired
     public AccountService(PersonRepository personRepository,
                           NotificationSettingsRepository notificationSettingsRepository,
                           NotificationTypeRepository notificationTypeRepository,
                           EmailSenderService emailSenderService,
-                          BCryptPasswordEncoder encoder, PersonDetailsService personDetailsService) {
+                          BCryptPasswordEncoder encoder,
+                          PersonDetailsService personDetailsService,
+                          JwtTokenProvider jwtTokenProvider) {
         this.personRepository = personRepository;
         this.notificationSettingsRepository = notificationSettingsRepository;
         this.notificationTypeRepository = notificationTypeRepository;
         this.emailSenderService = emailSenderService;
         this.encoder = encoder;
         this.personDetailsService = personDetailsService;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 
 
@@ -98,11 +103,6 @@ public class AccountService {
         person.setConfirmationCode(null);
         personRepository.save(person);
     }
-
-//    private void setConfirmationCode(Person person, String code) {
-//        person.setConfirmationCode(code);
-//        personRepository.save(person);
-//    }
 
     private void changeEmail(Person person, String email) {
         person.setEmail(email);
@@ -170,26 +170,37 @@ public class AccountService {
     }
 
     public ResponseEntity<?> putApiAccountPasswordSet(TokenPasswordRequest requestBody) {
+        String token = requestBody.getToken();
+        if (token == null || token.length() == 0) {
+            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Bad token!"));
+        }
+
+        String password = requestBody.getPassword().getPassword();
+        if (password == null || password.length() < 8) {
+            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Invalid password!"));
+        }
 
         Person person = personDetailsService.getCurrentUser();
 
-        if (person.getConfirmationCode() == null || !person.getConfirmationCode().equals(requestBody.getToken())) {
-            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Code is expired!"));
+        if (!person.getEmail().equals(jwtTokenProvider.getLoginFromToken(token.substring(6).trim()))) {
+            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Token is expired!"));
         }
 
-        changePassword(person, requestBody.getPassword());
+        changePassword(person, password);
 
         return ResponseEntity.status(200)
                 .body(new ErrorTimeDataResponse("", new MessageResponse()));
     }
 
     public ResponseEntity<?> putApiAccountEmail(EmailRequest requestBody) {
+        Person currentUser = personDetailsService.getCurrentUser();
+        String newEmail = requestBody.getEmail();
 
-        if (!isEmailCorrect(requestBody.getEmail())) {
+        if (!isEmailCorrect(newEmail) || !currentUser.getEmail().equals(newEmail)) {
             return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Email is not valid!"));
         }
 
-        changeEmail(personDetailsService.getCurrentUser(), requestBody.getEmail());
+        changeEmail(currentUser, newEmail);
 
         return ResponseEntity.status(200)
                 .body(new ErrorTimeDataResponse("", new MessageResponse()));
