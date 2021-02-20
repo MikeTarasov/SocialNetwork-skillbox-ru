@@ -17,10 +17,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.skillbox.socialnetwork.api.requests.EmailPassPassFirstNameLastNameCodeRequest;
-import ru.skillbox.socialnetwork.api.requests.EmailRequest;
-import ru.skillbox.socialnetwork.api.requests.NotificationTypeEnableRequest;
-import ru.skillbox.socialnetwork.api.requests.TokenPasswordRequest;
+import ru.skillbox.socialnetwork.api.requests.*;
 import ru.skillbox.socialnetwork.model.entity.NotificationSettings;
 import ru.skillbox.socialnetwork.model.entity.NotificationType;
 import ru.skillbox.socialnetwork.model.entity.Person;
@@ -47,7 +44,7 @@ public class AccountControllerTests {
     private final String password = "testPassword";
     private final String firstName = "testFirstName";
     private final String lastName = "testLastName";
-    private final String token = "testToken";
+    private final String token = "testTokentestTokentestTokentestTokentestTokentestTokentestTokentestTokentestToken";
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     private final Person testPerson = new Person(email, encoder.encode(password), firstName, lastName, LocalDateTime.now());
 
@@ -233,7 +230,7 @@ public class AccountControllerTests {
         testPerson.setConfirmationCode(token);
         personRepository.save(testPerson);
         String jwtToken = auth();
-        TokenPasswordRequest requestBody = new TokenPasswordRequest(token, password + 1);
+        TokenPasswordRequest requestBody = new TokenPasswordRequest(jwtToken, new Password(password));
 
         expectOK(mvc.perform(MockMvcRequestBuilders
                 .put("/account/password/set")
@@ -242,7 +239,7 @@ public class AccountControllerTests {
                 .content(objectMapper.writeValueAsString(requestBody))));
 
         Person person = personRepository.findByEmail(email).orElse(new Person());
-        assertTrue(encoder.matches((password + 1), person.getPassword()));
+        assertTrue(encoder.matches((password), person.getPassword()));
         assertNull(person.getConfirmationCode());
 
         delete(email);
@@ -251,7 +248,7 @@ public class AccountControllerTests {
 
     @Test
     void testPutApiAccountPasswordSet_Security_401() throws Exception {
-        TokenPasswordRequest requestBody = new TokenPasswordRequest(token, password + 1);
+        TokenPasswordRequest requestBody = new TokenPasswordRequest(token, new Password(password + 1));
 
         mvc.perform(MockMvcRequestBuilders
                 .put("/account/password/set")
@@ -266,13 +263,13 @@ public class AccountControllerTests {
         save(email, testPerson);
         String jwtToken = auth();
 
-        TokenPasswordRequest requestBody = new TokenPasswordRequest(token, password);
+        TokenPasswordRequest requestBody = new TokenPasswordRequest(null, new Password(password));
 
         expectError(mvc.perform(MockMvcRequestBuilders
                 .put("/account/password/set")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, jwtToken)
-                .content(objectMapper.writeValueAsString(requestBody))), "Code is expired!");
+                .content(objectMapper.writeValueAsString(requestBody))), "Bad token!");
 
         Person person = personRepository.findByEmail(email).orElse(new Person());
         assertTrue(encoder.matches(password, person.getPassword()));
@@ -286,7 +283,7 @@ public class AccountControllerTests {
         save(email, testPerson);
         String jwtToken = auth();
 
-        EmailRequest requestBody = new EmailRequest(1 + email);
+        EmailRequest requestBody = new EmailRequest(email);
 
         expectOK(mvc.perform(MockMvcRequestBuilders
                 .put("/account/email")
@@ -294,11 +291,11 @@ public class AccountControllerTests {
                 .header(HttpHeaders.AUTHORIZATION, jwtToken)
                 .content(objectMapper.writeValueAsString(requestBody))));
 
-        Optional<Person> person = personRepository.findByEmail(1 + email);
+        Optional<Person> person = personRepository.findByEmail(email);
         assertTrue(person.isPresent());
 
         clearContext();
-        delete(1 + email);
+        delete(email);
     }
 
     @Test
