@@ -33,8 +33,6 @@ public class DialogServiceImpl implements DialogService {
     private final NotificationsRepository notificationsRepository;
     private final NotificationTypeRepository notificationTypeRepository;
 
-    private Long notType = 5L;
-
     @Autowired
     public DialogServiceImpl(PersonRepository personRepository, DialogRepository dialogRepository,
                              PersonToDialogRepository personToDialogRepository, PersonDetailsService personDetailsService,
@@ -78,24 +76,11 @@ public class DialogServiceImpl implements DialogService {
         dialogPage.forEach(d -> dialogResponseIdList.add(d.getId()));
 
         for (Long dialogId : dialogResponseIdList) {
-//            // placeholder message
-//            LocalDateTime timeMessage = LocalDateTime.ofInstant(Instant
-//                            .ofEpochMilli(System.currentTimeMillis()),
-//                    TimeZone.getDefault().toZoneId());
-//            Message placeholderMessage = new Message();
-//            placeholderMessage.setId(1L);
-//            placeholderMessage.setReadStatus(ReadStatus.SENT.name());
-//            placeholderMessage.setText("this is a placeholder");
-//            placeholderMessage.setAuthor(currentUser);
-//            placeholderMessage.setDialog(dialogRepository.getOne(dialogId));
-//            placeholderMessage.setIsDeleted(0);
-//            placeholderMessage.setTime(timeMessage);
-//            placeholderMessage.setRecipient(personRepository.findById(10L).get());
             Optional<Message> messageOptional = messageRepository.findTopByDialogIdOrderByTimeDesc(dialogId);
             if (messageOptional.isPresent()) {
                 unreadDialogsList.add(new IdUnreadCountLastMessageResponse(dialogId,
                         dialogRepository.findById(dialogId).get().getUnreadCount(),
-                        messageToResponse(messageOptional.get())));
+                        messageToResponse(messageOptional.get(), currentUser.getId())));
             } else {
                 unreadDialogsList.add(new IdUnreadCountLastMessageResponse(dialogId, 0, new MessageEntityResponse()));
             }
@@ -149,25 +134,36 @@ public class DialogServiceImpl implements DialogService {
             personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
         }
         Person owner = personDetailsService.getCurrentUser();
-        if (!userIds.contains(owner.getId())) {
-            userIds.add(owner.getId());
+        Person secondPerson = personRepository.findById(userIds.get(0)).get();
+
+        // логика только для двух пользователей в диалоге пользователя, похоже фронт иначе и не умеет. Компаньен всегда в userIds.get(0)
+        List<PersonToDialog> PersonToDialogList = personToDialogRepository.findByPerson(owner);
+        for (PersonToDialog personToDialog : PersonToDialogList) {
+            Dialog tmpDialog = personToDialog.getDialog();
+            if (!personToDialogRepository.findByDialogAndPerson(tmpDialog, secondPerson).isEmpty())
+                return new ErrorTimeDataResponse("",
+                        new IdResponse(tmpDialog.getId()));
         }
+
         Dialog dialog = new Dialog();
         dialog.setIsDeleted(0);
         dialog.setUnreadCount(0);
         dialog.setOwner(owner);
         dialog.setInviteCode(getRandomString(5));
         dialogRepository.save(dialog);
-        for (long id : userIds) {
-            PersonToDialog personToDialog = new PersonToDialog();
-            personToDialog.setDialog(dialog);
-            personToDialog.setPerson(personRepository.findById(id).get());
-            personToDialogRepository.save(personToDialog);
-        }
+        PersonToDialog personToDialog1 = new PersonToDialog();
+        personToDialog1.setDialog(dialog);
+        personToDialog1.setPerson(secondPerson);
+        personToDialogRepository.save(personToDialog1);
+        PersonToDialog personToDialog2 = new PersonToDialog();
+        personToDialog2.setDialog(dialog);
+        personToDialog2.setPerson(owner);
+        personToDialogRepository.save(personToDialog2);
+
 
         Message message = new Message();
         message.setAuthor(owner);
-        message.setRecipient(owner);
+        message.setRecipient(secondPerson);
         message.setDialog(dialog);
         message.setText("Start messaging");
         message.setTime(LocalDateTime.now());
@@ -247,10 +243,11 @@ public class DialogServiceImpl implements DialogService {
         dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
         Pageable pageable = PageRequest.of(offset / limit, limit);
         Page<Message> pageMessage = messageRepository.findMessageWithQueryWithPagination(query, dialogId, pageable);
+        long currentUserId = personDetailsService.getCurrentUser().getId();
         return new ErrorTimeTotalOffsetPerPageListDataResponse("",
                 System.currentTimeMillis(),
                 pageMessage.getTotalElements(),
-                offset, limit, pageMessage.stream().map(this::messageToResponse).collect(Collectors.toList()));
+                offset, limit, pageMessage.stream().map(message -> messageToResponse(message, currentUserId)).collect(Collectors.toList()));
 
     }
 
@@ -285,7 +282,7 @@ public class DialogServiceImpl implements DialogService {
         message.setReadStatus(ReadStatus.SENT.name());
         message.setIsDeleted(0);
         Message savedMessage = messageRepository.save(message);
-        MessageEntityResponse messageEntityResponse = messageToResponse(message);
+        MessageEntityResponse messageEntityResponse = messageToResponse(message, authorId);
 
         notificationsRepository.save(new Notification(
            notificationTypeRepository.findByName("MESSAGE").get(),
@@ -343,7 +340,8 @@ public class DialogServiceImpl implements DialogService {
                 .orElseThrow(() -> new MessageNotFoundException(messageId));
         message.setIsDeleted(0);
         messageRepository.save(message);
-        return new ErrorTimeDataResponse("", messageToResponse(message));
+        long currentUserId = personDetailsService.getCurrentUser().getId();
+        return new ErrorTimeDataResponse("", messageToResponse(message, currentUserId));
     }
 
     @Override
@@ -366,7 +364,8 @@ public class DialogServiceImpl implements DialogService {
         }
         message.setText(messageTextRequest.getMessageText());
         messageRepository.save(message);
-        return new ErrorTimeDataResponse("", messageToResponse(message));
+        long currentUserId = personDetailsService.getCurrentUser().getId();
+        return new ErrorTimeDataResponse("", messageToResponse(message, currentUserId));
     }
 
     @Override
@@ -391,10 +390,11 @@ public class DialogServiceImpl implements DialogService {
                 .toString();
     }
 
-    private MessageEntityResponse messageToResponse(Message message) {
+    private MessageEntityResponse messageToResponse(Message message, long currentPersonId) {
         Person recipient = message.getRecipient();
         return MessageEntityResponse.builder()
                 .id(message.getId())
+                .isSentByMe(message.getAuthor().getId() == currentPersonId)
                 .authorId(message.getAuthor().getId())
                 .recipient(PersonEntityResponse.builder()
                         .email(recipient.getEmail())

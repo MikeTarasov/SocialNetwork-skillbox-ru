@@ -23,4 +23,6 @@ public class MessageEntityResponse {
   private String messageText;
   @JsonProperty("read_status")
   private String readStatus;  //TODO readStatus = enum [SENT, READ]
+  @JsonProperty("isSentByMe")
+  private boolean isSentByMe;
 }
