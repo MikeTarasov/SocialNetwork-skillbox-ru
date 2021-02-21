@@ -105,8 +105,12 @@ public class DialogServiceImpl implements DialogService {
             personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
         }
         Person owner = personDetailsService.getCurrentUser();
-        Person secondPerson = personRepository.findById(userIds.get(0)).get();
-
+        Person secondPerson = null;
+        for (long userId : userIds){
+            if (userId != owner.getId()){
+                secondPerson = personRepository.findById(userId).get();
+            }
+        }
         // логика только для двух пользователей в диалоге пользователя, похоже фронт иначе и не умеет. Компаньен всегда в userIds.get(0)
         List<PersonToDialog> PersonToDialogList = personToDialogRepository.findByPerson(owner);
         for (PersonToDialog personToDialog : PersonToDialogList) {
