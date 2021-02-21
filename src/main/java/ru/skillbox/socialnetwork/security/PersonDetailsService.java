@@ -8,8 +8,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.repository.PersonRepository;
+import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 import ru.skillbox.socialnetwork.services.exceptions.UnauthorizedException;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -47,5 +49,10 @@ public class PersonDetailsService implements UserDetailsService {
         }
 
         return per.get();
+    }
+    public void updateLastOnline(String username){
+        Person person = personRepository.findByEmail(username).orElseThrow(() -> new PersonNotFoundException(username));
+        person.setLastOnlineTime(LocalDateTime.now());
+        personRepository.save(person);
     }
 }
