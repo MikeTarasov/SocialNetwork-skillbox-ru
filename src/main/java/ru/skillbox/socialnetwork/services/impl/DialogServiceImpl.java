@@ -62,7 +62,7 @@ public class DialogServiceImpl implements DialogService {
             return new ErrorTimeTotalOffsetPerPageListDataResponse("", System.currentTimeMillis(), 0,
                     dialogRequest.getOffset(),
                     dialogRequest.getItemPerPage(),
-                    dialogIdsList); // TODO
+                    dialogIdsList);
         }
 
         List<IdUnreadCountLastMessageResponse> unreadDialogsList = new ArrayList<>();
@@ -70,7 +70,7 @@ public class DialogServiceImpl implements DialogService {
         // getting paged dialogs response
         int offset = dialogRequest.getOffset();
         int itemPerPage = dialogRequest.getItemPerPage();
-        Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage, Sort.by(Sort.Direction.ASC, "id"));
+        Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage, Sort.by(Sort.Direction.DESC, "unreadCount"));
         List<Long> dialogResponseIdList = new ArrayList<>();
         Page<Dialog> dialogPage = dialogRepository.findByIdIn(dialogIdsList, pageable);
         dialogPage.forEach(d -> dialogResponseIdList.add(d.getId()));
@@ -79,7 +79,7 @@ public class DialogServiceImpl implements DialogService {
             Optional<Message> messageOptional = messageRepository.findTopByDialogIdOrderByTimeDesc(dialogId);
             if (messageOptional.isPresent()) {
                 unreadDialogsList.add(new IdUnreadCountLastMessageResponse(dialogId,
-                        dialogRepository.findById(dialogId).get().getUnreadCount(),
+                        messageOptional.get().getRecipient().getId() == currentUser.getId() ? dialogRepository.findById(dialogId).get().getUnreadCount() : 0,     //unreadCount возвращаем только если пользователь является получателем последнего сообщения
                         messageToResponse(messageOptional.get(), currentUser.getId())));
             } else {
                 unreadDialogsList.add(new IdUnreadCountLastMessageResponse(dialogId, 0, new MessageEntityResponse()));
@@ -100,11 +100,14 @@ public class DialogServiceImpl implements DialogService {
 
     @Override
     public ErrorTimeDataResponse createDialog(List<Long> userIds) {
+        Person owner = personDetailsService.getCurrentUser();
         // checking for correct IDs
         for (long id : userIds) {
+            if (owner.getId() == id)
+                throw new CustomExceptionBadRequest("it's not a good idea talking itself");
             personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
         }
-        Person owner = personDetailsService.getCurrentUser();
+
         Person secondPerson = null;
         for (long userId : userIds){
             if (userId != owner.getId()){
@@ -122,7 +125,7 @@ public class DialogServiceImpl implements DialogService {
 
         Dialog dialog = new Dialog();
         dialog.setIsDeleted(0);
-        dialog.setUnreadCount(0);
+        dialog.setUnreadCount(1);
         dialog.setOwner(owner);
         dialog.setInviteCode(getRandomString(5));
         dialogRepository.save(dialog);
@@ -150,6 +153,9 @@ public class DialogServiceImpl implements DialogService {
                 new IdResponse(dialog.getId()));
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse addUsersToDialog(Long dialogId, List<Long> userIds) {
         Dialog dialog = dialogRepository.getOne(dialogId);
@@ -172,6 +178,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new ListUserIdsResponse(userIds));
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse deleteUsersFromDialog(Long dialogId, List<Long> userIds) {
         // checking for correct IDs
@@ -194,6 +203,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new ListUserIdsResponse(userIds));
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse getInviteLink(Long dialogId) {
         Dialog dialog = dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
@@ -201,6 +213,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new LinkResponse(inviteLink));
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse joinByInvite(Long dialogId, LinkRequest inviteLink) {
         Dialog dialog = dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
@@ -219,14 +234,18 @@ public class DialogServiceImpl implements DialogService {
         Pageable pageable = PageRequest.of(offset / limit, limit);
         Page<Message> pageMessage = messageRepository.findMessageWithQueryWithPagination(query, dialogId, pageable);
         // marking message as read if current user is recipient
+        boolean unreadFound = false;
         for (Message message : pageMessage) {
             if (message.getReadStatus().equals(ReadStatus.SENT.toString())
                     && message.getRecipient() == personDetailsService.getCurrentUser()) {
                 message.setReadStatus(ReadStatus.READ.toString());
 //                message.setText(message.getText() + "[READ]");
+                unreadFound = true;
                 messageRepository.save(message);
             }
         }
+        if (unreadFound)
+            dialogRepository.resetUnreadCountById(dialogId);
         long currentUserId = personDetailsService.getCurrentUser().getId();
         return new ErrorTimeTotalOffsetPerPageListDataResponse("",
                 System.currentTimeMillis(),
@@ -267,6 +286,7 @@ public class DialogServiceImpl implements DialogService {
         message.setIsDeleted(0);
         Message savedMessage = messageRepository.save(message);
         MessageEntityResponse messageEntityResponse = messageToResponse(message, authorId);
+        dialogRepository.incrementUnreadCountById(dialogId);
 
         notificationsRepository.save(new Notification(
                 notificationTypeRepository.findByName("MESSAGE").get(),
@@ -290,6 +310,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", response);
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse setPersonStatus(Long dialogId, Long personId) {
         // MOCK
@@ -299,6 +322,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new MessageResponse());
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse deleteDialog(Long id) {
         if (dialogRepository.findById(id).isEmpty())
@@ -307,6 +333,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new IdResponse(id));
     }
 
+    /**
+     * метод не используется?
+     */
     @Override
     public ErrorTimeDataResponse deleteMessage(Long dialogId, Long messageId) {
         dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
@@ -317,6 +346,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new MessageIdResponse(messageId));
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse recoverMessage(Long dialogId, Long messageId) {
         dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
@@ -328,6 +360,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", messageToResponse(message, currentUserId));
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse markReadMessage(Long dialogId, Long messageId) {
         dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
@@ -338,6 +373,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new MessageResponse());
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse changeMessage(Long dialogId, Long messageId, MessageTextRequest messageTextRequest) {
         dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
