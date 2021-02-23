@@ -19,4 +19,6 @@ public interface NotificationSettingsRepository extends JpaRepository<Notificati
     List<NotificationSettings> findByPersonNS(Person person);
 
     List<NotificationSettings> findByPersonNSAndEnable(Person person, int isEnable);
+
+    List<NotificationSettings> findByPersonNSAndEnableIs(long personNS, int enable);
 }

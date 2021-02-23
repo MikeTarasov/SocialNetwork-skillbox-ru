@@ -68,19 +68,7 @@ public class FeedService {
         .sorted(Comparator.comparing(PostEntityResponse::getTime).reversed())
         .collect(Collectors.toList());
 
-    if (!getBirthdayNotification().isEmpty()) {
-      for (Person person : getBirthdayNotification()) {
-        notificationsRepository.save(new Notification(
-            notificationTypeRepository.findById(6L).get(),
-            getMillisecondsToLocalDateTime(System.currentTimeMillis()),
-            personDetailsService.getCurrentUser(),
-            person.getId(),
-            personDetailsService.getCurrentUser().getEmail(),
-            0
-        ));
-      }
-    }
-
+    checkBirthdayNotification();
     deleteOldNotifications();
 
     return ResponseEntity.status(HttpStatus.OK).body(
@@ -122,22 +110,23 @@ public class FeedService {
     List<Person> friends = new ArrayList<>();
     Person me = personDetailsService.getCurrentUser();
     List<Friendship> getFriends = friendshipRepository.findByDstPersonOrSrcPerson(me, me);
+    if (!getFriends.isEmpty()) {
     for (Friendship friend : getFriends) {
 
-      if (friend.getSrcPerson().equals(me)
+      if (friend.getSrcPerson().getEmail().equals(me.getEmail())
           && friend.getDstPerson().getBirthDate().getDayOfMonth() == LocalDateTime.now()
           .getDayOfMonth()
           && friend.getDstPerson().getBirthDate().getMonthValue() == LocalDateTime.now()
           .getMonthValue()) {
         friends.add(friend.getDstPerson());
-      } else if (friend.getDstPerson().equals(me)
+      } else if (friend.getSrcPerson().getEmail().equals(me.getEmail())
           && friend.getSrcPerson().getBirthDate().getDayOfMonth() == LocalDateTime.now()
           .getDayOfMonth()
           && friend.getSrcPerson().getBirthDate().getMonthValue() == LocalDateTime.now()
           .getMonthValue()) {
         friends.add(friend.getSrcPerson());
       }
-    }
+    }}
     return friends;
   }
 
@@ -148,6 +137,21 @@ public class FeedService {
 
   private long getTimeStamp(LocalDateTime time) {
     return time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+  }
+
+  private void checkBirthdayNotification() {
+    if (!getBirthdayNotification().isEmpty()) {
+      for (Person person : getBirthdayNotification()) {
+        notificationsRepository.save(new Notification(
+                notificationTypeRepository.findById(6L).get(),
+                getMillisecondsToLocalDateTime(System.currentTimeMillis()),
+                personDetailsService.getCurrentUser(),
+                person.getId(),
+                personDetailsService.getCurrentUser().getEmail(),
+                0
+        ));
+      }
+    }
   }
 
   private void deleteOldNotifications() {

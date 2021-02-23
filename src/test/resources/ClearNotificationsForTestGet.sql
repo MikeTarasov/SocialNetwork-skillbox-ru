@@ -1,0 +1,10 @@
+delete from notification;
+delete from notification_settings;
+delete from message;
+delete from person2dialog;
+delete from dialog;
+delete from friendship;
+delete from post_comment;
+delete from post;
+delete from person;
+delete from notification_type;
