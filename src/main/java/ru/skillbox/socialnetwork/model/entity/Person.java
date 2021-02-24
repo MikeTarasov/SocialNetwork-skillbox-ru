@@ -140,4 +140,35 @@ public class Person {
     public boolean isDeleted() {
         return isDeleted == 1;
     }
+
+    @Override
+    public String toString() {
+        return "Person{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", regDate=" + regDate +
+                ", birthDate=" + birthDate +
+                ", email='" + email + '\'' +
+                ", phone='" + phone + '\'' +
+                ", password='" + password + '\'' +
+                ", photo='" + photo + '\'' +
+                ", about='" + about + '\'' +
+                ", city='" + city + '\'' +
+                ", country='" + country + '\'' +
+                ", confirmationCode='" + confirmationCode + '\'' +
+                ", isApproved=" + isApproved +
+                ", messagePermission='" + messagePermission + '\'' +
+                ", lastOnlineTime=" + lastOnlineTime +
+                ", isOnline=" + isOnline +
+                ", isBlocked=" + isBlocked +
+                ", isDeleted=" + isDeleted +
+                ", notificationSettings=" + notificationSettings +
+                ", notificationPersons=" + notificationPersons +
+                ", messages=" + messages +
+                ", friendshipsSrc=" + friendshipsSrc +
+                ", friendshipsDst=" + friendshipsDst +
+                ", personLike=" + personLike +
+                '}';
+    }
 }

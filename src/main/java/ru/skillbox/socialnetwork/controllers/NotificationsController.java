@@ -1,5 +1,6 @@
 package ru.skillbox.socialnetwork.controllers;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,13 +12,14 @@ public class NotificationsController {
 
     private final NotificationsService notificationsService;
 
+    @Autowired
     public NotificationsController(NotificationsService notificationsService) {
         this.notificationsService = notificationsService;
     }
 
     @GetMapping("")
-    public ResponseEntity<?> getApiNotifications(@Param("offset") Integer offset,
-                                                 @Param("itemPerPage") Integer itemPerPage) {
+    public ResponseEntity<?> getApiNotifications(@RequestParam("offset") Integer offset,
+                                                 @RequestParam(defaultValue = "20") Integer itemPerPage) {
         return notificationsService.getApiNotifications(offset, itemPerPage);
     }
 

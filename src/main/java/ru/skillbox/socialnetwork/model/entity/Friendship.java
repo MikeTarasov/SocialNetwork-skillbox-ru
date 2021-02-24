@@ -12,13 +12,23 @@ public class Friendship {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "src_person_id")
     private Person srcPerson;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "dst_person_id")
     private Person dstPerson;
 
     private String code;
+
+    @Override
+    public String toString() {
+        return "Friendship{" +
+                "id=" + id +
+                ", srcPerson=" + srcPerson +
+                ", dstPerson=" + dstPerson +
+                ", code='" + code + '\'' +
+                '}';
+    }
 }

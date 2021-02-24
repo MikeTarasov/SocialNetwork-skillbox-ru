@@ -24,6 +24,7 @@ public class NotificationsService {
     private final MessageRepository messageRepository;
     private final FriendshipRepository friendshipRepository;
     private final PersonDetailsService personDetailsService;
+    private final PersonRepository personRepository;
     @Value("${notification.text.length}")
     private int notificationTextLength;
 
@@ -33,7 +34,7 @@ public class NotificationsService {
                                 PostCommentRepository postCommentRepository,
                                 MessageRepository messageRepository,
                                 FriendshipRepository friendshipRepository,
-                                PersonDetailsService personDetailsService) {
+                                PersonDetailsService personDetailsService, PersonRepository personRepository) {
         this.notificationsRepository = notificationsRepository;
         this.notificationSettingsRepository = notificationSettingsRepository;
         this.postRepository = postRepository;
@@ -41,60 +42,69 @@ public class NotificationsService {
         this.messageRepository = messageRepository;
         this.friendshipRepository = friendshipRepository;
         this.personDetailsService = personDetailsService;
+        this.personRepository = personRepository;
     }
 
     private List<NotificationBaseResponse> convertToNotificationResponse(List<Notification> notifications, Person person) {
         List<NotificationBaseResponse> result = new ArrayList<>();
 
-        List<Long> listTypeIdsEnableSettings = notificationSettingsRepository
-                .findByPersonNSAndEnable(person, 1)
-                .stream().map(value -> value.getNotificationType().getId()).collect(Collectors.toList());
+        List<NotificationSettings> notificationSettingsList = notificationSettingsRepository
+                .findByPersonNSAndEnable(person, 1);
+        List<Long> enabledSettings = notificationSettingsList.stream()
+                .map(ns -> ns.getNotificationType().getId())
+                .collect(Collectors.toList());
 
         for (Notification notification : notifications) {
 
             long typeId = notification.getType().getId();
-            if (listTypeIdsEnableSettings.contains(typeId)) {
+            if (enabledSettings.contains(typeId)) {
 
-                long id = notification.getId();
-                long sentTime = notification.getTimeStamp();
                 long entityId = notification.getEntityId();
                 String info = "";
 
-                switch (notification.getType().getName().toUpperCase()) {
-                    case "POST":
-                        Optional<Post> optionalPost = postRepository.findById(entityId);
-                        if (optionalPost.isEmpty()) break;
-                        Post post = optionalPost.get();
-                        info = "New post ".concat(post.getTitle()).concat(" from user ")
-                                .concat(post.getAuthor().getFirstName());
+                switch ((int) notification.getType().getId()) {
+                    case 2:
+
+                    case 3:
+                        Optional<PostComment> commentToPostOptional = postCommentRepository.findById(entityId);
+                        if (commentToPostOptional.isEmpty()) break;
+                        PostComment commentToPost = commentToPostOptional.get();
+                        info = "New Comment '".concat(getInfo(commentToPost.getCommentText()))
+                                .concat(" from user ").concat(personRepository.findById(commentToPost.getPerson()
+                                        .getId()).get().getFirstName());
                         break;
-                    case "POST_COMMENT":
-                    case "COMMENT_COMMENT":
-                        Optional<PostComment> optionalComment = postCommentRepository.findById(entityId);
-                        if (optionalComment.isEmpty()) break;
-                        PostComment comment = optionalComment.get();
-                        info = "New Comment ".concat(comment.getCommentText().substring(0, notificationTextLength))
-                                .concat(" from user ").concat(comment.getPerson().getFirstName());
+                    case 4:
+                        Optional<Friendship> friendRequestOptional = friendshipRepository.findById(entityId);
+                        if (friendRequestOptional.isEmpty()) break;
+                        Friendship friendRequest = friendRequestOptional.get();
+                        info = "User ".concat(personRepository.findById(friendRequest.getSrcPerson().getId())
+                                .get().getFirstName().concat(" ")
+                                .concat(personRepository.findById(friendRequest.getSrcPerson().getId())
+                                        .get().getLastName()).concat(" offers friendship"));
                         break;
-                    case "FRIEND_REQUEST":
-                        Optional<Friendship> optionalFriendship = friendshipRepository.findById(entityId);
-                        if (optionalFriendship.isEmpty()) break;
-                        Friendship friendship = optionalFriendship.get();
-                        info = "User ".concat(friendship.getSrcPerson().getFirstName()).concat(" ")
-                                .concat(friendship.getSrcPerson().getLastName()).concat(" offers friendship");
-                        break;
-                    case "MESSAGE":
+                    case 5:
                         Optional<Message> optionalMessage = messageRepository.findById(entityId);
                         if (optionalMessage.isEmpty()) break;
                         Message message = optionalMessage.get();
-                        info = "New message ".concat(message.getText()).substring(0, notificationTextLength)
-                                .concat(" from user ").concat(message.getAuthor().getFirstName());
+                        info = "New message '".concat(getInfo(message.getText()))
+                                .concat(" from user ")
+                                .concat(personRepository.findById(message.getAuthor().getId()).get().getFirstName());
                         break;
-                    case "FRIEND_BIRTHDAY":
-                        //TODO нет в апи, но есть во фронте!!! src/store/profile/notifications.js
+                    case 6:
+                        if (!person.getEmail().equals(personRepository.findById(entityId).get().getEmail())) {
+                            info = "User ".concat(personRepository.findById(entityId).get().getFirstName())
+                                    .concat(" ")
+                                    .concat(personRepository.findById(entityId).get().getLastName())
+                                    .concat(" celebrates his/her birthday!");
+                        }
                         break;
                 }
-                result.add(new NotificationBaseResponse(id, typeId, sentTime, entityId, info));
+                result.add(new NotificationBaseResponse(
+                        notification.getId(),
+                        typeId,
+                        notification.getTimeStamp(),
+                        notification.getEntityId(),
+                        info));
             }
         }
         return result;
@@ -133,15 +143,34 @@ public class NotificationsService {
     }
 
     public ResponseEntity<?> putApiNotifications(Long id, Boolean all) {
-        if (id != null && all != null && !all && !setIsRead(id)) {
-            return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Notification not found"));
 
-        } else if (all != null && all) {
-            Person person = personDetailsService.getCurrentUser();
+        Person person = personDetailsService.getCurrentUser();
+
+        if (!all || all == null) {
+            setIsRead(id);
+        } else if (all) {
             notificationsRepository.findByPersonNotificationAndIsRead(person, 0, null)
                     .forEach(notification -> setIsRead(notification.getId()));
         }
-        //TODO что должно быть в ответе??????
-        return ResponseEntity.status(200).body(new ErrorTimeDataResponse("", new MessageResponse()));
+
+        return ResponseEntity.status(200).body(new ErrorTimeTotalOffsetPerPageListDataResponse(
+                "",
+                System.currentTimeMillis(),
+                notificationsRepository.countNotificationByPersonNotification(person),
+                0,
+                20,
+                convertToNotificationResponse(
+                        notificationsRepository
+                                .findByPersonNotificationAndIsRead(person, 0,
+                                        PageRequest.of(0, 20)), person)
+        ));
+    }
+
+    private String getInfo(String text) {
+        if (text.length() >= 10) {
+            return text.substring(0, 9).concat("...'");
+        } else {
+            return text;
+        }
     }
 }
