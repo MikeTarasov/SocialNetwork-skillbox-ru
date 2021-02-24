@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class DialogServiceImpl implements DialogService {
@@ -31,8 +32,6 @@ public class DialogServiceImpl implements DialogService {
     private final MessageRepository messageRepository;
     private final NotificationsRepository notificationsRepository;
     private final NotificationTypeRepository notificationTypeRepository;
-
-    private Long notType = 5L;
 
     @Autowired
     public DialogServiceImpl(PersonRepository personRepository, DialogRepository dialogRepository,
@@ -60,7 +59,10 @@ public class DialogServiceImpl implements DialogService {
 
         // if no dialogs
         if (dialogIdsList.isEmpty()) {
-            return null; // TODO
+            return new ErrorTimeTotalOffsetPerPageListDataResponse("", System.currentTimeMillis(), 0,
+                    dialogRequest.getOffset(),
+                    dialogRequest.getItemPerPage(),
+                    dialogIdsList);
         }
 
         List<IdUnreadCountLastMessageResponse> unreadDialogsList = new ArrayList<>();
@@ -68,32 +70,19 @@ public class DialogServiceImpl implements DialogService {
         // getting paged dialogs response
         int offset = dialogRequest.getOffset();
         int itemPerPage = dialogRequest.getItemPerPage();
-        Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage, Sort.by(Sort.Direction.ASC, "id"));
+        Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage, Sort.by(Sort.Direction.DESC, "unreadCount"));
         List<Long> dialogResponseIdList = new ArrayList<>();
         Page<Dialog> dialogPage = dialogRepository.findByIdIn(dialogIdsList, pageable);
         dialogPage.forEach(d -> dialogResponseIdList.add(d.getId()));
 
         for (Long dialogId : dialogResponseIdList) {
-//            // placeholder message
-//            LocalDateTime timeMessage = LocalDateTime.ofInstant(Instant
-//                            .ofEpochMilli(System.currentTimeMillis()),
-//                    TimeZone.getDefault().toZoneId());
-//            Message placeholderMessage = new Message();
-//            placeholderMessage.setId(1L);
-//            placeholderMessage.setReadStatus(ReadStatus.SENT.name());
-//            placeholderMessage.setText("this is a placeholder");
-//            placeholderMessage.setAuthor(currentUser);
-//            placeholderMessage.setDialog(dialogRepository.getOne(dialogId));
-//            placeholderMessage.setIsDeleted(0);
-//            placeholderMessage.setTime(timeMessage);
-//            placeholderMessage.setRecipient(personRepository.findById(10L).get());
             Optional<Message> messageOptional = messageRepository.findTopByDialogIdOrderByTimeDesc(dialogId);
             if (messageOptional.isPresent()) {
                 unreadDialogsList.add(new IdUnreadCountLastMessageResponse(dialogId,
-                        dialogRepository.findById(dialogId).get().getUnreadCount(),
-                        messageToResponse(messageOptional.get())));
+                        messageOptional.get().getRecipient().getId() == currentUser.getId() ? dialogRepository.findById(dialogId).get().getUnreadCount() : 0,     //unreadCount возвращаем только если пользователь является получателем последнего сообщения
+                        messageToResponse(messageOptional.get(), currentUser.getId())));
             } else {
-                unreadDialogsList.add(new IdUnreadCountLastMessageResponse(dialogId, 0, null));
+                unreadDialogsList.add(new IdUnreadCountLastMessageResponse(dialogId, 0, new MessageEntityResponse()));
             }
         }
 
@@ -108,63 +97,65 @@ public class DialogServiceImpl implements DialogService {
         return getDialogsLastMessages(new DialogRequest("", 20, 0));
     }
 
-    @Override
-    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList(DialogRequest dialogRequest) {
-        Person currentUser = personDetailsService.getCurrentUser();
-        // find where the user is participant
-        List<PersonToDialog> personToDialogs = personToDialogRepository.findByPerson(currentUser);
-        List<Long> dialogIdsList = new ArrayList<>();
-        for (PersonToDialog personToDialog : personToDialogs) {
-            dialogIdsList.add(personToDialog.getDialog().getId());
-        }
-        // getting paged response
-        int offset = dialogRequest.getOffset();
-        int itemPerPage = dialogRequest.getItemPerPage();
-        Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage, Sort.by(Sort.Direction.ASC, "id"));
-        List<Dialog> dialogResponseList = new ArrayList<>();
-        Page<Dialog> dialogPage = dialogRepository.findByIdIn(dialogIdsList, pageable);
-        dialogPage.forEach(dialogResponseList::add);
-        return new ErrorTimeTotalOffsetPerPageListDataResponse(
-                "",
-                System.currentTimeMillis(),
-                dialogPage.getTotalElements(),
-                offset,
-                itemPerPage,
-                dialogResponseList);
-    }
-
-    @Override
-    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsList() {
-        return getDialogsList(new DialogRequest("", 20, 0));
-    }
 
     @Override
     public ErrorTimeDataResponse createDialog(List<Long> userIds) {
+        Person owner = personDetailsService.getCurrentUser();
         // checking for correct IDs
         for (long id : userIds) {
+            if (owner.getId() == id)
+                throw new CustomExceptionBadRequest("it's not a good idea talking itself");
             personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
         }
-        Person owner = personDetailsService.getCurrentUser();
-        if (!userIds.contains(owner.getId())) {
-            userIds.add(owner.getId());
+
+        Person secondPerson = null;
+        for (long userId : userIds){
+            if (userId != owner.getId()){
+                secondPerson = personRepository.findById(userId).get();
+            }
         }
+        // логика только для двух пользователей в диалоге пользователя, похоже фронт иначе и не умеет. Компаньен всегда в userIds.get(0)
+        List<PersonToDialog> PersonToDialogList = personToDialogRepository.findByPerson(owner);
+        for (PersonToDialog personToDialog : PersonToDialogList) {
+            Dialog tmpDialog = personToDialog.getDialog();
+            if (!personToDialogRepository.findByDialogAndPerson(tmpDialog, secondPerson).isEmpty())
+                return new ErrorTimeDataResponse("",
+                        new IdResponse(tmpDialog.getId()));
+        }
+
         Dialog dialog = new Dialog();
         dialog.setIsDeleted(0);
-        dialog.setUnreadCount(0);
+        dialog.setUnreadCount(1);
         dialog.setOwner(owner);
         dialog.setInviteCode(getRandomString(5));
         dialogRepository.save(dialog);
-        for (long id : userIds) {
-            PersonToDialog personToDialog = new PersonToDialog();
-            personToDialog.setDialog(dialog);
-            personToDialog.setPerson(personRepository.findById(id).get());
-            personToDialogRepository.save(personToDialog);
-        }
+        PersonToDialog personToDialog1 = new PersonToDialog();
+        personToDialog1.setDialog(dialog);
+        personToDialog1.setPerson(secondPerson);
+        personToDialogRepository.save(personToDialog1);
+        PersonToDialog personToDialog2 = new PersonToDialog();
+        personToDialog2.setDialog(dialog);
+        personToDialog2.setPerson(owner);
+        personToDialogRepository.save(personToDialog2);
+
+
+        Message message = new Message();
+        message.setAuthor(owner);
+        message.setRecipient(secondPerson);
+        message.setDialog(dialog);
+        message.setText("Start messaging");
+        message.setTime(LocalDateTime.now());
+        message.setReadStatus(ReadStatus.SENT.name());
+        message.setIsDeleted(0);
+        messageRepository.save(message);
 
         return new ErrorTimeDataResponse("",
                 new IdResponse(dialog.getId()));
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse addUsersToDialog(Long dialogId, List<Long> userIds) {
         Dialog dialog = dialogRepository.getOne(dialogId);
@@ -187,6 +178,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new ListUserIdsResponse(userIds));
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse deleteUsersFromDialog(Long dialogId, List<Long> userIds) {
         // checking for correct IDs
@@ -209,6 +203,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new ListUserIdsResponse(userIds));
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse getInviteLink(Long dialogId) {
         Dialog dialog = dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
@@ -216,6 +213,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new LinkResponse(inviteLink));
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse joinByInvite(Long dialogId, LinkRequest inviteLink) {
         Dialog dialog = dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
@@ -233,11 +233,25 @@ public class DialogServiceImpl implements DialogService {
         dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
         Pageable pageable = PageRequest.of(offset / limit, limit);
         Page<Message> pageMessage = messageRepository.findMessageWithQueryWithPagination(query, dialogId, pageable);
+        // marking message as read if current user is recipient
+        boolean unreadFound = false;
+        for (Message message : pageMessage) {
+            if (message.getReadStatus().equals(ReadStatus.SENT.toString())
+                    && message.getRecipient() == personDetailsService.getCurrentUser()) {
+                message.setReadStatus(ReadStatus.READ.toString());
+//                message.setText(message.getText() + "[READ]");
+                unreadFound = true;
+                messageRepository.save(message);
+            }
+        }
+        if (unreadFound)
+            dialogRepository.resetUnreadCountById(dialogId);
+        long currentUserId = personDetailsService.getCurrentUser().getId();
         return new ErrorTimeTotalOffsetPerPageListDataResponse("",
                 System.currentTimeMillis(),
                 pageMessage.getTotalElements(),
-                offset, limit, pageMessage.getContent()
-        );
+                offset, limit, pageMessage.stream().map(message -> messageToResponse(message, currentUserId)).collect(Collectors.toList()));
+
     }
 
     @Override
@@ -271,15 +285,16 @@ public class DialogServiceImpl implements DialogService {
         message.setReadStatus(ReadStatus.SENT.name());
         message.setIsDeleted(0);
         Message savedMessage = messageRepository.save(message);
-        MessageEntityResponse messageEntityResponse = messageToResponse(message);
+        MessageEntityResponse messageEntityResponse = messageToResponse(message, authorId);
+        dialogRepository.incrementUnreadCountById(dialogId);
 
         notificationsRepository.save(new Notification(
-           notificationTypeRepository.findByName("MESSAGE").get(),
-           getMillisecondsToLocalDateTime(System.currentTimeMillis()),
-           personRepository.findById(recipientId).get(),
-           savedMessage.getId(),
-           personRepository.findById(recipientId).get().getEmail(),
-           0
+                notificationTypeRepository.findByName("MESSAGE").get(),
+                getMillisecondsToLocalDateTime(System.currentTimeMillis()),
+                personRepository.findById(recipientId).get(),
+                savedMessage.getId(),
+                personRepository.findById(recipientId).get().getEmail(),
+                0
         ));
 
         return new ErrorTimeDataResponse("", messageEntityResponse);
@@ -295,6 +310,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", response);
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse setPersonStatus(Long dialogId, Long personId) {
         // MOCK
@@ -304,6 +322,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new MessageResponse());
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse deleteDialog(Long id) {
         if (dialogRepository.findById(id).isEmpty())
@@ -312,6 +333,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new IdResponse(id));
     }
 
+    /**
+     * метод не используется?
+     */
     @Override
     public ErrorTimeDataResponse deleteMessage(Long dialogId, Long messageId) {
         dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
@@ -322,6 +346,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new MessageIdResponse(messageId));
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse recoverMessage(Long dialogId, Long messageId) {
         dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
@@ -329,9 +356,13 @@ public class DialogServiceImpl implements DialogService {
                 .orElseThrow(() -> new MessageNotFoundException(messageId));
         message.setIsDeleted(0);
         messageRepository.save(message);
-        return new ErrorTimeDataResponse("", messageToResponse(message));
+        long currentUserId = personDetailsService.getCurrentUser().getId();
+        return new ErrorTimeDataResponse("", messageToResponse(message, currentUserId));
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse markReadMessage(Long dialogId, Long messageId) {
         dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
@@ -342,6 +373,9 @@ public class DialogServiceImpl implements DialogService {
         return new ErrorTimeDataResponse("", new MessageResponse());
     }
 
+    /**
+     * метод не используется
+     */
     @Override
     public ErrorTimeDataResponse changeMessage(Long dialogId, Long messageId, MessageTextRequest messageTextRequest) {
         dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
@@ -352,7 +386,8 @@ public class DialogServiceImpl implements DialogService {
         }
         message.setText(messageTextRequest.getMessageText());
         messageRepository.save(message);
-        return new ErrorTimeDataResponse("", messageToResponse(message));
+        long currentUserId = personDetailsService.getCurrentUser().getId();
+        return new ErrorTimeDataResponse("", messageToResponse(message, currentUserId));
     }
 
     @Override
@@ -377,11 +412,23 @@ public class DialogServiceImpl implements DialogService {
                 .toString();
     }
 
-    private MessageEntityResponse messageToResponse(Message message) {
+    private MessageEntityResponse messageToResponse(Message message, long currentPersonId) {
+        //Person recipient = message.getRecipient();
+        Person recipient = message.getAuthor().getId() == currentPersonId ? message.getRecipient() : message.getAuthor(); //костыль
         return MessageEntityResponse.builder()
                 .id(message.getId())
+                .isSentByMe(message.getAuthor().getId() == currentPersonId)
                 .authorId(message.getAuthor().getId())
-                .recipientId(message.getRecipient().getId())
+                .recipient(PersonEntityResponse.builder()
+                        .email(recipient.getEmail())
+                        .firstName(recipient.getFirstName())
+                        .lastName(recipient.getLastName())
+                        .id(recipient.getId())
+                        .photo(recipient.getPhoto())
+                        .lastOnlineTime(recipient.getLastOnlineTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
+                        .isBlocked(recipient.isBlocked())
+                        .build()
+                )
                 .messageText(message.getText())
                 .timestamp(message.getTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
                 .readStatus(message.getReadStatus())

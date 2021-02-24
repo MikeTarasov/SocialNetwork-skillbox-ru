@@ -6,6 +6,7 @@ import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.PersonToDialog;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PersonToDialogRepository extends JpaRepository<PersonToDialog, Long> {
 
@@ -13,5 +14,5 @@ public interface PersonToDialogRepository extends JpaRepository<PersonToDialog, 
 
     List<PersonToDialog> findByPerson(Person person);
 
-    List<PersonToDialog> findByDialogAndPerson(Dialog dialog, Person person);
+    Optional<PersonToDialog> findByDialogAndPerson(Dialog dialog, Person person);
 }

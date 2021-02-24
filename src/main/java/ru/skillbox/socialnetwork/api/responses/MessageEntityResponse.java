@@ -17,10 +17,12 @@ public class MessageEntityResponse {
   private long timestamp;
   @JsonProperty("author_id")
   private long authorId;
-  @JsonProperty("recipient_id")
-  private long recipientId;
+  @JsonProperty("recipient")
+  private PersonEntityResponse recipient;
   @JsonProperty("message_text")
   private String messageText;
   @JsonProperty("read_status")
   private String readStatus;  //TODO readStatus = enum [SENT, READ]
+  @JsonProperty("isSentByMe")
+  private boolean isSentByMe;
 }
