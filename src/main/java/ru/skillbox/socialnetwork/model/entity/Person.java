@@ -103,6 +103,7 @@ public class Person {
         this.firstName = firstName;
         this.lastName = lastName;
         this.regDate = regDate;
+        this.lastOnlineTime = regDate;
         isApproved = 1;
         isBlocked = 0;
         isDeleted = 0;
