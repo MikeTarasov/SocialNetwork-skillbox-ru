@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.skillbox.socialnetwork.api.requests.ParentIdCommentTextRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
 import ru.skillbox.socialnetwork.api.responses.*;
-import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
 import ru.skillbox.socialnetwork.repository.NotificationsRepository;
@@ -25,8 +24,8 @@ import ru.skillbox.socialnetwork.repository.PostCommentRepository;
 import ru.skillbox.socialnetwork.repository.PostLikeRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 import ru.skillbox.socialnetwork.security.JwtTokenProvider;
+import ru.skillbox.socialnetwork.services.ConvertTimeService;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -75,7 +74,7 @@ class PostControllerTestsTwo {
         ErrorTimeTotalOffsetPerPageListDataResponse errorTimeTotalOffsetPerPageListDataResponse =
                 new ErrorTimeTotalOffsetPerPageListDataResponse(
                         "",
-                        System.currentTimeMillis(),
+                        ConvertTimeService.getTimestamp(savedPost.getTime()),
                         1,
                         0,
                         5,
@@ -164,7 +163,7 @@ class PostControllerTestsTwo {
         savedPost = postRepository.findById(1L).get();
         savedComment = commentRepository.findById(1L).get();
         ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
-                "", getTimeZonedMillis(), getPostEntityResponseByPost(savedPost));
+                "", ConvertTimeService.getTimestamp(savedPost.getTime()), getPostEntityResponseByPost(savedPost));
 
         mvc.perform(MockMvcRequestBuilders
                 .get("/post/" + savedPost.getId()))
@@ -240,7 +239,7 @@ class PostControllerTestsTwo {
         savedPost.setTitle(newTitle);
         savedPost.setPostText(newText);
         ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
-                "", getTimeZonedMillis(), getPostEntityResponseByPost(savedPost));
+                "", ConvertTimeService.getTimestamp(savedPost.getTime()), getPostEntityResponseByPost(savedPost));
 
         mvc.perform(MockMvcRequestBuilders
                 .put("/post/{id}", savedPost.getId())
@@ -335,7 +334,7 @@ class PostControllerTestsTwo {
         savedPost.setIsDeleted(1);
         postRepository.saveAndFlush(savedPost);
         ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
-                "", getTimeZonedMillis(), getPostEntityResponseByPost(savedPost));
+                "", ConvertTimeService.getTimestamp(savedPost.getTime()), getPostEntityResponseByPost(savedPost));
 
         assertEquals(1, postRepository.findById(savedPost.getId()).get().getIsDeleted());
         mvc.perform(MockMvcRequestBuilders
@@ -606,29 +605,7 @@ class PostControllerTestsTwo {
     }
 
     private PersonEntityResponse getPersonEntityResponseByPost(Post post) {
-        Person author = post.getAuthor();
-        return new PersonEntityResponse(
-                author.getId(),
-                author.getFirstName(),
-                author.getLastName(),
-                java.util.Date
-                        .from(author.getRegDate().atZone(ZoneId.systemDefault())
-                                .toInstant()).getTime(),
-                java.util.Date
-                        .from(author.getBirthDate().atZone(ZoneId.systemDefault())
-                                .toInstant()).getTime(),
-                author.getEmail(),
-                author.getPhone(),
-                author.getPhoto(),
-                author.getAbout(),
-                author.getCity(),
-                author.getCountry(),
-                author.getMessagePermission(),
-                java.util.Date
-                        .from(author.getLastOnlineTime().atZone(ZoneId.systemDefault())
-                                .toInstant()).getTime(),
-                author.getIsBlocked() == 1
-        );
+        return new PersonEntityResponse(post.getAuthor());
     }
 
     private List<CommentEntityResponse> getCommentEntityResponseListByPost(Post post) {
@@ -653,15 +630,11 @@ class PostControllerTestsTwo {
     }
 
     private Long getTimeZonedMillis() {
-        return java.util.Date
-                .from(LocalDateTime.now().atZone(ZoneId.systemDefault())
-                        .toInstant()).getTime();
+        return System.currentTimeMillis();
     }
 
     private Long getMillis(LocalDateTime localDateTime) {
-        return java.util.Date
-                .from(localDateTime.atZone(ZoneId.systemDefault())
-                        .toInstant()).getTime();
+        return ConvertTimeService.getTimestamp(localDateTime);
     }
 
     private List<PostEntityResponse> getPostEntityResponseListByPosts(List<Post> posts) {
@@ -673,7 +646,6 @@ class PostControllerTestsTwo {
     }
 
     private LocalDateTime getMillisecondsToLocalDateTime(long milliseconds) {
-        return Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
-
+        return ConvertTimeService.getLocalDateTime(milliseconds);
     }
 }

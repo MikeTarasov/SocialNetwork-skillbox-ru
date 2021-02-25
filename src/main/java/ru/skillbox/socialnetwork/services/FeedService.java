@@ -1,12 +1,5 @@
 package ru.skillbox.socialnetwork.services;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,12 +15,16 @@ import ru.skillbox.socialnetwork.model.entity.Friendship;
 import ru.skillbox.socialnetwork.model.entity.Notification;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
-import ru.skillbox.socialnetwork.repository.FriendshipRepository;
-import ru.skillbox.socialnetwork.repository.NotificationTypeRepository;
-import ru.skillbox.socialnetwork.repository.NotificationsRepository;
-import ru.skillbox.socialnetwork.repository.PostCommentRepository;
-import ru.skillbox.socialnetwork.repository.PostRepository;
+import ru.skillbox.socialnetwork.repository.*;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class FeedService {
@@ -78,9 +75,9 @@ public class FeedService {
 
   private PostEntityResponse getPostEntityResponse(Post post) {
     return PostEntityResponse.builder()
-        .id(post.getId())
-        .time(post.getTimestamp())
-        .author(PersonEntityResponse.getResponseEntity(post.getAuthor()))
+            .id(post.getId())
+            .time(post.getTimestamp())
+            .author(new PersonEntityResponse(post.getAuthor()))
         .title(post.getTitle())
         .postText(post.getPostText())
         .isBlocked(post.isBlocked())
@@ -113,17 +110,17 @@ public class FeedService {
     if (!getFriends.isEmpty()) {
     for (Friendship friend : getFriends) {
 
-      if (friend.getSrcPerson().getEmail().equals(me.getEmail())
-          && friend.getDstPerson().getBirthDate().getDayOfMonth() == LocalDateTime.now()
-          .getDayOfMonth()
-          && friend.getDstPerson().getBirthDate().getMonthValue() == LocalDateTime.now()
-          .getMonthValue()) {
+      if (friend.getSrcPerson().equals(me) && friend.getDstPerson().getBirthDate() != null
+              && friend.getDstPerson().getBirthDate().getDayOfMonth() == LocalDateTime.now()
+              .getDayOfMonth()
+              && friend.getDstPerson().getBirthDate().getMonthValue() == LocalDateTime.now()
+              .getMonthValue()) {
         friends.add(friend.getDstPerson());
-      } else if (friend.getSrcPerson().getEmail().equals(me.getEmail())
-          && friend.getSrcPerson().getBirthDate().getDayOfMonth() == LocalDateTime.now()
-          .getDayOfMonth()
-          && friend.getSrcPerson().getBirthDate().getMonthValue() == LocalDateTime.now()
-          .getMonthValue()) {
+      } else if (friend.getDstPerson().equals(me) && friend.getSrcPerson().getBirthDate() != null
+              && friend.getSrcPerson().getBirthDate().getDayOfMonth() == LocalDateTime.now()
+              .getDayOfMonth()
+              && friend.getSrcPerson().getBirthDate().getMonthValue() == LocalDateTime.now()
+              .getMonthValue()) {
         friends.add(friend.getSrcPerson());
       }
     }}

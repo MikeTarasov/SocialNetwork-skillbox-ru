@@ -1,14 +1,15 @@
 package ru.skillbox.socialnetwork.api.responses;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 
 @AllArgsConstructor
 @NoArgsConstructor
-public class MessagesProfilesResponse {
+public class MessagesProfilesResponse { //TODO забыли использовать???
 
-  private CountListMessagesResponse messages;
-  private List<PersonEntityResponse> profiles;
+    private CountListMessagesResponse messages;
+    private List<PersonEntityResponse> profiles;
 }

@@ -12,7 +12,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.skillbox.socialnetwork.api.requests.PersonEditRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
-import ru.skillbox.socialnetwork.controllers.ProfileController;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.enums.MessagesPermissions;
@@ -37,8 +36,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class ProfileControllerTest {
 
     private final long currentUserId = 9L;  // shred@mail.who
-    @Autowired
-    private ProfileController profileController;
     @Autowired
     private MockMvc mockMvc;
     @Autowired

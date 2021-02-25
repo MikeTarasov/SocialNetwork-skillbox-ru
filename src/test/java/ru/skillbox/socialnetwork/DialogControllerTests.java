@@ -16,7 +16,6 @@ import ru.skillbox.socialnetwork.api.requests.DialogRequest;
 import ru.skillbox.socialnetwork.api.requests.LinkRequest;
 import ru.skillbox.socialnetwork.api.requests.ListUserIdsRequest;
 import ru.skillbox.socialnetwork.api.requests.MessageTextRequest;
-import ru.skillbox.socialnetwork.controllers.DialogController;
 import ru.skillbox.socialnetwork.model.entity.Dialog;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.repository.DialogRepository;
@@ -44,8 +43,6 @@ public class DialogControllerTests {
 
     private final long currentPersonId = 9L;  // shred@mail.who
     private final long secondId = 8L;
-    @Autowired
-    private DialogController dialogController;
     @Autowired
     private MockMvc mockMvc;
     @Autowired
