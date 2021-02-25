@@ -3,16 +3,12 @@ package ru.skillbox.socialnetwork.api.responses;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.skillbox.socialnetwork.model.entity.Person;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
+import ru.skillbox.socialnetwork.services.ConvertTimeService;
 
 @Data
 @Builder
@@ -45,46 +41,8 @@ public class PersonEntityResponse {
     private String token;
 
 
-    // Friends ->  token = null !!!
-    public PersonEntityResponse(long id, String firstName, String lastName, long regDate,
-                                Long birthDate,
-                                String email, String phone, String photo, String about,
-                                String city, String country, String messagesPermission,
-                                Long lastOnlineTime, boolean isBlocked) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.regDate = regDate;
-        this.birthDate = birthDate;
-        this.email = email;
-        this.phone = phone;
-        this.photo = photo;
-        this.about = about;
-        this.city = city;
-        this.country = country;
-        this.messagesPermission = messagesPermission;
-        this.lastOnlineTime = lastOnlineTime;
-        this.isBlocked = isBlocked;
-    }
-
-    public PersonEntityResponse(long id, String firstName, String lastName, LocalDateTime regDate,
-                                LocalDateTime birthDate, String email, String phone, String photo, String about,
-                                String city, String country, String messagesPermission,
-                                LocalDateTime lastOnlineTime, boolean isBlocked, String token) {
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        if (regDate != null) this.regDate = regDate.atZone(ZoneId.systemDefault()).toEpochSecond();
-        if (birthDate != null) this.birthDate = birthDate.atZone(ZoneId.systemDefault()).toEpochSecond();
-        this.email = email;
-        this.phone = phone;
-        this.photo = photo;
-        this.about = about;
-        this.city = city;
-        this.country = country;
-        this.messagesPermission = messagesPermission;
-        if (lastOnlineTime != null) this.lastOnlineTime = lastOnlineTime.atZone(ZoneId.systemDefault()).toEpochSecond();
-        this.isBlocked = isBlocked;
+    public PersonEntityResponse(Person person, String token) {
+        this(person);
         this.token = token;
     }
 
@@ -92,8 +50,8 @@ public class PersonEntityResponse {
         this.id = person.getId();
         this.firstName = person.getFirstName();
         this.lastName = person.getLastName();
-        if (regDate != null) this.regDate = person.getRegDate().atZone(ZoneId.systemDefault()).toEpochSecond();
-        if (birthDate != null) this.birthDate = person.getBirthDate().atZone(ZoneId.systemDefault()).toEpochSecond();
+        if (person.getRegDate() != null) this.regDate = ConvertTimeService.getTimestamp(person.getRegDate());
+        if (person.getBirthDate() != null) this.birthDate = ConvertTimeService.getTimestamp(person.getBirthDate());
         this.email = person.getEmail();
         this.phone = person.getPhone();
         this.photo = person.getPhoto();
@@ -101,37 +59,9 @@ public class PersonEntityResponse {
         this.city = person.getCity();
         this.country = person.getCountry();
         this.messagesPermission = person.getMessagePermission();
-        if (lastOnlineTime != null) {
-            this.lastOnlineTime = person.getLastOnlineTime().atZone(ZoneId.systemDefault()).toEpochSecond();
+        if (person.getLastOnlineTime() != null) {
+            this.lastOnlineTime = ConvertTimeService.getTimestamp(person.getLastOnlineTime());
         }
         this.isBlocked = person.isBlocked();
     }
-
-
-    public static PersonEntityResponse getResponseEntity(Person person){
-        return new PersonEntityResponse(
-                person.getId(),
-                person.getFirstName(),
-                person.getLastName(),
-                Date
-                        .from(person.getRegDate().atZone(ZoneId.systemDefault())
-                                .toInstant()).getTime(),
-                person.getBirthDate() == null ? null : Date
-                        .from(person.getBirthDate().atZone(ZoneId.systemDefault())
-                                .toInstant()).getTime(),
-                person.getEmail(),
-                person.getPhone(),
-                person.getPhoto(),
-                person.getAbout(),
-                person.getCity(),
-                person.getCountry(),
-                person.getMessagePermission(),
-                person.getLastOnlineTime() == null ? null : Date
-                        .from(person.getLastOnlineTime().atZone(ZoneId.systemDefault())
-                                .toInstant()).getTime(),
-                person.getIsBlocked() == 1
-        );
-
-    }
-
 }

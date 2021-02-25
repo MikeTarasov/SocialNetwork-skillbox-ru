@@ -1,11 +1,10 @@
 package ru.skillbox.socialnetwork.model.entity;
 
 import lombok.Data;
+import ru.skillbox.socialnetwork.services.ConvertTimeService;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 
 @Data
 @Entity
@@ -40,6 +39,6 @@ public class Message {
     private int isDeleted;
 
     public long getTimestamp() {
-        return time.toInstant(ZoneOffset.of(String.valueOf(ZoneId.systemDefault()))).toEpochMilli();
+        return ConvertTimeService.getTimestamp(time);
     }
 }

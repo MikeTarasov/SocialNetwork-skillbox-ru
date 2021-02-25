@@ -2,11 +2,10 @@ package ru.skillbox.socialnetwork.model.entity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.skillbox.socialnetwork.services.ConvertTimeService;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 
 @Data
 @NoArgsConstructor
@@ -39,10 +38,7 @@ public class Notification {
     private int isRead;
 
     public long getTimeStamp() {
-        return java.util.Date
-                .from(time.atZone(ZoneId.systemDefault())
-                        .toInstant()).getTime();
-        //return time.toInstant(ZoneOffset.of(String.valueOf(ZoneId.systemDefault()))).toEpochMilli();
+        return ConvertTimeService.getTimestamp(time);
     }
 
     public Notification(NotificationType type, LocalDateTime time, Person personNotification, Long entityId, String contact, int isRead) {

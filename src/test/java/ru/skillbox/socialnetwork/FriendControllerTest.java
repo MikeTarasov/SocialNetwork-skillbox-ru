@@ -11,7 +11,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.skillbox.socialnetwork.api.requests.ListUserIdsRequest;
-import ru.skillbox.socialnetwork.controllers.FriendController;
 import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.enums.FriendStatus;
 import ru.skillbox.socialnetwork.repository.FriendshipRepository;
@@ -34,8 +33,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class FriendControllerTest {
 
     @Autowired
-    private FriendController friendController;
-    @Autowired
     private MockMvc mockMvc;
     @Autowired
     private FriendshipRepository friendshipRepository;
@@ -53,7 +50,7 @@ public class FriendControllerTest {
     public void getAllFriends1Test() throws Exception {
         this.mockMvc.perform(get("/friends")
                 .queryParam("offset", "0")
-                .queryParam("itemPerPage","10"))
+                .queryParam("itemPerPage", "10"))
 
                 .andExpect(status().isOk())
                 .andExpect(authenticated())
@@ -290,7 +287,7 @@ public class FriendControllerTest {
                 .andExpect(authenticated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.error").value("invalid_request"))
-                .andExpect(jsonPath("$.error_description").value("Friendhsip request prohibited by destination user"));
+                .andExpect(jsonPath("$.error_description").value("Friendship request prohibited by destination user"));
 
         Person currentPerson = personRepository.findByEmail("shred@mail.who").get();
         Person dstPerson = personRepository.findById(dstPersonId).get();

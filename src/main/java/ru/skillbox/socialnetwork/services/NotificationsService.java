@@ -1,10 +1,10 @@
 package ru.skillbox.socialnetwork.services;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import ru.skillbox.socialnetwork.api.responses.*;
+import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
+import ru.skillbox.socialnetwork.api.responses.NotificationBaseResponse;
 import ru.skillbox.socialnetwork.model.entity.*;
 import ru.skillbox.socialnetwork.repository.*;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
@@ -25,8 +25,6 @@ public class NotificationsService {
     private final FriendshipRepository friendshipRepository;
     private final PersonDetailsService personDetailsService;
     private final PersonRepository personRepository;
-    @Value("${notification.text.length}")
-    private int notificationTextLength;
 
     public NotificationsService(NotificationsRepository notificationsRepository,
                                 NotificationSettingsRepository notificationSettingsRepository,
@@ -45,7 +43,7 @@ public class NotificationsService {
         this.personRepository = personRepository;
     }
 
-    private List<NotificationBaseResponse> convertToNotificationResponse(List<Notification> notifications, Person person) {
+    public List<NotificationBaseResponse> convertToNotificationResponse(List<Notification> notifications, Person person) {
         List<NotificationBaseResponse> result = new ArrayList<>();
 
         List<NotificationSettings> notificationSettingsList = notificationSettingsRepository
@@ -76,25 +74,28 @@ public class NotificationsService {
                     case 4:
                         Optional<Friendship> friendRequestOptional = friendshipRepository.findById(entityId);
                         if (friendRequestOptional.isEmpty()) break;
-                        Friendship friendRequest = friendRequestOptional.get();
-                        info = "User ".concat(personRepository.findById(friendRequest.getSrcPerson().getId())
-                                .get().getFirstName().concat(" ")
-                                .concat(personRepository.findById(friendRequest.getSrcPerson().getId())
-                                        .get().getLastName()).concat(" offers friendship"));
+                        Optional<Person> personOptional = personRepository
+                                .findById(friendRequestOptional.get().getSrcPerson().getId());
+                        if (personOptional.isEmpty()) break;
+                        Person srcPerson = personOptional.get();
+                        info = "User ".concat(srcPerson.getFirstName().concat(" ")
+                                .concat(srcPerson.getLastName()).concat(" offers friendship"));
                         break;
                     case 5:
                         Optional<Message> optionalMessage = messageRepository.findById(entityId);
                         if (optionalMessage.isEmpty()) break;
                         Message message = optionalMessage.get();
                         info = "New message '".concat(getInfo(message.getText()))
-                                .concat(" from user ")
+                                .concat("' from user ")
                                 .concat(personRepository.findById(message.getAuthor().getId()).get().getFirstName());
                         break;
                     case 6:
-                        if (!person.getEmail().equals(personRepository.findById(entityId).get().getEmail())) {
-                            info = "User ".concat(personRepository.findById(entityId).get().getFirstName())
+                        Optional<Person> optionalPerson = personRepository.findById(entityId);
+                        if (optionalPerson.isEmpty()) break;
+                        if (!person.getEmail().equals(optionalPerson.get().getEmail())) {
+                            info = "User ".concat(optionalPerson.get().getFirstName())
                                     .concat(" ")
-                                    .concat(personRepository.findById(entityId).get().getLastName())
+                                    .concat(optionalPerson.get().getLastName())
                                     .concat(" celebrates his/her birthday!");
                         }
                         break;
@@ -110,15 +111,14 @@ public class NotificationsService {
         return result;
     }
 
-    private boolean setIsRead(long id) {
+    public void setIsRead(long id) {
         Optional<Notification> optionalNotification = notificationsRepository.findById(id);
         if (optionalNotification.isEmpty()) {
-            return false;
+            return;
         }
         Notification notification = optionalNotification.get();
         notification.setIsRead(1);
         notificationsRepository.save(notification);
-        return true;
     }
 
     public ResponseEntity<?> getApiNotifications(Integer offset, Integer itemPerPage) {
@@ -146,9 +146,9 @@ public class NotificationsService {
 
         Person person = personDetailsService.getCurrentUser();
 
-        if (!all || all == null) {
+        if (all == null || !all) {
             setIsRead(id);
-        } else if (all) {
+        } else {
             notificationsRepository.findByPersonNotificationAndIsRead(person, 0, null)
                     .forEach(notification -> setIsRead(notification.getId()));
         }

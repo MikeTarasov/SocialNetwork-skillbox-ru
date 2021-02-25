@@ -280,10 +280,11 @@ public class AccountControllerTests {
 
     @Test
     void testPutApiAccountEmail_Security_OK() throws Exception {
-        save(email, testPerson);
+        String newEmail = "1" + email;
+        save(newEmail, testPerson);
         String jwtToken = auth();
 
-        EmailRequest requestBody = new EmailRequest(email);
+        EmailRequest requestBody = new EmailRequest(newEmail);
 
         expectOK(mvc.perform(MockMvcRequestBuilders
                 .put("/account/email")
@@ -291,11 +292,11 @@ public class AccountControllerTests {
                 .header(HttpHeaders.AUTHORIZATION, jwtToken)
                 .content(objectMapper.writeValueAsString(requestBody))));
 
-        Optional<Person> person = personRepository.findByEmail(email);
+        Optional<Person> person = personRepository.findByEmail(newEmail);
         assertTrue(person.isPresent());
 
         clearContext();
-        delete(email);
+        delete(newEmail);
     }
 
     @Test

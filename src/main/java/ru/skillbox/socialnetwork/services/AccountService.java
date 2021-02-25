@@ -57,12 +57,14 @@ public class AccountService {
     }
 
     private boolean isEmailCorrect(String email) {
+        if (email == null || email.length() < 6) return false;
         return email.toLowerCase()
                 .replaceAll("(^([a-z0-9_\\.-]+)@([a-z0-9_\\.-]+)\\.([a-z\\.]{2,6})$)", "")
                 .equals("");
     }
 
     private boolean isNameCorrect(String name) {
+        if (name == null || name.length() < 3) return false;
         return name.toLowerCase()
                 .replaceAll("(^[a-zа-яё0-9-]+$)", "").equals("");
     }
@@ -196,7 +198,7 @@ public class AccountService {
         Person currentUser = personDetailsService.getCurrentUser();
         String newEmail = requestBody.getEmail();
 
-        if (!isEmailCorrect(newEmail) || !currentUser.getEmail().equals(newEmail)) {
+        if (!isEmailCorrect(newEmail) || currentUser.getEmail().equals(newEmail)) {
             return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Email is not valid!"));
         }
 

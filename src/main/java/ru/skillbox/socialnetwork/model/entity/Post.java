@@ -4,11 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import ru.skillbox.socialnetwork.services.ConvertTimeService;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +64,7 @@ public class Post {
     }
 
     public long getTimestamp() {
-        return time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+        return ConvertTimeService.getTimestamp(time);
     }
 
     public boolean isBlocked(){

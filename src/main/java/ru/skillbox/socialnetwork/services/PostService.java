@@ -11,18 +11,17 @@ import ru.skillbox.socialnetwork.api.requests.ParentIdCommentTextRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
 import ru.skillbox.socialnetwork.api.responses.*;
 import ru.skillbox.socialnetwork.model.entity.Notification;
-import ru.skillbox.socialnetwork.model.entity.Person;
 import ru.skillbox.socialnetwork.model.entity.Post;
 import ru.skillbox.socialnetwork.model.entity.PostComment;
 import ru.skillbox.socialnetwork.repository.*;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static ru.skillbox.socialnetwork.services.ConvertTimeService.getLocalDateTime;
 
 @Service
 @Transactional
@@ -71,7 +70,7 @@ public class PostService {
         Pageable pageable = PageRequest.of(offset / itemPerPage, itemPerPage);
 
         List<Post> posts = postRepository.searchPostsByParametersNotBlockedAndNotDeleted(
-                text, authorName, getMillisecondsToLocalDateTime(dateFrom), getMillisecondsToLocalDateTime(dateTo),
+                text, authorName, getLocalDateTime(dateFrom), getLocalDateTime(dateTo),
                 personDetailsService.getCurrentUser().getId(), pageable);
 
         return ResponseEntity.status(HttpStatus.OK)
@@ -104,7 +103,7 @@ public class PostService {
         Post post = optionalPost.get();
         post.setTitle(requestBody.getTitle());
         post.setPostText(requestBody.getPostText());
-        post.setTime(getMillisecondsToLocalDateTime(publishDate == 0 ? System.currentTimeMillis() : publishDate));
+        post.setTime(getLocalDateTime(publishDate == 0 ? System.currentTimeMillis() : publishDate));
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse(
@@ -195,7 +194,7 @@ public class PostService {
         if (requestBody.getParentId() == null) {
             notificationsRepository.save(new Notification(
                     notificationTypeRepository.findById(2L).get(),
-                    getMillisecondsToLocalDateTime(System.currentTimeMillis()),
+                    LocalDateTime.now(),
                     postRepository.findById(id).get().getAuthor(),
                     id,
                     postRepository.findById(id).get().getAuthor().getEmail(),
@@ -204,7 +203,7 @@ public class PostService {
         } else {
             notificationsRepository.save(new Notification(
                     notificationTypeRepository.findById(3L).get(),
-                    getMillisecondsToLocalDateTime(System.currentTimeMillis()),
+                    LocalDateTime.now(),
                     commentRepository.findById(requestBody.getParentId()).get().getPerson(),
                     requestBody.getParentId(),
                     commentRepository.findById(requestBody.getParentId()).get().getPerson().getEmail(),
@@ -335,9 +334,7 @@ public class PostService {
     private PostEntityResponse getPostEntityResponseByPost(Post post) {
         return new PostEntityResponse(
                 post.getId(),
-                java.util.Date
-                        .from(post.getTime().atZone(ZoneId.systemDefault())
-                                .toInstant()).getTime(),
+                System.currentTimeMillis(),
                 getPersonEntityResponseByPost(post),
                 post.getTitle(),
                 post.getPostText(),
@@ -349,29 +346,7 @@ public class PostService {
     }
 
     private PersonEntityResponse getPersonEntityResponseByPost(Post post) {
-        Person author = post.getAuthor();
-        return new PersonEntityResponse(
-                author.getId(),
-                author.getFirstName(),
-                author.getLastName(),
-                java.util.Date
-                        .from(author.getRegDate().atZone(ZoneId.systemDefault())
-                                .toInstant()).getTime(),
-                author.getBirthDate() == null ? null : java.util.Date
-                        .from(author.getBirthDate().atZone(ZoneId.systemDefault())
-                                .toInstant()).getTime(),
-                author.getEmail(),
-                author.getPhone(),
-                author.getPhoto(),
-                author.getAbout(),
-                author.getCity(),
-                author.getCountry(),
-                author.getMessagePermission(),
-                author.getLastOnlineTime() == null ? null : java.util.Date
-                        .from(author.getLastOnlineTime().atZone(ZoneId.systemDefault())
-                                .toInstant()).getTime(),
-                author.getIsBlocked() == 1
-        );
+        return new PersonEntityResponse(post.getAuthor());
     }
 
 
@@ -391,11 +366,6 @@ public class PostService {
 
     private CommentEntityResponse getCommentEntityResponseByComment(PostComment comment) {
         return new CommentEntityResponse(comment, commentRepository);
-    }
-
-    private LocalDateTime getMillisecondsToLocalDateTime(long milliseconds) {
-        return Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
-
     }
 
     private String convertNullString(String s) {

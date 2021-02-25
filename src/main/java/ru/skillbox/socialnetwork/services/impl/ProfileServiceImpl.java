@@ -16,6 +16,7 @@ import ru.skillbox.socialnetwork.repository.PersonRepository;
 import ru.skillbox.socialnetwork.repository.PostCommentRepository;
 import ru.skillbox.socialnetwork.repository.PostRepository;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
+import ru.skillbox.socialnetwork.services.ConvertTimeService;
 import ru.skillbox.socialnetwork.services.ProfileService;
 import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
@@ -207,27 +208,7 @@ public class ProfileServiceImpl implements ProfileService {
      * @return PersonEntityResponse
      */
     PersonEntityResponse convertPersonToResponse(Person person) {
-        LocalDateTime birthDate = person.getBirthDate();
-        LocalDateTime lastOnlineTime = person.getLastOnlineTime();
-
-        return PersonEntityResponse.builder()
-                .id(person.getId())
-                .firstName(person.getFirstName())
-                .lastName(person.getLastName())
-                .regDate(person.getRegDate().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
-                .birthDate(birthDate == null ? null :
-                        birthDate.atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
-                .email(person.getEmail())
-                .phone(person.getPhone())
-                .photo(person.getPhoto())
-                .about(person.getAbout())
-                .city(person.getCity())
-                .country(person.getCountry())
-                .messagesPermission(person.getMessagePermission())
-                .lastOnlineTime(lastOnlineTime == null ? null :
-                        lastOnlineTime.atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
-                .isBlocked(person.getIsBlocked() == 1)
-                .build();
+        return new PersonEntityResponse(person);
     }
 
     /**
@@ -258,7 +239,7 @@ public class ProfileServiceImpl implements ProfileService {
     private PostEntityResponse convertPostToPostResponse(Post post, String type) {
         return PostEntityResponse.builder()
                 .id(post.getId())
-                .time(post.getTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
+                .time(ConvertTimeService.getTimestamp(post.getTime()))
                 .title(post.getTitle())
                 .author(convertPersonToResponse(post.getAuthor()))
                 .postText(post.getPostText())

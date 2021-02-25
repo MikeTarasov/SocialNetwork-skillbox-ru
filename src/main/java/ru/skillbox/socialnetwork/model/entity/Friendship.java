@@ -12,6 +12,7 @@ public class Friendship {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "src_person_id")
     private Person srcPerson;
