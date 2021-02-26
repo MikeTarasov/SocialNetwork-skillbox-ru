@@ -191,26 +191,6 @@ public class PostService {
             return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse(errors.toString().trim()));
         }
 
-        if (requestBody.getParentId() == null) {
-            notificationsRepository.save(new Notification(
-                    notificationTypeRepository.findById(2L).get(),
-                    LocalDateTime.now(),
-                    postRepository.findById(id).get().getAuthor(),
-                    id,
-                    postRepository.findById(id).get().getAuthor().getEmail(),
-                    0
-            ));
-        } else {
-            notificationsRepository.save(new Notification(
-                    notificationTypeRepository.findById(3L).get(),
-                    LocalDateTime.now(),
-                    commentRepository.findById(requestBody.getParentId()).get().getPerson(),
-                    requestBody.getParentId(),
-                    commentRepository.findById(requestBody.getParentId()).get().getPerson().getEmail(),
-                    0
-            ));
-        }
-
         PostComment comment = commentRepository.save(new PostComment(
                 LocalDateTime.now(),
                 requestBody.getParentId(),
@@ -220,6 +200,26 @@ public class PostService {
                 personDetailsService.getCurrentUser(),
                 postRepository.findByIdAndTimeIsBefore(id, LocalDateTime.now()).get()
         ));
+
+        if (requestBody.getParentId() == null) {
+            notificationsRepository.save(new Notification(
+                    notificationTypeRepository.findById(2L).get(),
+                    LocalDateTime.now(),
+                    postRepository.findById(id).get().getAuthor(),
+                    comment.getId(),
+                    postRepository.findById(id).get().getAuthor().getEmail(),
+                    0
+            ));
+        } else {
+            notificationsRepository.save(new Notification(
+                    notificationTypeRepository.findById(3L).get(),
+                    LocalDateTime.now(),
+                    commentRepository.findById(requestBody.getParentId()).get().getPerson(),
+                    comment.getId(),
+                    commentRepository.findById(requestBody.getParentId()).get().getPerson().getEmail(),
+                    0
+            ));
+        }
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse(
