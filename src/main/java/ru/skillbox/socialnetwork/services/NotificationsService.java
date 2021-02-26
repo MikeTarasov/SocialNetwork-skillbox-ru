@@ -61,7 +61,7 @@ public class NotificationsService {
 
                 long entityId = notification.getEntityId();
                 String info = "";
-                Person author = null;
+                Long authorId = null;
 
                 switch ((int) notification.getType().getId()) {
                     case 2:
@@ -70,25 +70,25 @@ public class NotificationsService {
                         if (commentToPostOptional.isEmpty()) break;
                         PostComment commentToPost = commentToPostOptional.get();
                         info = getInfo(commentToPost.getCommentText());
-                        author = commentToPost.getPerson();
+                        authorId = commentToPost.getPerson().getId();
                         break;
                     case 4:
                         Optional<Friendship> friendRequestOptional = friendshipRepository.findById(entityId);
                         if (friendRequestOptional.isEmpty()) break;
-                        author = friendRequestOptional.get().getSrcPerson();
+                        authorId = friendRequestOptional.get().getSrcPerson().getId();
                         info = "Напишите ему!";
                         break;
                     case 5:
                         Optional<Message> optionalMessage = messageRepository.findById(entityId);
                         if (optionalMessage.isEmpty()) break;
                         Message message = optionalMessage.get();
-                        author = message.getAuthor();
+                        authorId = message.getAuthor().getId();
                         info =  getInfo(message.getText());
                         break;
                     case 6:
                         Optional<Person> optionalPerson = personRepository.findById(entityId);
                         if (optionalPerson.isEmpty()) break;
-                        author = personRepository.findById(entityId).orElseThrow(() -> new PersonNotFoundException(entityId));
+                        authorId = personRepository.findById(entityId).orElseThrow(() -> new PersonNotFoundException(entityId)).getId();
 //                        if (!person.getEmail().equals(optionalPerson.get().getEmail())) {
 //                            info = "User ".concat(optionalPerson.get().getFirstName())
 //                                    .concat(" ")
@@ -98,12 +98,12 @@ public class NotificationsService {
                         info = "Поздравьте его!";
                         break;
                     default:
-                        author = personRepository.findById(2L).get(); // TODO: Создать сервисного пользователя для отправки уведомлений когда у события не заполнен автор
+                        authorId = 2L; // TODO: Создать сервисного пользователя для отправки уведомлений когда у события не заполнен автор
                         break;
                 }
-
+                Person author = personRepository.findById(authorId).get();
                 PersonEntityResponse authorResponse = PersonEntityResponse.builder()
-                        .id(author.getId())
+                        .id(authorId)
                         .photo(author.getPhoto())
                         .firstName(author.getFirstName())
                         .lastName(author.getLastName())
