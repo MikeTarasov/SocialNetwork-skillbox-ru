@@ -55,22 +55,6 @@ class NotificationsControllerTest {
     @Sql(value = {"/ClearNotificationsForTestGet.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
     void testGetNotification() throws Exception {
 
-        Person person = personDetailsService.getCurrentUser();
-
-        List<NotificationBaseResponse> d = notificationsService.convertToNotificationResponse(
-                notificationsRepository
-                        .findByPersonNotificationAndIsRead(person, 0,
-                                PageRequest.of(offset, itemPerPage)), person);
-
-        ErrorTimeTotalOffsetPerPageListDataResponse response = new ErrorTimeTotalOffsetPerPageListDataResponse(
-                "",
-                System.currentTimeMillis(),
-                notificationsRepository.countByPersonNotificationAndIsRead(person, 0),
-                offset,
-                itemPerPage,
-                d
-        );
-
         mvc.perform(MockMvcRequestBuilders
                 .get("/notifications/")
                 .param("offset", String.valueOf(0))
@@ -79,14 +63,12 @@ class NotificationsControllerTest {
                 .andExpect(authenticated())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.error").value(""))
-                .andExpect(jsonPath("$.total")
-                        .value(String.valueOf(response.getTotal())))
-                .andExpect(jsonPath("$.offset")
-                        .value(String.valueOf(response.getOffset())))
-                .andExpect(jsonPath("$.perPage")
-                        .value(String.valueOf(response.getPerPage())))
-                .andExpect(jsonPath("$.data[:1].type_id")
-                        .value(3));
+                .andExpect(jsonPath("$.total").value(String.valueOf(3)))
+                .andExpect(jsonPath("$.offset").value(String.valueOf(0)))
+                .andExpect(jsonPath("$.perPage").value(String.valueOf(20)))
+                .andExpect(jsonPath("$.data[:1].type_id").value(3))
+                .andExpect(jsonPath("$.data[1].event_type").value("FRIEND_REQUEST"))
+                .andExpect(jsonPath("$.data[0].event_type").value("COMMENT_COMMENT"));
     }
 
     @Test
