@@ -106,7 +106,7 @@ public class FriendServiceImpl implements FriendService {
                 notificationTypeRepository.findById(4L).get(),
                 LocalDateTime.now(),
                 dstPerson,
-                dstPersonId,
+                friendshipOut.getId(),
                 dstPerson.getEmail(),
                 0
         ));

@@ -5,9 +5,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
 import ru.skillbox.socialnetwork.api.responses.NotificationBaseResponse;
+import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
 import ru.skillbox.socialnetwork.model.entity.*;
 import ru.skillbox.socialnetwork.repository.*;
 import ru.skillbox.socialnetwork.security.PersonDetailsService;
+import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,53 +61,63 @@ public class NotificationsService {
 
                 long entityId = notification.getEntityId();
                 String info = "";
+                Person author = null;
 
                 switch ((int) notification.getType().getId()) {
                     case 2:
-
                     case 3:
                         Optional<PostComment> commentToPostOptional = postCommentRepository.findById(entityId);
                         if (commentToPostOptional.isEmpty()) break;
                         PostComment commentToPost = commentToPostOptional.get();
-                        info = "New Comment '".concat(getInfo(commentToPost.getCommentText()))
-                                .concat(" from user ").concat(personRepository.findById(commentToPost.getPerson()
-                                        .getId()).get().getFirstName());
+                        info = getInfo(commentToPost.getCommentText());
+                        author = commentToPost.getPerson();
                         break;
                     case 4:
                         Optional<Friendship> friendRequestOptional = friendshipRepository.findById(entityId);
                         if (friendRequestOptional.isEmpty()) break;
-                        Optional<Person> personOptional = personRepository
-                                .findById(friendRequestOptional.get().getSrcPerson().getId());
-                        if (personOptional.isEmpty()) break;
-                        Person srcPerson = personOptional.get();
-                        info = "User ".concat(srcPerson.getFirstName().concat(" ")
-                                .concat(srcPerson.getLastName()).concat(" offers friendship"));
+                        author = friendRequestOptional.get().getSrcPerson();
+                        info = "Напишите ему!";
                         break;
                     case 5:
                         Optional<Message> optionalMessage = messageRepository.findById(entityId);
                         if (optionalMessage.isEmpty()) break;
                         Message message = optionalMessage.get();
-                        info = "New message '".concat(getInfo(message.getText()))
-                                .concat("' from user ")
-                                .concat(personRepository.findById(message.getAuthor().getId()).get().getFirstName());
+                        author = message.getAuthor();
+                        info =  getInfo(message.getText());
                         break;
                     case 6:
                         Optional<Person> optionalPerson = personRepository.findById(entityId);
                         if (optionalPerson.isEmpty()) break;
-                        if (!person.getEmail().equals(optionalPerson.get().getEmail())) {
-                            info = "User ".concat(optionalPerson.get().getFirstName())
-                                    .concat(" ")
-                                    .concat(optionalPerson.get().getLastName())
-                                    .concat(" celebrates his/her birthday!");
-                        }
+                        author = personRepository.findById(entityId).orElseThrow(() -> new PersonNotFoundException(entityId));
+//                        if (!person.getEmail().equals(optionalPerson.get().getEmail())) {
+//                            info = "User ".concat(optionalPerson.get().getFirstName())
+//                                    .concat(" ")
+//                                    .concat(optionalPerson.get().getLastName())
+//                                    .concat(" celebrates his/her birthday!");
+//                        }
+                        info = "Поздравьте его!";
+                        break;
+                    default:
+                        author = personRepository.findById(2L).get(); // TODO: Создать сервисного пользователя для отправки уведомлений когда у события не заполнен автор
                         break;
                 }
+
+                PersonEntityResponse authorResponse = PersonEntityResponse.builder()
+                        .id(author.getId())
+                        .photo(author.getPhoto())
+                        .firstName(author.getFirstName())
+                        .lastName(author.getLastName())
+                        .build();
+
                 result.add(new NotificationBaseResponse(
                         notification.getId(),
                         typeId,
+                        notification.getType().getName(),
                         notification.getTimeStamp(),
                         notification.getEntityId(),
-                        info));
+                        info,
+                       authorResponse
+                       ));
             }
         }
         return result;
@@ -121,7 +133,7 @@ public class NotificationsService {
         notificationsRepository.save(notification);
     }
 
-    public ResponseEntity<?> getApiNotifications(Integer offset, Integer itemPerPage) {
+    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getApiNotifications(Integer offset, Integer itemPerPage) {
         Person person = personDetailsService.getCurrentUser();
 
         if (offset == null || itemPerPage == null) {
