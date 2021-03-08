@@ -49,6 +49,10 @@ public class PostService {
         this.notificationsRepository = notificationsRepository;
         this.notificationTypeRepository = notificationTypeRepository;
     }
+    //@Override
+    public Post findById(long id) {
+        return postRepository.findPostById(Math.toIntExact(id));
+    }
 
     //@Override
     public Post findById(long id) {
