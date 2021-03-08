@@ -223,17 +223,7 @@ public class ProfileService {
      */
 
     private PostEntityResponse convertPostToPostResponse(Post post, String type) {
-        return PostEntityResponse.builder()
-                .id(post.getId())
-                .time(ConvertTimeService.getTimestamp(post.getTime()))
-                .title(post.getTitle())
-                .author(convertPersonToResponse(post.getAuthor()))
-                .postText(post.getPostText())
-                .isBlocked(post.getIsBlocked() == 1)
-                .likes(post.getLikes().size())
-                .type(type)     // Mock
-                .comments(convertCommentsToCommentResponseList(postCommentRepository.getCommentsByPostId(post.getId())))
-                .build();
+        return new PostEntityResponse(post, postCommentRepository, type);
     }
 
     /**

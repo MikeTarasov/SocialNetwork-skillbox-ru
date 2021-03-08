@@ -102,12 +102,6 @@ public class NotificationsService {
                         break;
                 }
                 Person author = personRepository.findById(authorId).get();
-                PersonEntityResponse authorResponse = PersonEntityResponse.builder()
-                        .id(authorId)
-                        .photo(author.getPhoto())
-                        .firstName(author.getFirstName())
-                        .lastName(author.getLastName())
-                        .build();
 
                 result.add(new NotificationBaseResponse(
                         notification.getId(),
@@ -116,7 +110,7 @@ public class NotificationsService {
                         notification.getTimeStamp(),
                         notification.getEntityId(),
                         info,
-                       authorResponse
+                        new PersonEntityResponse(author)
                        ));
             }
         }

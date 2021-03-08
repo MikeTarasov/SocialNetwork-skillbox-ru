@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OnlineLastActivityResponse {
 
-  private boolean online;
-  @JsonProperty("last_activity")
-  private long lastActivity;
+    private boolean online;
+
+    @JsonProperty("last_activity")
+    private long lastActivity;
 }

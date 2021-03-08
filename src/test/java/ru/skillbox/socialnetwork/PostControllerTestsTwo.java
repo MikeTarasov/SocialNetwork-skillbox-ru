@@ -27,7 +27,6 @@ import ru.skillbox.socialnetwork.repositories.PostRepository;
 import ru.skillbox.socialnetwork.services.ConvertTimeService;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -577,18 +576,7 @@ class PostControllerTestsTwo {
     }
 
     private PostEntityResponse getPostEntityResponseByPost(Post post) {
-        return new PostEntityResponse(
-                post.getId(),
-                java.util.Date
-                        .from(post.getTime().atZone(ZoneId.systemDefault())
-                                .toInstant()).getTime(),
-                getPersonEntityResponseByPost(post),
-                post.getTitle(),
-                post.getPostText(),
-                post.getIsBlocked() == 1,
-                postLikeRepository.findByPostId(post.getId()).size(),
-                getCommentEntityResponseListByPost(post)
-        );
+        return new PostEntityResponse(post, commentRepository);
     }
 
     private PersonEntityResponse getPersonEntityResponseByPost(Post post) {

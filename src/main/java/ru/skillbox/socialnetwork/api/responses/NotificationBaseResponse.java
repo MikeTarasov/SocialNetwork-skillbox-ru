@@ -10,18 +10,24 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class NotificationBaseResponse {
 
-  @JsonProperty("id")
-  private long id;
-  @JsonProperty("type_id")
-  private long typeId;
-  @JsonProperty("event_type")
-  private String eventType;
-  @JsonProperty("sent_time")
-  private long sentTime;
-  @JsonProperty("entity_id")
-  private long entityId;
-  @JsonProperty("info")
-  private String info;
-  @JsonProperty("entity_author")
-  private PersonEntityResponse author;
+    @JsonProperty("id")
+    private long id;
+
+    @JsonProperty("type_id")
+    private long typeId;
+
+    @JsonProperty("event_type")
+    private String eventType;
+
+    @JsonProperty("sent_time")
+    private long sentTime;
+
+    @JsonProperty("entity_id")
+    private long entityId;
+
+    @JsonProperty("info")
+    private String info;
+
+    @JsonProperty("entity_author")
+    private PersonEntityResponse author;
 }

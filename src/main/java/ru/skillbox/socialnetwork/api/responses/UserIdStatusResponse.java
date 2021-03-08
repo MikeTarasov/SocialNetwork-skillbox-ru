@@ -13,5 +13,6 @@ public class UserIdStatusResponse {
 
   @JsonProperty("user_id")
   private Long userId;
+
   private FriendStatus status;
 }

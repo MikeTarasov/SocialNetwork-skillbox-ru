@@ -142,12 +142,10 @@ public class FriendService {
             Person dstPerson = personRepository.findById(id).get();
             if (friendshipRepository.findByDstPersonAndSrcPerson(personRepository.findById(id).get(), currentPerson).isEmpty())
                 continue;
-            UserIdStatusResponse status = new UserIdStatusResponse();
-            status.setUserId(id);
-            status.setStatus(FriendStatus.valueOf(
-                    friendshipRepository.findByDstPersonAndSrcPerson(personRepository.findById(id).get(), currentPerson)
-                            .get().getCode()));
-            response.add(status);
+            response.add(new UserIdStatusResponse(id,
+                    FriendStatus.valueOf(friendshipRepository
+                            .findByDstPersonAndSrcPerson(personRepository.findById(id).get(), currentPerson)
+                            .get().getCode())));
         }
         return response;
     }

@@ -7,9 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import ru.skillbox.socialnetwork.api.responses.CommentEntityResponse;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
-import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
 import ru.skillbox.socialnetwork.api.responses.PostEntityResponse;
 import ru.skillbox.socialnetwork.config.security.PersonDetailsService;
 import ru.skillbox.socialnetwork.model.entities.Friendship;
@@ -74,17 +72,7 @@ public class FeedService {
   }
 
   private PostEntityResponse getPostEntityResponse(Post post) {
-    return PostEntityResponse.builder()
-            .id(post.getId())
-            .time(post.getTimestamp())
-            .author(new PersonEntityResponse(post.getAuthor()))
-        .title(post.getTitle())
-        .postText(post.getPostText())
-        .isBlocked(post.isBlocked())
-        .likes(post.getLikes().size())
-        .comments(CommentEntityResponse
-            .getCommentEntityResponseList(post.getComments(), postCommentRepository))
-        .build();
+    return new PostEntityResponse(post, postCommentRepository);
   }
 
   private ErrorTimeTotalOffsetPerPageListDataResponse getErrorTimeOffsetPerPageListDataResponse(

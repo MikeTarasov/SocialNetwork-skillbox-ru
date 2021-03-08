@@ -314,17 +314,7 @@ public class PostService {
     }
 
     private PostEntityResponse getPostEntityResponseByPost(Post post) {
-        return new PostEntityResponse(
-                post.getId(),
-                System.currentTimeMillis(),
-                getPersonEntityResponseByPost(post),
-                post.getTitle(),
-                post.getPostText(),
-                post.getIsBlocked() == 1,
-                postLikeRepository
-                        .countPostLikesByPostIdAndPersonId(post.getId(), personDetailsService.getCurrentUser().getId()),
-                getCommentEntityResponseListByPost(post)
-        );
+        return new PostEntityResponse(post, commentRepository);
     }
 
     private PersonEntityResponse getPersonEntityResponseByPost(Post post) {

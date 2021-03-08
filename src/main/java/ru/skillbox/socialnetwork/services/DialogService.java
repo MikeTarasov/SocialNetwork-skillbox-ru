@@ -77,7 +77,7 @@ public class DialogService {
             if (messageOptional.isPresent()) {
                 unreadDialogsList.add(new IdUnreadCountLastMessageResponse(dialogId,
                         messageOptional.get().getRecipient().getId() == currentUser.getId() ? dialogRepository.findById(dialogId).get().getUnreadCount() : 0,     //unreadCount возвращаем только если пользователь является получателем последнего сообщения
-                        messageToResponse(messageOptional.get(), currentUser.getId())));
+                        new MessageEntityResponse(messageOptional.get(), currentUser.getId())));
             } else {
                 unreadDialogsList.add(new IdUnreadCountLastMessageResponse(dialogId, 0, new MessageEntityResponse()));
             }
@@ -240,7 +240,7 @@ public class DialogService {
             dialogRepository.resetUnreadCountById(dialogId);
         long currentUserId = personDetailsService.getCurrentUser().getId();
         return new ErrorTimeTotalOffsetPerPageListDataResponse(pageMessage.getTotalElements(), offset, limit,
-                pageMessage.stream().map(message -> messageToResponse(message, currentUserId))
+                pageMessage.stream().map(message -> new MessageEntityResponse(message, currentUserId))
                         .collect(Collectors.toList()));
 
     }
@@ -276,7 +276,7 @@ public class DialogService {
         message.setReadStatus(ReadStatus.SENT.name());
         message.setIsDeleted(0);
         Message savedMessage = messageRepository.save(message);
-        MessageEntityResponse messageEntityResponse = messageToResponse(message, authorId);
+        MessageEntityResponse messageEntityResponse = new MessageEntityResponse(message, authorId);
         dialogRepository.incrementUnreadCountById(dialogId);
 
         notificationsRepository.save(new Notification(
@@ -297,7 +297,7 @@ public class DialogService {
         Person person = personRepository.findById(personId).orElseThrow(() -> new PersonNotFoundException(personId));
         OnlineLastActivityResponse response = new OnlineLastActivityResponse(
                 person.getIsOnline() == 1,
-                person.getLastOnlineTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli());
+                ConvertTimeService.getTimestamp(person.getLastOnlineTime()));
         return new ErrorTimeDataResponse(response);
     }
 
@@ -348,7 +348,7 @@ public class DialogService {
         message.setIsDeleted(0);
         messageRepository.save(message);
         long currentUserId = personDetailsService.getCurrentUser().getId();
-        return new ErrorTimeDataResponse(messageToResponse(message, currentUserId));
+        return new ErrorTimeDataResponse(new MessageEntityResponse(message, currentUserId));
     }
 
     /**
@@ -378,7 +378,7 @@ public class DialogService {
         message.setText(messageTextRequest.getMessageText());
         messageRepository.save(message);
         long currentUserId = personDetailsService.getCurrentUser().getId();
-        return new ErrorTimeDataResponse(messageToResponse(message, currentUserId));
+        return new ErrorTimeDataResponse(new MessageEntityResponse(message, currentUserId));
     }
 
 
@@ -403,32 +403,7 @@ public class DialogService {
                 .toString();
     }
 
-    private MessageEntityResponse messageToResponse(Message message, long currentPersonId) {
-        //Person recipient = message.getRecipient();
-        Person recipient = message.getAuthor().getId() == currentPersonId ? message.getRecipient() : message.getAuthor(); //костыль
-        return MessageEntityResponse.builder()
-                .id(message.getId())
-                .isSentByMe(message.getAuthor().getId() == currentPersonId)
-                .authorId(message.getAuthor().getId())
-                .recipient(PersonEntityResponse.builder()
-                        .email(recipient.getEmail())
-                        .firstName(recipient.getFirstName())
-                        .lastName(recipient.getLastName())
-                        .id(recipient.getId())
-                        .photo(recipient.getPhoto())
-                        .lastOnlineTime(recipient.getLastOnlineTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
-                        .isBlocked(recipient.isBlocked())
-                        .build()
-                )
-                .messageText(message.getText())
-                .timestamp(message.getTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli())
-                .readStatus(message.getReadStatus())
-                .build();
-    }
-
     private LocalDateTime getMillisecondsToLocalDateTime(long milliseconds) {
         return Instant.ofEpochMilli(milliseconds).atZone(ZoneId.systemDefault()).toLocalDateTime();
-
     }
-
 }
