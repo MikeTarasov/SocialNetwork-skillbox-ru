@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CountResponse {
 
-  private Long count;
+    private Long count;
 }

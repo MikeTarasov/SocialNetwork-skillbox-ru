@@ -14,33 +14,33 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(PersonNotFoundException.class)
     protected ResponseEntity<ErrorErrorDescriptionResponse> handlePersonNotFoundException(PersonNotFoundException ex) {
         return ResponseEntity.status(200)
-                .body(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()));
+                .body(new ErrorErrorDescriptionResponse(ex.getMessage()));
     }
     @ExceptionHandler(DialogNotFoundException.class)
     protected ResponseEntity<ErrorErrorDescriptionResponse> handleDialogNotFoundException(DialogNotFoundException ex) {
-        return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
+        return new ResponseEntity<>(new ErrorErrorDescriptionResponse(ex.getMessage()),
                 HttpStatus.OK);
     }
     @ExceptionHandler(MessageNotFoundException.class)
     protected ResponseEntity<ErrorErrorDescriptionResponse> handleMessageNotFoundException(MessageNotFoundException ex) {
-        return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
+        return new ResponseEntity<>(new ErrorErrorDescriptionResponse(ex.getMessage()),
                 HttpStatus.OK);
     }
     @ExceptionHandler(MessageEmptyException.class)
     protected ResponseEntity<ErrorErrorDescriptionResponse> handleMessageEmptyException(MessageEmptyException ex) {
-        return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
+        return new ResponseEntity<>(new ErrorErrorDescriptionResponse(ex.getMessage()),
                 HttpStatus.OK);
     }
 
     @ExceptionHandler(CustomException.class)
     protected ResponseEntity<ErrorErrorDescriptionResponse> handleCustomException(CustomException ex) {
-        return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
+        return new ResponseEntity<>(new ErrorErrorDescriptionResponse(ex.getMessage()),
                 HttpStatus.OK);
     }
 
     @ExceptionHandler(CustomExceptionBadRequest.class)
     protected ResponseEntity<ErrorErrorDescriptionResponse> handleCustomException(CustomExceptionBadRequest ex) {
-        return new ResponseEntity<>(new ErrorErrorDescriptionResponse("invalid_request", ex.getMessage()),
+        return new ResponseEntity<>(new ErrorErrorDescriptionResponse(ex.getMessage()),
                 HttpStatus.BAD_REQUEST);
     }
 
@@ -49,4 +49,3 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(401).body(null);
     }
 }
-

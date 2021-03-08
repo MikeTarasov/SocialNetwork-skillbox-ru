@@ -57,7 +57,7 @@ public class PostLikeService {
         //нужны коммент и человек написавший коммент
     }
 
-    public LikesListUsersResponse getListOfLikes(long itemId, String type) {//компилится
+    public LikesListUsersResponse getListOfLikes(long itemId, String type) {
         List<Long> userIdList = new ArrayList<>();
         long count = 0L;
 
@@ -74,8 +74,6 @@ public class PostLikeService {
         }
 
         return new LikesListUsersResponse(count, userIdList);
-        //возвращает  значение(id) метода(найтипостЛайк по id) в репозитории лайков
-        //возвращает  значение(id) метода(найтиКомментЛайк по id) в репозитории лайков
     }
 
 
@@ -94,7 +92,7 @@ public class PostLikeService {
                     break;
             }
             return ResponseEntity.status(200)
-                    .body(new ErrorTimeDataResponse("", getListOfLikes(request.getId(), request.getType())));
+                    .body(new ErrorTimeDataResponse(getListOfLikes(request.getId(), request.getType())));
         }
         return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Already liked"));
         //уведомляет о получении лайка к посту ил комменту
@@ -117,7 +115,7 @@ public class PostLikeService {
                 count = commentLikeRepository.countCommentLikesByCommentIdAndPersonId(id, person.getId());
                 break;
         }
-        return ResponseEntity.status(200).body(new ErrorTimeDataResponse("", new LikesCountResponse(count)));
+        return ResponseEntity.status(200).body(new ErrorTimeDataResponse(new LikesCountResponse(count)));
         //удаляет лайк с поста или коммента если нажать еще раз
         //нужны пост или коммент(их id) и человек которому принадлежат пост или коммент
     }

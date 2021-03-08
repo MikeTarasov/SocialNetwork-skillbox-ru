@@ -13,13 +13,13 @@ import ru.skillbox.socialnetwork.model.enums.FileType;
 @Data
 public class FileUploadResponse {
 
-  private String id;
-  private long ownerId;
-  private String fileName;
-  private String relativeFilePath;
-  private String rawFileURL;
-  private String fileFormat;
-  private long bytes;
-  private FileType fileType;
-  private long createdAt;
+    private String id;
+    private long ownerId;
+    private String fileName;
+    private String relativeFilePath;
+    private String rawFileURL;
+    private String fileFormat;
+    private long bytes;
+    private FileType fileType;
+    private long createdAt;
 }

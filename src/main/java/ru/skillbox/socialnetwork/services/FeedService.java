@@ -57,7 +57,7 @@ public class FeedService {
 
     if (allPosts.isEmpty()) {
       return ResponseEntity.status(HttpStatus.OK)
-          .body(new ErrorTimeTotalOffsetPerPageListDataResponse());
+              .body(new ErrorTimeTotalOffsetPerPageListDataResponse()); //TODO ??????????????????????????
     }
 
     List<PostEntityResponse> listPostsEntityResponses = allPosts.stream()
@@ -89,14 +89,11 @@ public class FeedService {
 
   private ErrorTimeTotalOffsetPerPageListDataResponse getErrorTimeOffsetPerPageListDataResponse(
       List<PostEntityResponse> listPostsEntityResponses, int offset, int itemPerPage) {
-    return ErrorTimeTotalOffsetPerPageListDataResponse.builder()
-        .error("")
-        .timestamp(System.currentTimeMillis())
-        .total(listPostsEntityResponses.size())
-        .offset(offset)
-        .perPage(itemPerPage)
-        .data(listPostsEntityResponses)
-        .build();
+    return new ErrorTimeTotalOffsetPerPageListDataResponse(
+            listPostsEntityResponses.size(),
+            offset,
+            itemPerPage,
+            listPostsEntityResponses);
   }
 
   private Pageable getPageable(int offset, int itemPerPage) {

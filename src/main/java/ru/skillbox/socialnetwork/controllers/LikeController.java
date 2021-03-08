@@ -22,7 +22,8 @@ public class LikeController {
                                             @RequestParam(value = "type") String type) {
 
         return ResponseEntity.status(200)
-                .body(new ErrorTimeDataResponse("", new LikesResponse(postLikeService.isUserHasLiked(userId, itemId, type))));
+                .body(new ErrorTimeDataResponse(
+                        new LikesResponse(postLikeService.isUserHasLiked(userId, itemId, type))));
     }
 
     @GetMapping("/likes")
@@ -30,7 +31,7 @@ public class LikeController {
                                             @RequestParam(value = "type") String type) {
 
         return ResponseEntity.status(200)
-                .body(new ErrorTimeDataResponse("", postLikeService.getListOfLikes(itemId, type)));
+                .body(new ErrorTimeDataResponse(postLikeService.getListOfLikes(itemId, type)));
     }
 
     @PutMapping("/likes")

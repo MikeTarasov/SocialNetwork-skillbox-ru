@@ -56,17 +56,17 @@ public class FriendController {
     @PostMapping("/friends/{id}")
     public ResponseEntity<ErrorTimeDataResponse> add(@PathVariable Long id){
         friendService.addFriend(id);
-        return ResponseEntity.ok(new ErrorTimeDataResponse("",new MessageResponse()));
+        return ResponseEntity.ok(new ErrorTimeDataResponse(new MessageResponse()));
     }
 
     @DeleteMapping("/friends/{id}")
     public ResponseEntity<ErrorTimeDataResponse> delete(@PathVariable Long id){
         friendService.deleteFriend(id);
-        return ResponseEntity.ok(new ErrorTimeDataResponse("",new MessageResponse()));
+        return ResponseEntity.ok(new ErrorTimeDataResponse(new MessageResponse()));
     }
 
     @GetMapping("/friends/{id}")
-    public ResponseEntity get(@PathVariable int id){
+    public ResponseEntity get(@PathVariable int id) {
         return null;
-    }
+    } //TODO ?????????????
 }

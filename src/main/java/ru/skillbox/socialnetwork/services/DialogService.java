@@ -58,10 +58,8 @@ public class DialogService {
 
         // if no dialogs
         if (dialogIdsList.isEmpty()) {
-            return new ErrorTimeTotalOffsetPerPageListDataResponse("", System.currentTimeMillis(), 0,
-                    dialogRequest.getOffset(),
-                    dialogRequest.getItemPerPage(),
-                    dialogIdsList);
+            return new ErrorTimeTotalOffsetPerPageListDataResponse(0, dialogRequest.getOffset(),
+                    dialogRequest.getItemPerPage(), dialogIdsList);
         }
 
         List<IdUnreadCountLastMessageResponse> unreadDialogsList = new ArrayList<>();
@@ -85,10 +83,8 @@ public class DialogService {
             }
         }
 
-        return new ErrorTimeTotalOffsetPerPageListDataResponse("", System.currentTimeMillis(), dialogPage.getTotalElements(),
-                dialogRequest.getOffset(),
-                dialogRequest.getItemPerPage(),
-                unreadDialogsList);
+        return new ErrorTimeTotalOffsetPerPageListDataResponse(dialogPage.getTotalElements(), dialogRequest.getOffset(),
+                dialogRequest.getItemPerPage(), unreadDialogsList);
     }
 
 
@@ -117,8 +113,7 @@ public class DialogService {
         for (PersonToDialog personToDialog : PersonToDialogList) {
             Dialog tmpDialog = personToDialog.getDialog();
             if (!personToDialogRepository.findByDialogAndPerson(tmpDialog, secondPerson).isEmpty())
-                return new ErrorTimeDataResponse("",
-                        new IdResponse(tmpDialog.getId()));
+                return new ErrorTimeDataResponse(new IdResponse(tmpDialog.getId()));
         }
 
         Dialog dialog = new Dialog();
@@ -147,8 +142,7 @@ public class DialogService {
         message.setIsDeleted(0);
         messageRepository.save(message);
 
-        return new ErrorTimeDataResponse("",
-                new IdResponse(dialog.getId()));
+        return new ErrorTimeDataResponse(new IdResponse(dialog.getId()));
     }
 
     /**
@@ -162,7 +156,7 @@ public class DialogService {
             Person person = personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
             // checking if person is already in dialog
             // need to introduce to GlobalExceptionHandler
-            if (!personToDialogRepository.findByDialogAndPerson(dialog, person).isEmpty()) {
+            if (personToDialogRepository.findByDialogAndPerson(dialog, person).isPresent()) {
                 throw new CustomException(String.format("Person ID %d is already in dialog!", id));
             }
         }
@@ -173,7 +167,7 @@ public class DialogService {
             personToDialog.setPerson(personRepository.findById(id).get());
             personToDialogRepository.save(personToDialog);
         }
-        return new ErrorTimeDataResponse("", new ListUserIdsResponse(userIds));
+        return new ErrorTimeDataResponse(new ListUserIdsResponse(userIds));
     }
 
     /**
@@ -198,7 +192,7 @@ public class DialogService {
                 personToDialogRepository.delete(personToDialog);
             }
         }
-        return new ErrorTimeDataResponse("", new ListUserIdsResponse(userIds));
+        return new ErrorTimeDataResponse(new ListUserIdsResponse(userIds));
     }
 
     /**
@@ -207,8 +201,8 @@ public class DialogService {
 
     public ErrorTimeDataResponse getInviteLink(Long dialogId) {
         Dialog dialog = dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
-        String inviteLink = dialog.getInviteCode(); // just code or full URL?
-        return new ErrorTimeDataResponse("", new LinkResponse(inviteLink));
+        String inviteLink = dialog.getInviteCode(); //TODO just code or full URL?
+        return new ErrorTimeDataResponse(new LinkResponse(inviteLink));
     }
 
     /**
@@ -222,7 +216,7 @@ public class DialogService {
         if (inviteLink.getLink().equals(dialog.getInviteCode())) {
             return addUsersToDialog(dialogId, idsList);
         } else {
-            return new ErrorTimeDataResponse("", new ErrorErrorDescriptionResponse("incorrect_code"));
+            return new ErrorTimeDataResponse(new ErrorErrorDescriptionResponse("incorrect_code")); //TODO ?????????????????
         }
     }
 
@@ -245,10 +239,9 @@ public class DialogService {
         if (unreadFound)
             dialogRepository.resetUnreadCountById(dialogId);
         long currentUserId = personDetailsService.getCurrentUser().getId();
-        return new ErrorTimeTotalOffsetPerPageListDataResponse("",
-                System.currentTimeMillis(),
-                pageMessage.getTotalElements(),
-                offset, limit, pageMessage.stream().map(message -> messageToResponse(message, currentUserId)).collect(Collectors.toList()));
+        return new ErrorTimeTotalOffsetPerPageListDataResponse(pageMessage.getTotalElements(), offset, limit,
+                pageMessage.stream().map(message -> messageToResponse(message, currentUserId))
+                        .collect(Collectors.toList()));
 
     }
 
@@ -295,7 +288,7 @@ public class DialogService {
                 0
         ));
 
-        return new ErrorTimeDataResponse("", messageEntityResponse);
+        return new ErrorTimeDataResponse(messageEntityResponse);
     }
 
 
@@ -305,7 +298,7 @@ public class DialogService {
         OnlineLastActivityResponse response = new OnlineLastActivityResponse(
                 person.getIsOnline() == 1,
                 person.getLastOnlineTime().atZone(TimeZone.getDefault().toZoneId()).toInstant().toEpochMilli());
-        return new ErrorTimeDataResponse("", response);
+        return new ErrorTimeDataResponse(response);
     }
 
     /**
@@ -317,7 +310,7 @@ public class DialogService {
         dialogRepository.findById(dialogId).orElseThrow(() -> new DialogNotFoundException(dialogId));
         personRepository.findById(personId).orElseThrow(() -> new PersonNotFoundException(personId));
 
-        return new ErrorTimeDataResponse("", new MessageResponse());
+        return new ErrorTimeDataResponse(new MessageResponse());
     }
 
     /**
@@ -328,7 +321,7 @@ public class DialogService {
         if (dialogRepository.findById(id).isEmpty())
             throw new DialogNotFoundException(id);
         dialogRepository.deleteById(id);
-        return new ErrorTimeDataResponse("", new IdResponse(id));
+        return new ErrorTimeDataResponse(new IdResponse(id));
     }
 
     /**
@@ -341,7 +334,7 @@ public class DialogService {
                 .orElseThrow(() -> new MessageNotFoundException(messageId));
         message.setIsDeleted(1);
         messageRepository.save(message);
-        return new ErrorTimeDataResponse("", new MessageIdResponse(messageId));
+        return new ErrorTimeDataResponse(new MessageIdResponse(messageId));
     }
 
     /**
@@ -355,7 +348,7 @@ public class DialogService {
         message.setIsDeleted(0);
         messageRepository.save(message);
         long currentUserId = personDetailsService.getCurrentUser().getId();
-        return new ErrorTimeDataResponse("", messageToResponse(message, currentUserId));
+        return new ErrorTimeDataResponse(messageToResponse(message, currentUserId));
     }
 
     /**
@@ -368,7 +361,7 @@ public class DialogService {
                 .orElseThrow(() -> new MessageNotFoundException(messageId));
         message.setReadStatus(ReadStatus.READ.toString());
         messageRepository.save(message);
-        return new ErrorTimeDataResponse("", new MessageResponse());
+        return new ErrorTimeDataResponse(new MessageResponse());
     }
 
     /**
@@ -385,7 +378,7 @@ public class DialogService {
         message.setText(messageTextRequest.getMessageText());
         messageRepository.save(message);
         long currentUserId = personDetailsService.getCurrentUser().getId();
-        return new ErrorTimeDataResponse("", messageToResponse(message, currentUserId));
+        return new ErrorTimeDataResponse(messageToResponse(message, currentUserId));
     }
 
 
@@ -395,7 +388,7 @@ public class DialogService {
                 readStatus -> readStatus.getReadStatus().equals(ReadStatus.SENT.toString())
         ).count();
 
-        return new ErrorTimeDataResponse("", new CountResponse(count));
+        return new ErrorTimeDataResponse(new CountResponse(count));
     }
 
     private String getRandomString(int length) {

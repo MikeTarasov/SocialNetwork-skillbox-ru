@@ -142,8 +142,6 @@ public class NotificationsService {
         }
 
         return ResponseEntity.status(200).body(new ErrorTimeTotalOffsetPerPageListDataResponse(
-                "",
-                System.currentTimeMillis(),
                 notificationsRepository.countNotificationByPersonNotification(person),
                 offset,
                 itemPerPage,
@@ -166,8 +164,6 @@ public class NotificationsService {
         }
 
         return ResponseEntity.status(200).body(new ErrorTimeTotalOffsetPerPageListDataResponse(
-                "",
-                System.currentTimeMillis(),
                 notificationsRepository.countNotificationByPersonNotification(person),
                 0,
                 20,

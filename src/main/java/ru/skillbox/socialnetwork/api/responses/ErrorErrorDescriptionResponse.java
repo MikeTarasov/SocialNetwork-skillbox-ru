@@ -4,24 +4,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.skillbox.socialnetwork.model.enums.ErrorDescriptions;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class ErrorErrorDescriptionResponse {
 
-  private String error;
-  @JsonProperty("error_description")
-  private String errorDescription;
+    private String error;
 
-  public ErrorErrorDescriptionResponse(ErrorDescriptions errorDescriptions) {
-    error = errorDescriptions.toString().toLowerCase();
-    errorDescription = errorDescriptions.getDescription();
-  }
+    @JsonProperty("error_description")
+    private String errorDescription;
 
-  public ErrorErrorDescriptionResponse(String errorDescription) {
-    error = "invalid_request";
-    this.errorDescription = errorDescription;
-  }
+    public ErrorErrorDescriptionResponse(String errorDescription) {
+        error = "invalid_request";
+        this.errorDescription = errorDescription;
+    }
 }

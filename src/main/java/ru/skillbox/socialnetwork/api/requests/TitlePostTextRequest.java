@@ -12,6 +12,7 @@ public class TitlePostTextRequest {
 
     @JsonProperty("title")
     private String title;
+
     @JsonProperty("post_text")
     private String postText;
 }

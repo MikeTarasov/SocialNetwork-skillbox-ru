@@ -75,8 +75,6 @@ public class PostService {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
-                        "",
-                        System.currentTimeMillis(),
                         posts.size(),
                         offset,
                         itemPerPage,
@@ -90,8 +88,7 @@ public class PostService {
                     .body(new ErrorErrorDescriptionResponse("Post with id = " + id + " not found."));
         }
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
-                        getPostEntityResponseByPost(optionalPost.get())));
+                .body(new ErrorTimeDataResponse(getPostEntityResponseByPost(optionalPost.get())));
     }
 
     public ResponseEntity<?> putApiPostId(long id, long publishDate, TitlePostTextRequest requestBody) {
@@ -106,10 +103,7 @@ public class PostService {
         post.setTime(getLocalDateTime(publishDate == 0 ? System.currentTimeMillis() : publishDate));
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ErrorTimeDataResponse(
-                        "",
-                        System.currentTimeMillis(),
-                        getPostEntityResponseByPost(postRepository.saveAndFlush(post))));
+                .body(new ErrorTimeDataResponse(getPostEntityResponseByPost(postRepository.saveAndFlush(post))));
     }
 
     public ResponseEntity<?> deleteApiPostId(long id) {
@@ -122,7 +116,7 @@ public class PostService {
         post.setIsDeleted(1);
         postRepository.saveAndFlush(post);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(), new IdResponse(id)));
+                .body(new ErrorTimeDataResponse(new IdResponse(id)));
     }
 
     public ResponseEntity<?> putApiPostIdRecover(long id) {
@@ -136,8 +130,7 @@ public class PostService {
         post.setIsDeleted(0);
         postRepository.saveAndFlush(post);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
-                        getPostEntityResponseByPost(optionalPost.get())));
+                .body(new ErrorTimeDataResponse(getPostEntityResponseByPost(optionalPost.get())));
     }
 
     public ResponseEntity<?> getApiPostIdComments(long id, Integer offset, Integer itemPerPage) {
@@ -168,8 +161,6 @@ public class PostService {
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeTotalOffsetPerPageListDataResponse(
-                        "",
-                        System.currentTimeMillis(),
                         getCommentEntityResponseListByPost(optionalPost.get()).size(),
                         offset,
                         itemPerPage,
@@ -222,11 +213,7 @@ public class PostService {
         }
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ErrorTimeDataResponse(
-                        "",
-                        System.currentTimeMillis(),
-                        getCommentEntityResponseByComment(comment)
-                ));
+                .body(new ErrorTimeDataResponse(getCommentEntityResponseByComment(comment)));
     }
 
     public ResponseEntity<?> putApiPostIdCommentsCommentId(long id, long commentId,
@@ -255,8 +242,7 @@ public class PostService {
         comment.setCommentText(requestBody.getCommentText());
         commentRepository.saveAndFlush(comment);
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
-                        getCommentEntityResponseByComment(comment)));
+                .body(new ErrorTimeDataResponse(getCommentEntityResponseByComment(comment)));
     }
 
     public ResponseEntity<?> deleteApiPostIdCommentsCommentId(long id, long commentId) {
@@ -287,18 +273,15 @@ public class PostService {
                 comment.setIsDeleted(false);
                 commentRepository.saveAndFlush(comment);
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
-                                getCommentEntityResponseByComment(comment)));
+                        .body(new ErrorTimeDataResponse(getCommentEntityResponseByComment(comment)));
             case "delete":
                 comment.setIsDeleted(true);
                 commentRepository.saveAndFlush(comment);
                 return ResponseEntity.status(200)
-                        .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
-                                new IdResponse(commentId)));
+                        .body(new ErrorTimeDataResponse(new IdResponse(commentId)));
             case "message":
                 return ResponseEntity.status(HttpStatus.OK)
-                        .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
-                                new MessageResponse()));
+                        .body(new ErrorTimeDataResponse(new MessageResponse()));
         }
         return ResponseEntity.status(400)
                 .body(new ErrorErrorDescriptionResponse("Some error happened"));
@@ -314,8 +297,7 @@ public class PostService {
         }
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ErrorTimeDataResponse("", System.currentTimeMillis(),
-                        new MessageResponse()));
+                .body(new ErrorTimeDataResponse(new MessageResponse()));
 
     }
 

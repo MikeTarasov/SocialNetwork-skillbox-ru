@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class MessageTextRequest {
 
-  @JsonProperty("message_text")
-  private String messageText;
+    @JsonProperty("message_text")
+    private String messageText;
 }

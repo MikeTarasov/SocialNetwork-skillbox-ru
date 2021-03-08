@@ -12,6 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 public class ListUserIdsRequest {
 
-  @JsonProperty("users_ids")
-  private List<Long> userIds;
+    @JsonProperty("users_ids")
+    private List<Long> userIds;
 }

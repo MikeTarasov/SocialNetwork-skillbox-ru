@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LinkRequest {
 
-  private String link;
+    private String link;
 }

@@ -46,7 +46,7 @@ public class StorageService {
   }
 
 
-  public ResponseEntity<?> getUpload(String type, MultipartFile file) {
+  public ResponseEntity<?> getUpload(String type, MultipartFile file) { //TODO ????????????
     if (file != null) {
       try {
         validateFile(file);
@@ -59,10 +59,7 @@ public class StorageService {
         personRepository.save(person);
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(new ErrorTimeDataResponse(
-                        "",
-                        System.currentTimeMillis(),
-                        makeFileUploadResponse(res)));
+                .body(new ErrorTimeDataResponse(makeFileUploadResponse(res)));
 
       } catch (Exception e) {
         e.printStackTrace();
@@ -70,15 +67,11 @@ public class StorageService {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(new ErrorTimeDataResponse(
                         e.getMessage(),
-                        System.currentTimeMillis(),
                         null));
       }
     } else {
       return ResponseEntity.status(HttpStatus.OK)
-              .body(new ErrorTimeDataResponse(
-                      "",
-                      System.currentTimeMillis(),
-                      null));
+              .body(new ErrorTimeDataResponse(null));
     }
   }
 

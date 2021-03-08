@@ -21,4 +21,8 @@ public class ErrorTimeDataResponse {
         timestamp = System.currentTimeMillis();
         this.data = data;
     }
+
+    public ErrorTimeDataResponse(Object data) {
+        this("", data);
+    }
 }

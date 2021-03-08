@@ -137,7 +137,7 @@ public class AccountService {
 
         if (savePerson(requestBody)) {
             return ResponseEntity.status(200)
-                    .body(new ErrorTimeDataResponse("", new MessageResponse()));
+                    .body(new ErrorTimeDataResponse(new MessageResponse()));
         }
 
         return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Can't save user!"));
@@ -164,7 +164,7 @@ public class AccountService {
              */
             changePassword(person, pass);
             return ResponseEntity.status(200)
-                    .body(new ErrorTimeDataResponse("", new MessageResponse()));
+                    .body(new ErrorTimeDataResponse(new MessageResponse()));
         }
 
         return ResponseEntity.status(400)
@@ -191,7 +191,7 @@ public class AccountService {
         changePassword(person, password);
 
         return ResponseEntity.status(200)
-                .body(new ErrorTimeDataResponse("", new MessageResponse()));
+                .body(new ErrorTimeDataResponse(new MessageResponse()));
     }
 
     public ResponseEntity<?> putApiAccountEmail(EmailRequest requestBody) {
@@ -205,7 +205,7 @@ public class AccountService {
         changeEmail(currentUser, newEmail);
 
         return ResponseEntity.status(200)
-                .body(new ErrorTimeDataResponse("", new MessageResponse()));
+                .body(new ErrorTimeDataResponse(new MessageResponse()));
     }
 
     public ResponseEntity<?> putApiAccountNotifications(NotificationTypeEnableRequest requestBody) {
@@ -227,7 +227,7 @@ public class AccountService {
             notificationSetting.setEnable(isEnable);
             notificationSettingsRepository.save(notificationSetting);
             return ResponseEntity.status(200)
-                    .body(new ErrorTimeDataResponse("", new MessageResponse()));
+                    .body(new ErrorTimeDataResponse(new MessageResponse()));
         }
 
         return ResponseEntity.status(400).body(new ErrorErrorDescriptionResponse("Setting not found!"));

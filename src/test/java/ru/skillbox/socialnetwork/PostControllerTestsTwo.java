@@ -73,8 +73,6 @@ class PostControllerTestsTwo {
         postList.add(savedPost);
         ErrorTimeTotalOffsetPerPageListDataResponse errorTimeTotalOffsetPerPageListDataResponse =
                 new ErrorTimeTotalOffsetPerPageListDataResponse(
-                        "",
-                        ConvertTimeService.getTimestamp(savedPost.getTime()),
                         1,
                         0,
                         5,
@@ -309,8 +307,7 @@ class PostControllerTestsTwo {
     void testDeletePostById() throws Exception {
         savedPost = postRepository.findById(1L).get();
         savedComment = commentRepository.findById(1L).get();
-        ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
-                "", getTimeZonedMillis(), new IdResponse(savedPost.getId()));
+        ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(new IdResponse(savedPost.getId()));
 
         assertEquals(0, postRepository.findById(savedPost.getId()).get().getIsDeleted());
         mvc.perform(MockMvcRequestBuilders
@@ -407,8 +404,6 @@ class PostControllerTestsTwo {
         savedComment = commentRepository.findById(1L).get();
         ErrorTimeTotalOffsetPerPageListDataResponse errorTimeTotalOffsetPerPageListDataResponse =
                 new ErrorTimeTotalOffsetPerPageListDataResponse(
-                        "",
-                        System.currentTimeMillis(),
                         getCommentEntityResponseListByPost(savedPost).size(),
                         0,
                         5,
@@ -484,7 +479,7 @@ class PostControllerTestsTwo {
         );
 
         ErrorTimeDataResponse errorTimeDataResponse = new ErrorTimeDataResponse(
-                "", getTimeZonedMillis(), getCommentEntityResponseByComment(savedComment));
+                getCommentEntityResponseByComment(savedComment));
 
         mvc.perform(MockMvcRequestBuilders
                 .put("/post/{id}/comments/{comment_id}", String.valueOf(savedPost.getId()),
@@ -531,15 +526,7 @@ class PostControllerTestsTwo {
         savedPost = postRepository.findById(1L).get();
         savedComment = commentRepository.findById(1L).get();
 
-        CommentEntityResponse commentEntityResponse = CommentEntityResponse.builder()
-                .id(savedComment.getId())
-                .parentId(savedComment.getParentId())
-                .commentText(savedComment.getCommentText())
-                .author(new PersonEntityResponse(savedComment.getPerson()))
-                .postId(savedComment.getPost().getId())
-                .isBlocked(savedComment.getIsBlocked())
-                .time(getMillis(savedComment.getTime())).build();
-
+        CommentEntityResponse commentEntityResponse = new CommentEntityResponse(savedComment, commentRepository);
 
         savedComment.setIsDeleted(true);
         commentRepository.saveAndFlush(savedComment);

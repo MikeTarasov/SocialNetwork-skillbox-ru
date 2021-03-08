@@ -12,5 +12,6 @@ public class ItemIdTypeRequest {
 
     @JsonProperty("item_id")
     private long id;
-    private String type; //TODO type = enum [ Post, Comment ]
+
+    private String type;
 }

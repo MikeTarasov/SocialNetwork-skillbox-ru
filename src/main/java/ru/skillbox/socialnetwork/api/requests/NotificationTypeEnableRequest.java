@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class NotificationTypeEnableRequest {
 
-  @JsonProperty("notification_type")
-  private String notificationType;
-  private boolean enable;
+    @JsonProperty("notification_type")
+    private String notificationType;
+
+    private boolean enable;
 }

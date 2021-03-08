@@ -117,8 +117,7 @@ class UserNamePasswordAuthorizationFilter extends UsernamePasswordAuthentication
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding(StandardCharsets.UTF_8.toString());
 
-            ErrorTimeDataResponse dataResponse = new ErrorTimeDataResponse("",
-                    new PersonEntityResponse(person, token));
+            ErrorTimeDataResponse dataResponse = new ErrorTimeDataResponse(new PersonEntityResponse(person, token));
             response.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(response.getOutputStream(), dataResponse);
         } catch (Exception e) {

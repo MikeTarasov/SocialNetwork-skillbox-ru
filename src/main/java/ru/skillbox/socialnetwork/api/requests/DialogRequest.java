@@ -9,11 +9,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DialogRequest {
-    @JsonProperty(defaultValue = "", required = false)
-    private String query;
-    @JsonProperty(defaultValue = "20", required = false)
-    private int itemPerPage;
-    @JsonProperty(defaultValue = "0", required = false)
-    private int offset;
 
+    @JsonProperty(defaultValue = "")
+    private String query;
+
+    @JsonProperty(defaultValue = "20")
+    private int itemPerPage;
+
+    @JsonProperty(defaultValue = "0")
+    private int offset;
 }

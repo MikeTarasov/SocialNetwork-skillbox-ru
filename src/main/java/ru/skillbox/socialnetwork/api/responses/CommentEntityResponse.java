@@ -2,7 +2,6 @@ package ru.skillbox.socialnetwork.api.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.skillbox.socialnetwork.model.entities.PostComment;
@@ -12,25 +11,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommentEntityResponse {
 
     @JsonProperty("parent_id")
     private Long parentId;
+
     @JsonProperty("comment_text")
     private String commentText;
+
     private long id;
+
     @JsonProperty("post_id")
     private long postId;
+
     private long time;
+
     @JsonProperty("author")
     private PersonEntityResponse author;
+
     @JsonProperty("is_blocked")
     private boolean isBlocked;
+
     @JsonProperty("is_deleted")
     private boolean isDeleted;
+
     @JsonProperty("sub_comments")
     private List<CommentEntityResponse> subComments;
 
@@ -51,6 +57,7 @@ public class CommentEntityResponse {
 
     public static List<CommentEntityResponse> getCommentEntityResponseList(
             List<PostComment> listComments, PostCommentRepository repository) {
+
         List<CommentEntityResponse> response = new ArrayList<>();
 
         listComments.stream().filter(comment -> comment.getParentId() == null)
@@ -60,6 +67,7 @@ public class CommentEntityResponse {
     }
 
     private void addSubComment(List<PostComment> comments, PostCommentRepository repository) {
+
         comments.forEach(comment -> subComments.add(new CommentEntityResponse(comment, repository)));
     }
 }

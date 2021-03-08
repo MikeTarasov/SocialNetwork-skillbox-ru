@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class LinkResponse {
 
-  private String link;
+    private String link;
 }

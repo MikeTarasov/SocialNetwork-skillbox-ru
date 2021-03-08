@@ -11,26 +11,28 @@ import ru.skillbox.socialnetwork.model.enums.MessagesPermissions;
 @AllArgsConstructor
 public class PersonEditRequest {
 
-  @JsonProperty("first_name")
-  private String firstName;
-  @JsonProperty("last_name")
-  private String lastName;
-  @JsonProperty("birth_date")
-  private String birthDate;
-  private String phone;
-  @JsonProperty("photo_id")
-  private String photoId;
-  private String about;
-  @JsonProperty("city")
-  private String townId;
-  @JsonProperty("country")
-  private String countryId;
-  @JsonProperty("messages_permission")
-  private MessagesPermissions messagesPermission;
+    @JsonProperty("first_name")
+    private String firstName;
 
-//  photo_id	number
-//  example: o1doj1d91j1d01d-1d1f  //TODO  o1doj1d91j1d01d-1d1f -> NUMBER??????????
-//  ID на фото в хранилище
+    @JsonProperty("last_name")
+    private String lastName;
 
-//  messages_permission	string //TODO test enum!
+    @JsonProperty("birth_date")
+    private String birthDate;
+
+    private String phone;
+
+    @JsonProperty("photo_id")
+    private String photoId;
+
+    private String about;
+
+    @JsonProperty("city")
+    private String townId;
+
+    @JsonProperty("country")
+    private String countryId;
+
+    @JsonProperty("messages_permission")
+    private MessagesPermissions messagesPermission;
 }

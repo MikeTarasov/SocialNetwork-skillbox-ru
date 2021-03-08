@@ -49,14 +49,11 @@ public class ProfileService {
 
     public ErrorTimeDataResponse getUser(long id) {
         Person person = personRepository.findById(id).orElseThrow(() -> new PersonNotFoundException(id));
-        return new ErrorTimeDataResponse(
-                "",
-                convertPersonToResponse(person)
-        );
+        return new ErrorTimeDataResponse(convertPersonToResponse(person));
     }
 
     public ErrorTimeDataResponse getCurrentUser() {
-        return new ErrorTimeDataResponse("", convertPersonToResponse(personDetailsService.getCurrentUser()));
+        return new ErrorTimeDataResponse(convertPersonToResponse(personDetailsService.getCurrentUser()));
     }
 
 
@@ -91,20 +88,17 @@ public class ProfileService {
             person.setMessagePermission(personEditRequest.getMessagesPermission().toString());
         }
         personRepository.save(person);
-        return new ErrorTimeDataResponse("", convertPersonToResponse(person));
+        return new ErrorTimeDataResponse(convertPersonToResponse(person));
     }
 
 
     public ErrorTimeDataResponse deleteCurrentUser() {
         Person person = personDetailsService.getCurrentUser();
 
-        //на фронте криво работает удаление - временно удаляем юзера целиком
         person.setIsDeleted(1);
         personRepository.save(person);
-        //может вызвать SQL-error -> следить за работоспособностью каскадного удаления!!!!!
-//        personRepository.delete(person);
 
-        return new ErrorTimeDataResponse("", new MessageResponse());
+        return new ErrorTimeDataResponse(new MessageResponse());
     }
 
 
@@ -115,7 +109,7 @@ public class ProfileService {
 
         //пока блокировку юзеров отключаем, до момента адекватной реализации данного функционала
 
-        return new ErrorTimeDataResponse("", new MessageResponse());
+        return new ErrorTimeDataResponse(new MessageResponse());
     }
 
 
@@ -127,8 +121,6 @@ public class ProfileService {
         Page<Post> posts = postRepository
                 .findByAuthorAndTimeBeforeAndIsBlockedAndIsDeleted(person, LocalDateTime.now(), 0, 0, paging);
         return new ErrorTimeTotalOffsetPerPageListDataResponse(
-                "",
-                System.currentTimeMillis(),
                 posts.getTotalElements(),
                 offset,
                 itemPerPage,
@@ -154,7 +146,7 @@ public class ProfileService {
                 .likes(new ArrayList<>())
                 .build();
         postRepository.save(post);
-        return new ErrorTimeDataResponse("", convertPostToPostResponse(post, null));
+        return new ErrorTimeDataResponse(convertPostToPostResponse(post, null));
     }
 
 
@@ -184,8 +176,6 @@ public class ProfileService {
                 personDetailsService.getCurrentUser().getId(), paging);
 
         return new ErrorTimeTotalOffsetPerPageListDataResponse(
-                "",
-                System.currentTimeMillis(),
                 personPage.getTotalElements(),
                 offset,
                 itemPerPage,
