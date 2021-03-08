@@ -20,12 +20,14 @@ public class NotificationsController {
     public ResponseEntity<?> getApiNotifications(
             @RequestParam(name = "offset", defaultValue = "0", required = false) Integer offset,
             @RequestParam(defaultValue = "20", required = false) Integer itemPerPage) {
+
         return notificationsService.getApiNotifications(offset, itemPerPage);
     }
 
     @PutMapping("")
     public ResponseEntity<?> putApiNotifications(@RequestParam(value = "id", required = false) Long id,
                                                  @RequestParam(value = "all", required = false) Boolean all) {
+
         return notificationsService.putApiNotifications(id, all);
     }
 }

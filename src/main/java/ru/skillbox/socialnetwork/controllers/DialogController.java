@@ -24,11 +24,8 @@ public class DialogController {
     @GetMapping("")
     public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getDialogList(
             @RequestBody(required = false) DialogRequest dialogRequest) {
-        if (dialogRequest != null) {
-            return ResponseEntity.ok(dialogService.getDialogsLastMessages(dialogRequest));
-        } else {
-            return ResponseEntity.ok(dialogService.getDialogsLastMessages());
-        }
+
+        return ResponseEntity.ok(dialogService.getDialogsLastMessages(dialogRequest));
     }
 
 
@@ -38,113 +35,111 @@ public class DialogController {
         return ResponseEntity.ok(dialogService.createDialog(listUserIdsRequest.getUserIds()));
     }
 
-    /**
-     * метод не используется
-     */
+
     @PutMapping("/{id}/users")
-    public ResponseEntity<ErrorTimeDataResponse> addUserToDialog(@PathVariable Long id,
-                                                                 @RequestBody ListUserIdsRequest listUserIdsRequest) {
+    public ResponseEntity<ErrorTimeDataResponse> addUserToDialog(
+            @PathVariable Long id, @RequestBody ListUserIdsRequest listUserIdsRequest) {
+
         return ResponseEntity.ok(dialogService.addUsersToDialog(id, listUserIdsRequest.getUserIds()));
     }
 
-    /**
-     * метод не используется
-     */
+
     @DeleteMapping("/{id}/users")
-    public ResponseEntity<ErrorTimeDataResponse> deleteUsersFromDialog(@PathVariable Long id,
-                                                                       @RequestBody ListUserIdsRequest listUserIdsRequest) {
+    public ResponseEntity<ErrorTimeDataResponse> deleteUsersFromDialog(
+            @PathVariable Long id, @RequestBody ListUserIdsRequest listUserIdsRequest) {
+
         return ResponseEntity.ok(dialogService.deleteUsersFromDialog(id, listUserIdsRequest.getUserIds()));
     }
 
-    /**
-     * метод не используется
-     */
+
     @GetMapping("/{id}/users/invite")
     public ResponseEntity<ErrorTimeDataResponse> getInviteLink(@PathVariable Long id) {
+
         return ResponseEntity.ok(dialogService.getInviteLink(id));
     }
 
-    /**
-     * метод не используется
-     */
+
     @PutMapping("/{id}/users/join")
     public ResponseEntity<ErrorTimeDataResponse> joinByInvite(@PathVariable Long id, @RequestBody LinkRequest link) {
+
         return ResponseEntity.ok(dialogService.joinByInvite(id, link));
     }
 
     @GetMapping("/{id}/activity/{user_id}")
-    public ResponseEntity<ErrorTimeDataResponse> getPersonActivity(@PathVariable Long id, @PathVariable(name = "user_id") Long PersonId) {
+    public ResponseEntity<ErrorTimeDataResponse> getPersonActivity(
+            @PathVariable Long id, @PathVariable(name = "user_id") Long PersonId) {
+
         return ResponseEntity.ok(dialogService.getPersonStatus(id, PersonId));
     }
 
-    /**
-     * метод не используется
-     */
+
     @PostMapping("/{id}/activity/{user_id}")
-    public ResponseEntity<ErrorTimeDataResponse> setPersonActivity(@PathVariable Long id, @PathVariable(name = "user_id") Long PersonId) {
+    public ResponseEntity<ErrorTimeDataResponse> setPersonActivity(
+            @PathVariable Long id, @PathVariable(name = "user_id") Long PersonId) {
+
         return ResponseEntity.ok(dialogService.setPersonStatus(id, PersonId));
     }
 
     @GetMapping("/{id}/messages")
-    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getListMessages(@PathVariable Long id,
-                                                                                       @RequestParam(required = false, defaultValue = "") String query,
-                                                                                       @RequestParam(required = false, defaultValue = "0") Integer offset,
-                                                                                       @RequestParam(required = false, defaultValue = "20") Integer limit) {
+    public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getListMessages(
+            @PathVariable Long id,
+            @RequestParam(required = false, defaultValue = "") String query,
+            @RequestParam(required = false, defaultValue = "0") Integer offset,
+            @RequestParam(required = false, defaultValue = "20") Integer limit) {
+
         return ResponseEntity.ok(dialogService.getMessagesByDialogId(id, query, offset, limit));
     }
 
     @PostMapping("/{dialogId}/messages")
     public ResponseEntity<ErrorTimeDataResponse> sendMessages(@PathVariable Long dialogId,
                                                               @RequestBody MessageTextRequest messageTextRequest) {
+
         return ResponseEntity.ok(dialogService.sendMessage(dialogId, messageTextRequest));
     }
 
-    /**
-     * метод не используется
-     */
+
     @DeleteMapping("/{dialogId}/messages/{messageId}")
-    public ResponseEntity<ErrorTimeDataResponse> deleteMessage(@PathVariable Long dialogId, @PathVariable Long messageId) {
+    public ResponseEntity<ErrorTimeDataResponse> deleteMessage(
+            @PathVariable Long dialogId, @PathVariable Long messageId) {
+
         return ResponseEntity.ok(dialogService.deleteMessage(dialogId, messageId));
     }
 
-    /**
-     * метод не используется
-     */
+
     @PutMapping("/{dialogId}/messages/{messageId}")
     public ResponseEntity<ErrorTimeDataResponse> changeMessage(@PathVariable Long dialogId,
                                                                @PathVariable Long messageId,
                                                                @RequestBody MessageTextRequest messageTextRequest) {
+
         return ResponseEntity.ok(dialogService.changeMessage(dialogId, messageId, messageTextRequest));
     }
 
-    /**
-     * метод не используется
-     */
+
     @PutMapping("/{dialogId}/messages/{messageId}/recover")
     public ResponseEntity<ErrorTimeDataResponse> recoverMessage(@PathVariable Long dialogId,
                                                                @PathVariable Long messageId) {
+
         return ResponseEntity.ok(dialogService.recoverMessage(dialogId, messageId));
     }
 
-    /**
-     * метод не используется
-     */
+
     @PutMapping("/{dialogId}/messages/{messageId}/read")
     public ResponseEntity<ErrorTimeDataResponse> markReadMessage(@PathVariable Long dialogId,
                                                                @PathVariable Long messageId) {
+
         return ResponseEntity.ok(dialogService.markReadMessage(dialogId, messageId));
     }
 
-    /**
-     * метод не используется
-     */
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ErrorTimeDataResponse> deleteDialog(@PathVariable Long id) {
+
         return ResponseEntity.ok(dialogService.deleteDialog(id));
     }
 
     @GetMapping("/unreaded")
     public ResponseEntity<ErrorTimeDataResponse> getNewMessagesCount() {
+
         return ResponseEntity.ok(dialogService.getNewMessagesCount());
     }
 }

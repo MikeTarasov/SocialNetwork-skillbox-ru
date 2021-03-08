@@ -48,6 +48,10 @@ public class DialogService {
 
 
     public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsLastMessages(DialogRequest dialogRequest) {
+        if (dialogRequest == null) {
+            return getDialogsLastMessages(new DialogRequest("", 20, 0));
+        }
+
         Person currentUser = personDetailsService.getCurrentUser();
         // find where the user is participant
         List<PersonToDialog> personToDialogs = personToDialogRepository.findByPerson(currentUser);
@@ -85,11 +89,6 @@ public class DialogService {
 
         return new ErrorTimeTotalOffsetPerPageListDataResponse(dialogPage.getTotalElements(), dialogRequest.getOffset(),
                 dialogRequest.getItemPerPage(), unreadDialogsList);
-    }
-
-
-    public ErrorTimeTotalOffsetPerPageListDataResponse getDialogsLastMessages() {
-        return getDialogsLastMessages(new DialogRequest("", 20, 0));
     }
 
 

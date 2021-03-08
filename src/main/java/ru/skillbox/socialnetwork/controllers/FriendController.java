@@ -25,7 +25,7 @@ public class FriendController {
     public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> getRequests(
             @RequestParam(required = false) String name,
             @RequestParam(required = false, defaultValue = "0") Integer offset,
-            @RequestParam(required = false, defaultValue = "20") Integer itemPerPage){
+            @RequestParam(required = false, defaultValue = "20") Integer itemPerPage) {
 
         return ResponseEntity.ok(friendService.getFriends(name, offset, itemPerPage, FriendStatus.REQUEST));
     }
@@ -33,15 +33,15 @@ public class FriendController {
     @GetMapping("/friends/recommendations")
     public ResponseEntity<ErrorTimeTotalOffsetPerPageListDataResponse> recommendations(
             @RequestParam(required = false, defaultValue = "0") Integer offset,
-            @RequestParam(required = false, defaultValue = "20") Integer itemPerPage){
+            @RequestParam(required = false, defaultValue = "20") Integer itemPerPage) {
 
         return ResponseEntity.ok(friendService.getRecommendations(offset, itemPerPage));
     }
 
     @PostMapping("/is/friends")
-    public ResponseEntity<ListDataResponse> isFriend(@RequestBody ListUserIdsRequest userIds){
-        return ResponseEntity.ok(new ListDataResponse(
-                friendService.isFriend(userIds.getUserIds())));
+    public ResponseEntity<ListDataResponse> isFriend(@RequestBody ListUserIdsRequest userIds) {
+
+        return ResponseEntity.ok(new ListDataResponse(friendService.isFriend(userIds.getUserIds())));
     }
 
     @GetMapping("/friends")
@@ -54,19 +54,16 @@ public class FriendController {
     }
 
     @PostMapping("/friends/{id}")
-    public ResponseEntity<ErrorTimeDataResponse> add(@PathVariable Long id){
+    public ResponseEntity<ErrorTimeDataResponse> add(@PathVariable Long id) {
+
         friendService.addFriend(id);
         return ResponseEntity.ok(new ErrorTimeDataResponse(new MessageResponse()));
     }
 
     @DeleteMapping("/friends/{id}")
-    public ResponseEntity<ErrorTimeDataResponse> delete(@PathVariable Long id){
+    public ResponseEntity<ErrorTimeDataResponse> delete(@PathVariable Long id) {
+
         friendService.deleteFriend(id);
         return ResponseEntity.ok(new ErrorTimeDataResponse(new MessageResponse()));
     }
-
-    @GetMapping("/friends/{id}")
-    public ResponseEntity get(@PathVariable int id) {
-        return null;
-    } //TODO ?????????????
 }

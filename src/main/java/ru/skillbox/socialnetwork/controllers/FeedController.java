@@ -21,8 +21,5 @@ public class FeedController {
                                   @RequestParam(name = "itemPerPage", defaultValue = "20") int itemPerPage) {
 
         return feedService.getFeed(name, offset, itemPerPage);
-
     }
-
-
 }
