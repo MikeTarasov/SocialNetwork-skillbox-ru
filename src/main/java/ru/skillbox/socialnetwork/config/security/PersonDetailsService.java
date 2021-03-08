@@ -50,7 +50,8 @@ public class PersonDetailsService implements UserDetailsService {
 
         return per.get();
     }
-    public void updateLastOnline(String username){
+
+    public void updateLastOnline(String username) {
         Person person = personRepository.findByEmail(username).orElseThrow(() -> new PersonNotFoundException(username));
         person.setLastOnlineTime(LocalDateTime.now());
         personRepository.save(person);

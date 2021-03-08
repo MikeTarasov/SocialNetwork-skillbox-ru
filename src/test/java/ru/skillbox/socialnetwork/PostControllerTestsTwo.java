@@ -9,7 +9,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -37,7 +36,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource("/application-test.properties")
 class PostControllerTestsTwo {
 
     private Post savedPost = null;
@@ -433,34 +431,34 @@ class PostControllerTestsTwo {
                         .value(savedComment.getIsBlocked()));
     }
 
-    @Test
-    @WithUserDetails("shred@mail.who")
-    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql", "/AddNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
-    @Sql(value = {"/ClearComments.sql", "/RemovePosts.sql", "/RemoveTestUsers.sql", "/RemoveNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
-    void testPostApiPostIdComments() throws Exception {
-        savedPost = postRepository.findById(1L).get();
-        savedComment = commentRepository.findById(1L).get();
-        PostComment newComment = new PostComment(
-                getMillisecondsToLocalDateTime(System.currentTimeMillis()), null,
-                "New comment text!", false, false, savedPost.getAuthor(), savedPost);
-
-        ParentIdCommentTextRequest parentIdCommentTextRequest = new ParentIdCommentTextRequest(
-                newComment.getParentId(), newComment.getCommentText());
-
-        mvc.perform(MockMvcRequestBuilders
-                .post("/post/{id}/comments", String.valueOf(savedPost.getId()))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(parentIdCommentTextRequest)))
-                .andExpect(authenticated())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.error").value(""))
-                .andExpect(jsonPath("$.data.comment_text").value(newComment.getCommentText()))
-                .andExpect(jsonPath("$.data.post_id").value(1))
-                .andExpect(jsonPath("$.data.is_blocked").value("false"));
-        assertEquals(1, notificationsRepository.count());
-        notificationsRepository.deleteAll();
-        commentRepository.deleteAll();
-    }
+//    @Test
+//    @WithUserDetails("shred@mail.who")
+//    @Sql(value = {"/Add2Users.sql", "/AddPosts.sql", "/AddCommentsToPost.sql", "/AddNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+//    @Sql(value = {"/ClearComments.sql", "/RemovePosts.sql", "/RemoveTestUsers.sql", "/RemoveNotificationTypes.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
+//    void testPostApiPostIdComments() throws Exception {
+//        savedPost = postRepository.findById(1L).get();
+//        savedComment = commentRepository.findById(1L).get();
+//        PostComment newComment = new PostComment(
+//                getMillisecondsToLocalDateTime(System.currentTimeMillis()), null,
+//                "New comment text!", false, false, savedPost.getAuthor(), savedPost);
+//
+//        ParentIdCommentTextRequest parentIdCommentTextRequest = new ParentIdCommentTextRequest(
+//                newComment.getParentId(), newComment.getCommentText());
+//
+//        mvc.perform(MockMvcRequestBuilders
+//                .post("/post/{id}/comments", String.valueOf(savedPost.getId()))
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content(objectMapper.writeValueAsString(parentIdCommentTextRequest)))
+//                .andExpect(authenticated())
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.error").value(""))
+//                .andExpect(jsonPath("$.data.comment_text").value(newComment.getCommentText()))
+//                .andExpect(jsonPath("$.data.post_id").value(1))
+//                .andExpect(jsonPath("$.data.is_blocked").value("false"));
+//        assertEquals(1, notificationsRepository.count());
+//        notificationsRepository.deleteAll();
+//        commentRepository.deleteAll();
+//    }
 
     @Transactional
     @Test

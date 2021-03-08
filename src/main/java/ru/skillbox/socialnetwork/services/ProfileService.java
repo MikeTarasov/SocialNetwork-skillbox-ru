@@ -18,14 +18,12 @@ import ru.skillbox.socialnetwork.repositories.PersonRepository;
 import ru.skillbox.socialnetwork.repositories.PostCommentRepository;
 import ru.skillbox.socialnetwork.repositories.PostRepository;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TimeZone;
 
 @Service
 public class ProfileService {
@@ -133,7 +131,7 @@ public class ProfileService {
         if (publishDate == null) {
             dateToPublish = LocalDateTime.now();
         } else {
-            dateToPublish = Instant.ofEpochMilli(publishDate).atZone(TimeZone.getDefault().toZoneId()).toLocalDateTime();
+            dateToPublish = ConvertTimeService.getLocalDateTime(publishDate);
         }
 
         Post post = Post.builder()
@@ -223,7 +221,8 @@ public class ProfileService {
      */
 
     private PostEntityResponse convertPostToPostResponse(Post post, String type) {
-        return new PostEntityResponse(post, postCommentRepository, type);
+        return type == null ? new PostEntityResponse(post, postCommentRepository) :
+                new PostEntityResponse(post, postCommentRepository, type);
     }
 
     /**

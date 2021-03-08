@@ -36,17 +36,14 @@ class UserNamePasswordAuthorizationFilter extends UsernamePasswordAuthentication
     private final ObjectMapper objectMapper;
     private final Logger logger;
     private final String jwtHeader;
-    private final String jwtPrefix;
 
 
     public UserNamePasswordAuthorizationFilter(PersonRepository personRepository,
                                                JwtTokenProvider jwtProvider,
-                                               String jwtHeader,
-                                               String jwtPrefix) {
+                                               String jwtHeader) {
         this.personRepository = personRepository;
         this.jwtProvider = jwtProvider;
         this.jwtHeader = jwtHeader;
-        this.jwtPrefix = jwtPrefix;
 
         logger = LogManager.getRootLogger();
         authenticationDetailsSource = new WebAuthenticationDetailsSource();

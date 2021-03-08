@@ -9,6 +9,7 @@ import ru.skillbox.socialnetwork.repositories.PostCommentRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Data
 @AllArgsConstructor
@@ -60,7 +61,7 @@ public class CommentEntityResponse {
 
         List<CommentEntityResponse> response = new ArrayList<>();
 
-        listComments.stream().filter(comment -> comment.getParentId() == null)
+        listComments.stream().filter(Objects::nonNull).filter(comment -> comment.getParentId() == null)
                 .forEach(comment -> response.add(new CommentEntityResponse(comment, repository)));
 
         return response;

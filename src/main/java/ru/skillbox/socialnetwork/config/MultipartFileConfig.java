@@ -1,6 +1,5 @@
 package ru.skillbox.socialnetwork.config;
 
-import javax.servlet.MultipartConfigElement;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.web.servlet.MultipartConfigFactory;
@@ -8,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.unit.DataSize;
 
+import javax.servlet.MultipartConfigElement;
 
 
 @Configuration
@@ -23,5 +23,4 @@ public class MultipartFileConfig {
     factory.setMaxFileSize(DataSize.ofMegabytes(maxFileSizeInMb));
     return factory.createMultipartConfig();
   }
-
 }

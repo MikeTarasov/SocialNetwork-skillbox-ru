@@ -13,7 +13,6 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    private final long millisInMinute = 60 * 1000;
     private final JwtConfig jwtConfig;
 
     public JwtTokenProvider(JwtConfig jwtConfig) {
@@ -21,6 +20,7 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(String email) {
+        long millisInMinute = 60 * 1000;
         Date exp = new Date(
                 System.currentTimeMillis() + (jwtConfig.getJwtExpTime() * millisInMinute));
         Key key = Keys.hmacShaKeyFor(jwtConfig.getJwtSecret().getBytes());

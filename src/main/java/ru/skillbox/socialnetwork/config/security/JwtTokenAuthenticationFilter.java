@@ -31,8 +31,8 @@ public class JwtTokenAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NonNull HttpServletRequest httpServletRequest,
                                     @NonNull HttpServletResponse httpServletResponse,
                                     @NonNull FilterChain filterChain) throws IOException, ServletException {
-        if (httpServletRequest.getHeader(jwtHeader) == null /* || !header.startsWith(jwtConfig.getPrefix()) */) {
-            filterChain.doFilter(httpServletRequest, httpServletResponse);   // If not valid, go to the next filter.
+        if (httpServletRequest.getHeader(jwtHeader) == null) {
+            filterChain.doFilter(httpServletRequest, httpServletResponse);
             return;
         }
 
