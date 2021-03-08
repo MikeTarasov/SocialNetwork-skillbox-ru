@@ -11,8 +11,6 @@ import ru.skillbox.socialnetwork.api.responses.MessageResponse;
 import ru.skillbox.socialnetwork.model.enums.FriendStatus;
 import ru.skillbox.socialnetwork.services.FriendService;
 
-import java.util.List;
-
 @RestController
 public class FriendController {
 

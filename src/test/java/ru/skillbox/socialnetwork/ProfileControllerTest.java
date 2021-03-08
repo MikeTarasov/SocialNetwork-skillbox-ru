@@ -12,11 +12,11 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.skillbox.socialnetwork.api.requests.PersonEditRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
-import ru.skillbox.socialnetwork.model.entity.Person;
-import ru.skillbox.socialnetwork.model.entity.Post;
+import ru.skillbox.socialnetwork.model.entities.Person;
+import ru.skillbox.socialnetwork.model.entities.Post;
 import ru.skillbox.socialnetwork.model.enums.MessagesPermissions;
-import ru.skillbox.socialnetwork.repository.PersonRepository;
-import ru.skillbox.socialnetwork.repository.PostRepository;
+import ru.skillbox.socialnetwork.repositories.PersonRepository;
+import ru.skillbox.socialnetwork.repositories.PostRepository;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;

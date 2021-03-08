@@ -1,12 +1,13 @@
 package ru.skillbox.socialnetwork.services;
 
-import javax.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import ru.skillbox.socialnetwork.model.entity.Person;
+import ru.skillbox.socialnetwork.model.entities.Person;
+
+import javax.mail.internet.MimeMessage;
 
 @Service
 public class EmailSenderService {

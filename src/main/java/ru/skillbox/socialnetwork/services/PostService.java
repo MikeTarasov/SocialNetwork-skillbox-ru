@@ -10,11 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.skillbox.socialnetwork.api.requests.ParentIdCommentTextRequest;
 import ru.skillbox.socialnetwork.api.requests.TitlePostTextRequest;
 import ru.skillbox.socialnetwork.api.responses.*;
-import ru.skillbox.socialnetwork.model.entity.Notification;
-import ru.skillbox.socialnetwork.model.entity.Post;
-import ru.skillbox.socialnetwork.model.entity.PostComment;
-import ru.skillbox.socialnetwork.repository.*;
-import ru.skillbox.socialnetwork.security.PersonDetailsService;
+import ru.skillbox.socialnetwork.config.security.PersonDetailsService;
+import ru.skillbox.socialnetwork.model.entities.Notification;
+import ru.skillbox.socialnetwork.model.entities.Post;
+import ru.skillbox.socialnetwork.model.entities.PostComment;
+import ru.skillbox.socialnetwork.repositories.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

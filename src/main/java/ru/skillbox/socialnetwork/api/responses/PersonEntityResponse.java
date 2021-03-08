@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.skillbox.socialnetwork.model.entity.Person;
+import ru.skillbox.socialnetwork.model.entities.Person;
 import ru.skillbox.socialnetwork.services.ConvertTimeService;
 
 @Data

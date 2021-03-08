@@ -10,10 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeDataResponse;
 import ru.skillbox.socialnetwork.api.responses.FileUploadResponse;
-import ru.skillbox.socialnetwork.model.entity.Person;
+import ru.skillbox.socialnetwork.config.security.PersonDetailsService;
+import ru.skillbox.socialnetwork.model.entities.Person;
 import ru.skillbox.socialnetwork.model.enums.FileType;
-import ru.skillbox.socialnetwork.repository.PersonRepository;
-import ru.skillbox.socialnetwork.security.PersonDetailsService;
+import ru.skillbox.socialnetwork.repositories.PersonRepository;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;

@@ -11,12 +11,12 @@ import ru.skillbox.socialnetwork.api.responses.CommentEntityResponse;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
 import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
 import ru.skillbox.socialnetwork.api.responses.PostEntityResponse;
-import ru.skillbox.socialnetwork.model.entity.Friendship;
-import ru.skillbox.socialnetwork.model.entity.Notification;
-import ru.skillbox.socialnetwork.model.entity.Person;
-import ru.skillbox.socialnetwork.model.entity.Post;
-import ru.skillbox.socialnetwork.repository.*;
-import ru.skillbox.socialnetwork.security.PersonDetailsService;
+import ru.skillbox.socialnetwork.config.security.PersonDetailsService;
+import ru.skillbox.socialnetwork.model.entities.Friendship;
+import ru.skillbox.socialnetwork.model.entities.Notification;
+import ru.skillbox.socialnetwork.model.entities.Person;
+import ru.skillbox.socialnetwork.model.entities.Post;
+import ru.skillbox.socialnetwork.repositories.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;

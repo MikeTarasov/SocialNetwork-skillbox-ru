@@ -11,11 +11,11 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.skillbox.socialnetwork.api.requests.ListUserIdsRequest;
-import ru.skillbox.socialnetwork.model.entity.Person;
+import ru.skillbox.socialnetwork.model.entities.Person;
 import ru.skillbox.socialnetwork.model.enums.FriendStatus;
-import ru.skillbox.socialnetwork.repository.FriendshipRepository;
-import ru.skillbox.socialnetwork.repository.NotificationsRepository;
-import ru.skillbox.socialnetwork.repository.PersonRepository;
+import ru.skillbox.socialnetwork.repositories.FriendshipRepository;
+import ru.skillbox.socialnetwork.repositories.NotificationsRepository;
+import ru.skillbox.socialnetwork.repositories.PersonRepository;
 
 import java.util.ArrayList;
 import java.util.List;

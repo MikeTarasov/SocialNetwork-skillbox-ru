@@ -5,8 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.skillbox.socialnetwork.model.entity.PostComment;
-import ru.skillbox.socialnetwork.repository.PostCommentRepository;
+import ru.skillbox.socialnetwork.model.entities.PostComment;
+import ru.skillbox.socialnetwork.repositories.PostCommentRepository;
 
 import java.util.ArrayList;
 import java.util.List;

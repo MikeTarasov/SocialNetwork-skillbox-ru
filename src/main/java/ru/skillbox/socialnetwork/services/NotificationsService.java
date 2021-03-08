@@ -6,10 +6,10 @@ import org.springframework.stereotype.Service;
 import ru.skillbox.socialnetwork.api.responses.ErrorTimeTotalOffsetPerPageListDataResponse;
 import ru.skillbox.socialnetwork.api.responses.NotificationBaseResponse;
 import ru.skillbox.socialnetwork.api.responses.PersonEntityResponse;
-import ru.skillbox.socialnetwork.model.entity.*;
-import ru.skillbox.socialnetwork.repository.*;
-import ru.skillbox.socialnetwork.security.PersonDetailsService;
-import ru.skillbox.socialnetwork.services.exceptions.PersonNotFoundException;
+import ru.skillbox.socialnetwork.config.security.PersonDetailsService;
+import ru.skillbox.socialnetwork.exceptions.PersonNotFoundException;
+import ru.skillbox.socialnetwork.model.entities.*;
+import ru.skillbox.socialnetwork.repositories.*;
 
 import java.util.ArrayList;
 import java.util.List;

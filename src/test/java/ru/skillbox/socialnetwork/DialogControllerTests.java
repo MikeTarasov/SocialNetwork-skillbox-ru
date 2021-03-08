@@ -16,12 +16,12 @@ import ru.skillbox.socialnetwork.api.requests.DialogRequest;
 import ru.skillbox.socialnetwork.api.requests.LinkRequest;
 import ru.skillbox.socialnetwork.api.requests.ListUserIdsRequest;
 import ru.skillbox.socialnetwork.api.requests.MessageTextRequest;
-import ru.skillbox.socialnetwork.model.entity.Dialog;
-import ru.skillbox.socialnetwork.model.entity.Person;
-import ru.skillbox.socialnetwork.repository.DialogRepository;
-import ru.skillbox.socialnetwork.repository.PersonRepository;
-import ru.skillbox.socialnetwork.repository.PersonToDialogRepository;
-import ru.skillbox.socialnetwork.services.exceptions.DialogNotFoundException;
+import ru.skillbox.socialnetwork.exceptions.DialogNotFoundException;
+import ru.skillbox.socialnetwork.model.entities.Dialog;
+import ru.skillbox.socialnetwork.model.entities.Person;
+import ru.skillbox.socialnetwork.repositories.DialogRepository;
+import ru.skillbox.socialnetwork.repositories.PersonRepository;
+import ru.skillbox.socialnetwork.repositories.PersonToDialogRepository;
 
 import java.util.ArrayList;
 import java.util.List;
